@@ -1,0 +1,1294 @@
+/* Noor assistant. Values from the Figma Noor component set; colours/radii/motion come from tokens. */
+.noor {
+  font-family: var(--font-assistant);
+  color: var(--noor-ink);
+}
+
+.noor button,
+.noor input {
+  font-family: inherit;
+}
+
+.noor :focus-visible {
+  outline: 2px solid var(--noor-gold);
+  outline-offset: 2px;
+}
+
+.noor p,
+.noor h2,
+.noor h3 {
+  margin: 0;
+}
+
+/* ---------- Avatar ---------- */
+.noor-avatar {
+  position: relative;
+  flex: none;
+  inline-size: var(--avatar-size);
+  block-size: var(--avatar-size);
+  border-radius: 50%;
+  background: var(--noor-chip);
+}
+
+.noor-avatar > * {
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.noor-avatar--ring {
+  box-shadow:
+    0 0 0 7px var(--noor-chip),
+    0 0 0 8px var(--noor-line);
+}
+
+.noor-avatar--thinking::after,
+.noor-avatar--listening::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* Thinking: rotating rings. */
+.noor-avatar--thinking::after {
+  border: 2px solid transparent;
+  border-block-start-color: var(--noor-gold);
+  border-inline-end-color: var(--noor-line-strong);
+  animation: noor-spin 900ms linear infinite;
+}
+
+/* Listening: pulsing ring. */
+.noor-avatar--listening::after {
+  border: 2px solid var(--noor-gold);
+  animation: noor-pulse 1200ms var(--ease-out) infinite;
+}
+
+@keyframes noor-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes noor-pulse {
+  from { transform: scale(0.92); opacity: 0.9; }
+  to { transform: scale(1.28); opacity: 0; }
+}
+
+/* ---------- Launcher ---------- */
+.noor-launcher {
+  position: fixed;
+  inset-block-end: 24px;
+  inset-inline-end: 24px;
+  z-index: 1000;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  block-size: 60px;
+  padding: 6px 18px 6px 6px;
+  background: var(--c-white);
+  border: 0;
+  border-radius: 30px;
+  box-shadow: var(--shadow-noor-launcher);
+  cursor: pointer;
+  text-align: start;
+  transform-origin: bottom right;
+  animation:
+    noor-launcher-in var(--dur-5) var(--ease-spring) both,
+    noor-breathe 4.8s ease-in-out 1.2s infinite;
+  transition: box-shadow var(--dur-2) var(--ease-out);
+}
+
+.noor-launcher[hidden] {
+  display: none;
+}
+
+.noor-launcher:hover {
+  box-shadow: var(--shadow-noor-panel);
+}
+
+.noor-launcher:active {
+  transform: scale(0.97);
+}
+
+.noor-launcher__text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.noor-launcher__title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--noor-ink);
+}
+
+.noor-launcher__sub {
+  font-size: 12px;
+  color: var(--noor-muted);
+}
+
+/* Pulses once on first load, then breathes slowly. */
+@keyframes noor-launcher-in {
+  0% { transform: scale(0.8); opacity: 0; }
+  60% { transform: scale(1.06); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+@keyframes noor-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.025); }
+}
+
+/* ---------- Panel ---------- */
+.noor-shell {
+  --noor-bubble-max: 318px;
+  --noor-user-max: 300px;
+  position: fixed;
+  inset-block-end: 24px;
+  inset-inline-end: 24px;
+  z-index: 1000;
+  inline-size: min(420px, calc(100vw - 32px));
+  block-size: min(811px, calc(100dvh - 48px));
+  transition:
+    inline-size var(--dur-4) var(--ease-out),
+    block-size var(--dur-4) var(--ease-out),
+    inset var(--dur-4) var(--ease-out);
+}
+
+/* Expanded: the panel grows from the centre of the screen to the right edge. */
+.noor-shell.is-expanded {
+  --noor-bubble-max: 560px;
+  --noor-user-max: 480px;
+  inset-block-end: 16px;
+  inset-inline-end: 16px;
+  inline-size: calc(50vw - 16px);
+  block-size: calc(100dvh - 32px);
+}
+
+.noor-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  inline-size: 100%;
+  block-size: 100%;
+  background: var(--c-white);
+  border-radius: var(--radius-noor-panel);
+  box-shadow: var(--shadow-noor-panel);
+  overflow: hidden;
+  transform-origin: bottom right;
+  animation: noor-panel-in var(--dur-4) var(--ease-out) both;
+}
+
+/* Morphs out of the launcher's corner rather than fading. */
+@keyframes noor-panel-in {
+  from { transform: scale(0.35); border-radius: 30px; opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.noor-pose {
+  position: absolute;
+  inset-inline-end: calc(100% - 20px);
+  inset-block-end: -41px;
+  inline-size: 233px;
+  block-size: 349px;
+  pointer-events: none;
+  animation: noor-fade var(--dur-4) var(--ease-out) var(--dur-3) both;
+}
+
+.noor-pose .image-slot {
+  display: none; /* a missing pose is decorative; don't show a dev placeholder over the page */
+}
+
+@keyframes noor-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.noor-header {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  block-size: 79px;
+  padding: 14px 14px 14px 20px;
+  border-block-end: 1px solid var(--noor-line);
+  background: var(--c-white);
+}
+
+.noor-header__text {
+  flex: 1;
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.noor-header__name {
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 23px;
+  color: var(--noor-ink);
+}
+
+.noor-header__sub {
+  font-size: 13px;
+  color: var(--noor-muted);
+}
+
+.noor-icon-btn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 44px;
+  block-size: 44px;
+  padding: 0;
+  color: var(--noor-ink);
+  background: var(--c-white);
+  border: 1px solid var(--noor-line-strong);
+  border-radius: 22px;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-1) var(--ease-out),
+    transform var(--dur-1) var(--ease-out);
+}
+
+.noor-icon-btn:hover {
+  background: var(--noor-chip);
+}
+
+.noor-icon-btn:active {
+  transform: scale(0.94);
+}
+
+/* ---------- Welcome ---------- */
+.noor-welcome {
+  position: relative;
+  flex: 1;
+  min-block-size: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 20px;
+  text-align: center;
+  background: linear-gradient(to bottom, var(--c-white), var(--noor-surface));
+  overflow: hidden;
+  animation: noor-fade var(--dur-4) var(--ease-out) both;
+}
+
+/* Circular dot pattern behind the avatar, built in CSS to avoid a 7 MB bitmap. */
+.noor-welcome__dots {
+  position: absolute;
+  inset-inline-start: 50%;
+  inset-block-start: 50%;
+  inline-size: 455px;
+  block-size: 455px;
+  translate: -50% -58%;
+  opacity: 0.35;
+  background-image: radial-gradient(circle, var(--noor-gold) 0.9px, transparent 1.3px);
+  background-size: 12px 12px;
+  mask-image: radial-gradient(circle, transparent 0 14%, #000 16%, transparent 62%);
+  pointer-events: none;
+}
+
+.noor-welcome > :not(.noor-welcome__dots):not(.noor-welcome__aurora) {
+  position: relative;
+}
+
+.noor-welcome__title {
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 34px;
+  letter-spacing: -0.26px;
+  color: var(--noor-ink);
+}
+
+.noor-welcome__sub {
+  font-size: 14.5px;
+  line-height: 21px;
+  color: var(--noor-muted);
+}
+
+/* ---------- Conversation ---------- */
+.noor-log {
+  flex: 1;
+  min-block-size: 0;
+  overflow-y: auto;
+  background: var(--noor-surface);
+  overscroll-behavior: contain;
+}
+
+.noor-log__inner {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+}
+
+.noor-log__day {
+  align-self: center;
+  font-size: 13px;
+  color: var(--noor-muted);
+}
+
+.noor-msg {
+  display: flex;
+  gap: 10px;
+  animation: noor-msg-in var(--dur-3) var(--ease-out) both;
+}
+
+.noor-msg--user {
+  justify-content: flex-end;
+}
+
+.noor-msg__avatar {
+  margin-block-start: 0;
+}
+
+.noor-msg__col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-inline-size: 0;
+  flex: 1;
+}
+
+@keyframes noor-msg-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+.noor-bubble {
+  font-size: 14.5px;
+  overflow-wrap: anywhere;
+}
+
+.noor-bubble--user {
+  max-inline-size: var(--noor-user-max);
+  padding: 10px 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--c-white);
+  background: var(--noor-ink);
+  border-radius: 18px;
+  border-end-end-radius: 6px;
+}
+
+.noor-bubble--noor {
+  max-inline-size: var(--noor-bubble-max);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 12px 14px;
+  background: var(--c-white);
+  border-radius: 18px;
+  border-start-start-radius: 6px;
+}
+
+.noor-bubble__primary {
+  line-height: 21px;
+  color: var(--noor-ink);
+}
+
+.noor-bubble__secondary {
+  font-size: 13.5px;
+  line-height: 19px;
+  color: var(--noor-muted);
+}
+
+.noor-caret {
+  display: inline-block;
+  inline-size: 2px;
+  block-size: 1em;
+  margin-inline-start: 2px;
+  vertical-align: text-bottom;
+  background: var(--noor-gold);
+  animation: noor-blink 800ms steps(2, start) infinite;
+}
+
+@keyframes noor-blink {
+  to { visibility: hidden; }
+}
+
+/* Typing dots stagger. */
+.noor-typing {
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+  padding-block: 16px;
+}
+
+.noor-typing span {
+  inline-size: 6px;
+  block-size: 6px;
+  border-radius: 50%;
+  background: var(--noor-muted);
+  animation: noor-dot 1000ms ease-in-out infinite;
+}
+
+.noor-typing span:nth-child(2) { animation-delay: 150ms; }
+.noor-typing span:nth-child(3) { animation-delay: 300ms; }
+
+@keyframes noor-dot {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.45; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+
+/* Tool chip: shows its work, then resolves. */
+.noor-chip-tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px 5px 8px;
+  font-size: 13px;
+  color: var(--noor-muted);
+  background: var(--noor-chip);
+  border: 1px solid var(--noor-line);
+  border-radius: 999px;
+  transition: color var(--dur-2) var(--ease-out);
+}
+
+.noor-chip-tool.is-done {
+  color: var(--noor-ink);
+}
+
+.noor-chip-tool__icon {
+  display: inline-flex;
+  inline-size: 14px;
+  block-size: 14px;
+  align-items: center;
+  justify-content: center;
+}
+
+.noor-chip-tool.is-done .noor-chip-tool__icon {
+  color: var(--noor-success);
+}
+
+.noor-spinner {
+  inline-size: 11px;
+  block-size: 11px;
+  border: 2px solid var(--noor-line-strong);
+  border-block-start-color: var(--noor-gold);
+  border-radius: 50%;
+  animation: noor-spin 700ms linear infinite;
+}
+
+/* ---------- Cards ---------- */
+.noor-card {
+  inline-size: 100%;
+  max-inline-size: var(--noor-bubble-max);
+  background: var(--c-white);
+  border: 1px solid var(--noor-line);
+  border-radius: var(--radius-noor-card);
+  overflow: hidden;
+  animation: noor-msg-in var(--dur-3) var(--ease-out) var(--card-delay, 0ms) both;
+}
+
+.noor-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px;
+}
+
+.noor-card__title {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--noor-ink);
+}
+
+.noor-card__text {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--noor-muted);
+}
+
+.noor-card__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 14px;
+  border-block-start: 1px solid var(--noor-line);
+}
+
+.noor-card__foot--links {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.noor-card__note {
+  font-size: 13px;
+  color: var(--noor-muted);
+}
+
+.noor-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-block-size: 44px;
+  padding: 0 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-white);
+  background: var(--noor-gold);
+  border: 0;
+  border-radius: var(--radius-noor-button);
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform var(--dur-1) var(--ease-out);
+}
+
+.noor-btn:active {
+  transform: scale(0.96);
+}
+
+/* Secondary treatment for link-outs so they never read as "apply". */
+.noor-btn--link {
+  color: var(--noor-gold);
+  background: var(--noor-chip);
+  box-shadow: inset 0 0 0 1px var(--noor-line-strong);
+}
+
+/* Status steps: ticks in sequence. */
+.noor-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.noor-steps__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--noor-ink);
+  animation: noor-msg-in var(--dur-3) var(--ease-out) var(--tick-delay, 0ms) both;
+}
+
+.noor-steps__mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 18px;
+  block-size: 18px;
+  border-radius: 50%;
+  border: 1.5px solid var(--noor-line-strong);
+  color: var(--c-white);
+}
+
+.noor-steps__item.is-done .noor-steps__mark {
+  background: var(--noor-success);
+  border-color: var(--noor-success);
+}
+
+.noor-steps__label {
+  flex: 1;
+}
+
+.noor-steps__state {
+  padding: 2px 8px;
+  font-size: 12.5px;
+  font-weight: 500;
+  border-radius: 999px;
+}
+
+.is-done .noor-steps__state {
+  color: var(--noor-success);
+  background: var(--noor-success-bg);
+}
+
+.is-pending .noor-steps__state {
+  color: var(--noor-pending);
+  background: var(--noor-pending-bg);
+}
+
+/* ---------- Footer: topics, input, note ---------- */
+.noor-footer {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 20px 16px;
+  background: var(--c-white);
+  border-block-start: 1px solid var(--noor-line);
+}
+
+.noor-topics {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.noor-topic {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-block-size: 48px;
+  padding: 0 12px;
+  font-size: 14.5px;
+  color: var(--noor-ink);
+  text-align: start;
+  background: var(--noor-chip);
+  border: 0;
+  border-radius: var(--radius-noor-chip);
+  cursor: pointer;
+  transition:
+    box-shadow var(--dur-1) var(--ease-out),
+    transform var(--dur-1) var(--ease-out);
+}
+
+.noor-topic:hover:not([aria-disabled='true']) {
+  box-shadow: inset 0 0 0 1px var(--noor-line-strong);
+}
+
+.noor-topic:active:not([aria-disabled='true']) {
+  transform: scale(0.97);
+}
+
+.noor-topic__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 26px;
+  block-size: 26px;
+  color: var(--noor-gold);
+  background: var(--c-white);
+  border-radius: var(--radius-noor-icon);
+}
+
+.noor-input {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  block-size: 56px;
+  padding-inline: 16px 6px;
+  background: var(--c-white);
+  border: 1px solid var(--noor-line-strong);
+  border-radius: var(--radius-noor-input);
+  transition: border-color var(--dur-1) var(--ease-out);
+}
+
+.noor-input:focus-within {
+  border-color: var(--noor-gold);
+  box-shadow: 0 0 0 2px var(--noor-gold);
+}
+
+.noor-input__field {
+  flex: 1;
+  min-inline-size: 0;
+  padding: 0;
+  font-size: 15px;
+  color: var(--noor-ink);
+  background: transparent;
+  border: 0;
+}
+
+.noor-input__field::placeholder {
+  color: var(--noor-muted);
+  opacity: 1;
+}
+
+.noor-input__field:focus-visible {
+  outline: none;
+}
+
+.noor-input__listening {
+  flex: 1;
+  font-size: 15px;
+  color: var(--noor-muted);
+}
+
+.noor-mic,
+.noor-send {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  cursor: pointer;
+  transition:
+    transform var(--dur-1) var(--ease-out),
+    opacity var(--dur-2) var(--ease-out),
+    background-color var(--dur-1) var(--ease-out);
+}
+
+.noor-mic {
+  inline-size: 44px;
+  block-size: 44px;
+  color: var(--noor-gold);
+  background: transparent;
+  border-radius: 22px;
+}
+
+.noor-mic:hover:not([aria-disabled='true']) {
+  background: var(--noor-chip);
+}
+
+.noor-send {
+  inline-size: 44px;
+  block-size: 44px;
+  color: var(--c-white);
+  background: var(--noor-gold);
+  border-radius: var(--radius-noor-button);
+}
+
+.noor-send:active:not([aria-disabled='true']),
+.noor-mic:active:not([aria-disabled='true']) {
+  transform: scale(0.94);
+}
+
+.noor-mic[aria-disabled='true'],
+.noor-send[aria-disabled='true'],
+.noor-topic[aria-disabled='true'] {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Listening waveform. */
+.noor-wave {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  block-size: 24px;
+}
+
+.noor-wave i {
+  inline-size: 3px;
+  block-size: 100%;
+  background: var(--noor-gold);
+  border-radius: 2px;
+  transform: scaleY(0.25);
+  animation: noor-wave 900ms ease-in-out infinite;
+}
+
+.noor-wave i:nth-child(2) { animation-delay: 90ms; }
+.noor-wave i:nth-child(3) { animation-delay: 180ms; }
+.noor-wave i:nth-child(4) { animation-delay: 270ms; }
+.noor-wave i:nth-child(5) { animation-delay: 180ms; }
+.noor-wave i:nth-child(6) { animation-delay: 90ms; }
+.noor-wave i:nth-child(7) { animation-delay: 0ms; }
+
+@keyframes noor-wave {
+  0%, 100% { transform: scaleY(0.25); }
+  50% { transform: scaleY(1); }
+}
+
+.noor-footer__note {
+  font-size: 13px;
+  line-height: 18px;
+  text-align: center;
+  color: var(--noor-muted);
+}
+
+/* ---------- Small screens: full-width panel, no side illustration ---------- */
+@media (max-width: 520px) {
+  .noor-launcher {
+    inset-block-end: 16px;
+    inset-inline-end: 16px;
+  }
+
+  .noor-shell {
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100dvh;
+  }
+
+  .noor-panel {
+    border-radius: 0;
+  }
+
+  .noor-pose {
+    display: none;
+  }
+
+  .noor-welcome__dots {
+    inline-size: 360px;
+    block-size: 360px;
+  }
+}
+
+/* The illustration hangs 200px off the panel; hide it where it would leave the viewport. */
+@media (max-width: 760px) {
+  .noor-pose {
+    display: none;
+  }
+}
+
+/* Reduced motion: the global rule in motion.css collapses animation durations; also drop
+   movement so everything reduces to opacity. */
+@media (prefers-reduced-motion: reduce) {
+  .noor-msg,
+  .noor-card,
+  .noor-steps__item {
+    animation-name: noor-fade;
+  }
+
+  .noor-panel {
+    animation-name: noor-fade;
+  }
+
+  .noor-launcher {
+    animation: none;
+  }
+
+  .noor-btn:active,
+  .noor-topic:active,
+  .noor-icon-btn:active,
+  .noor-send:active,
+  .noor-mic:active {
+    transform: none;
+  }
+}
+
+/* ================= Positive lead line ================= */
+.noor-bubble__lead {
+  font-weight: 600;
+  line-height: 21px;
+  color: var(--noor-ink);
+}
+
+@keyframes noor-pop {
+  from { transform: scale(0); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* ================= Motion: entrances, exits, ticks ================= */
+@keyframes noor-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes noor-leave {
+  to { opacity: 0; transform: translateY(-8px); }
+}
+
+@keyframes noor-leave-down {
+  to { opacity: 0; transform: translateY(8px); }
+}
+
+@keyframes noor-panel-out {
+  to { transform: scale(0.4); border-radius: 30px; opacity: 0; }
+}
+
+@keyframes noor-user-in {
+  from { opacity: 0; transform: translate(14px, 8px) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes noor-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes noor-ring {
+  from { transform: scale(1); opacity: 0.55; }
+  to { transform: scale(1.22, 1.5); opacity: 0; }
+}
+
+/* Welcome: one thing at a time — avatar, headline, sub-line, then chips. */
+.noor-welcome__avatar {
+  animation: noor-pop var(--dur-4) var(--ease-spring) 80ms backwards;
+}
+
+.noor-welcome__title {
+  animation: noor-rise var(--dur-3) var(--ease-out) 180ms backwards;
+}
+
+.noor-welcome__sub {
+  animation: noor-rise var(--dur-3) var(--ease-out) 240ms backwards;
+}
+
+.noor-topic {
+  animation: noor-rise var(--dur-3) var(--ease-out) calc(300ms + var(--i, 0) * 55ms) backwards;
+}
+
+.noor-welcome.is-leaving {
+  animation: noor-leave 200ms var(--ease-in) forwards;
+}
+
+.noor-topics.is-leaving .noor-topic {
+  animation: noor-leave-down 160ms var(--ease-in) calc(var(--i, 0) * 15ms) forwards;
+}
+
+.noor-shell.is-closing .noor-panel {
+  animation: noor-panel-out var(--dur-3) var(--ease-in) forwards;
+}
+
+.noor-shell.is-closing .noor-pose {
+  animation: none;
+  opacity: 0;
+  transition: opacity var(--dur-2) var(--ease-in);
+}
+
+.noor-msg--user {
+  animation-name: noor-user-in;
+  animation-timing-function: var(--ease-spring);
+}
+
+/* Ticks draw themselves (stroke-dashoffset). */
+.noor-steps__mark svg polyline,
+.noor-chip-tool__icon svg polyline {
+  stroke-dasharray: 300;
+  stroke-dashoffset: 300;
+  animation: noor-draw var(--dur-4) var(--ease-out) calc(var(--tick-delay, 0ms) + 120ms) forwards;
+}
+
+/* A soft ring invites the first tap, twice, then leaves the launcher alone. */
+.noor-launcher::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 2px solid var(--noor-gold);
+  border-radius: 30px;
+  pointer-events: none;
+  opacity: 0;
+  animation: noor-ring 2.2s var(--ease-out) 1.6s 2;
+}
+
+.noor-launcher:hover:not(:active) {
+  transform: translateY(-2px);
+}
+
+/* Hover and press: small, quick, never decorative. */
+.noor-topic:hover:not([aria-disabled='true']) {
+  transform: translateY(-1px);
+}
+
+.noor-topic__icon {
+  transition: transform var(--dur-2) var(--ease-spring);
+}
+
+.noor-topic:hover:not([aria-disabled='true']) .noor-topic__icon {
+  transform: scale(1.1) rotate(-4deg);
+}
+
+.noor-btn:hover {
+  transform: translateY(-1px);
+}
+
+.noor-card {
+  transition: box-shadow var(--dur-2) var(--ease-out);
+}
+
+.noor-card:hover {
+  box-shadow: 0 6px 18px -10px rgba(36, 29, 16, 0.35);
+}
+
+.noor-btn--link .icon,
+.noor-send .icon {
+  transition: transform var(--dur-2) var(--ease-out);
+}
+
+.noor-btn--link:hover .icon {
+  transform: translate(2px, -2px);
+}
+
+.noor-send:hover:not([aria-disabled='true']) .icon {
+  transform: translateX(3px);
+}
+
+.noor-expand:hover .icon {
+  transform: scale(1.12);
+}
+
+.noor-expand .icon {
+  transition: transform var(--dur-2) var(--ease-spring);
+}
+
+/* ================= Layout: expanded mode ================= */
+.noor-log__inner {
+  inline-size: 100%;
+  max-inline-size: 820px;
+  margin-inline: auto;
+}
+
+.noor-footer > * {
+  inline-size: 100%;
+  max-inline-size: 680px;
+  margin-inline: auto;
+}
+
+/* The illustration stays beside the panel when expanded; the panel's left edge is the screen centre,
+   so there is room for it. */
+.noor-shell.is-expanded .noor-pose {
+  inset-block-end: -8px;
+}
+
+.noor-shell.is-expanded .noor-topics {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.noor-shell.is-expanded .noor-bubble--noor,
+.noor-shell.is-expanded .noor-bubble--user {
+  font-size: 15.5px;
+}
+
+.noor-shell.is-expanded .noor-welcome__title {
+  font-size: 30px;
+  line-height: 38px;
+}
+
+@media (max-width: 900px) {
+  .noor-shell.is-expanded .noor-pose {
+    display: none; /* full screen: no room beside the panel */
+  }
+
+  .noor-shell.is-expanded {
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100dvh;
+  }
+
+  .noor-shell.is-expanded .noor-panel {
+    border-radius: 0;
+  }
+}
+
+/* Already full screen on phones, so expanding means nothing there. */
+@media (max-width: 520px) {
+  .noor-expand {
+    display: none;
+  }
+}
+
+/* ================= Accessibility modes ================= */
+@media (forced-colors: active) {
+  .noor-topic,
+  .noor-btn,
+  .noor-send,
+  .noor-mic,
+  .noor-icon-btn,
+  .noor-launcher,
+  .noor-card,
+  .noor-bubble--noor,
+  .noor-bubble--user,
+  .noor-chip-tool {
+    border: 1px solid CanvasText;
+  }
+
+  .noor-steps__item.is-done .noor-steps__mark {
+    background: Highlight;
+    color: HighlightText;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .noor *,
+  .noor *::before,
+  .noor *::after {
+    transition-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+  }
+
+  .noor-launcher::after {
+    animation: none;
+  }
+
+  .noor-steps__mark svg polyline,
+  .noor-chip-tool__icon svg polyline {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+
+  .noor-msg--user {
+    animation-name: noor-fade;
+  }
+
+  .noor-topic:hover,
+  .noor-btn:hover,
+  .noor-launcher:hover,
+  .noor-topic__icon,
+  .noor-btn--link:hover .icon,
+  .noor-send:hover .icon,
+  .noor-expand:hover .icon {
+    transform: none !important;
+  }
+}
+
+/* ================= Welcome: living AI backdrop ================= */
+/* Layers, back to front: drifting aurora → breathing dot field → avatar with a turning glow.
+   Gold only (tokens), low opacity, slow. */
+.noor-welcome__aurora {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.noor-welcome__aurora i {
+  position: absolute;
+  inline-size: 280px;
+  block-size: 280px;
+  border-radius: 50%;
+  filter: blur(36px);
+  background: radial-gradient(circle, color-mix(in srgb, var(--noor-gold) 38%, transparent), transparent 68%);
+  opacity: 0.38;
+  animation: noor-drift-a 15s ease-in-out infinite alternate;
+}
+
+.noor-welcome__aurora i:nth-child(1) { inset-inline-start: -90px; inset-block-start: -60px; }
+
+.noor-welcome__aurora i:nth-child(2) {
+  inset-inline-end: -100px;
+  inset-block-start: 30%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--noor-success) 22%, transparent), transparent 68%);
+  opacity: 0.3;
+  animation-name: noor-drift-b;
+  animation-duration: 19s;
+}
+
+.noor-welcome__aurora i:nth-child(3) {
+  inset-inline-start: 25%;
+  inset-block-end: -120px;
+  opacity: 0.3;
+  animation-duration: 23s;
+  animation-delay: -6s;
+}
+
+@keyframes noor-drift-a {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(70px, 50px) scale(1.25); }
+}
+
+@keyframes noor-drift-b {
+  from { transform: translate(0, 0) scale(1.1); }
+  to { transform: translate(-80px, -40px) scale(0.9); }
+}
+
+.noor-welcome__dots {
+  animation: noor-dots-breathe 7s ease-in-out infinite;
+}
+
+@keyframes noor-dots-breathe {
+  0%, 100% { transform: scale(1); opacity: 0.3; }
+  50% { transform: scale(1.07); opacity: 0.5; }
+}
+
+.noor-welcome__hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 76px;
+  block-size: 76px;
+}
+
+.noor-welcome__glow {
+  position: absolute;
+  inset: -22px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    transparent,
+    color-mix(in srgb, var(--noor-gold) 45%, transparent),
+    transparent 40%,
+    color-mix(in srgb, var(--noor-gold) 25%, transparent) 70%,
+    transparent
+  );
+  filter: blur(14px);
+  animation: noor-spin 9s linear infinite;
+}
+
+/* Backdrop pauses when the user is busy elsewhere in the panel, and stops under reduced motion. */
+.noor-welcome.is-leaving .noor-welcome__aurora i {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .noor-welcome__aurora i,
+  .noor-welcome__dots,
+  .noor-welcome__glow {
+    animation: none;
+  }
+}
+
+/* ================= Cards used in chat ================= */
+.noor-ticks,
+.noor-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.noor-ticks li {
+  display: flex;
+  gap: 8px;
+  font-size: 13.5px;
+  line-height: 19px;
+  color: var(--noor-ink);
+  animation: noor-msg-in var(--dur-3) var(--ease-out) var(--tick-delay, 0ms) both;
+}
+
+.noor-ticks__mark {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 18px;
+  block-size: 18px;
+  margin-block-start: 1px;
+  color: var(--noor-success);
+  background: var(--noor-success-bg);
+  border-radius: 50%;
+}
+
+.noor-ticks__mark svg polyline {
+  stroke-dasharray: 300;
+  stroke-dashoffset: 300;
+  animation: noor-draw var(--dur-4) var(--ease-out) calc(var(--tick-delay, 0ms) + 120ms) forwards;
+}
+
+.noor-list--ordered {
+  padding-inline-start: 20px;
+  list-style: decimal;
+}
+
+.noor-list--ordered li {
+  padding-inline-start: 4px;
+  font-size: 13.5px;
+  line-height: 19px;
+  color: var(--noor-ink);
+}
+
+.noor-suggest {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-block-start: 8px;
+}
+
+.noor-suggest__btn {
+  min-block-size: 44px;
+  padding: 0 14px;
+  font-size: 14px;
+  color: var(--noor-ink);
+  background: var(--noor-chip);
+  border: 1px solid var(--noor-line-strong);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform var(--dur-1) var(--ease-out), border-color var(--dur-1) var(--ease-out);
+}
+
+.noor-suggest__btn:hover { border-color: var(--noor-gold); transform: translateY(-1px); }
+.noor-suggest__btn:active { transform: scale(0.97); }
+
+.noor-btn:disabled { opacity: 0.55; cursor: default; transform: none; }
+
+@media (forced-colors: active) {
+  .noor-suggest__btn { border: 1px solid CanvasText; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .noor-ticks__mark svg polyline { animation: none; stroke-dashoffset: 0; }
+  .noor-suggest__btn:hover { transform: none; }
+}

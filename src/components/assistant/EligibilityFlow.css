@@ -1,0 +1,710 @@
+/* Eligibility flow inside the conversation: stepper strip under the header, question cards with
+   icon options, review card, and the success / outcome card (Figma success layout).
+   Tokens only; no hard-coded colours. */
+
+/* ---------- Stepper strip (below the header, subtle background) ---------- */
+.noor-strip {
+  flex: none;
+  padding: 8px 20px;
+  background: var(--noor-surface);
+  border-block-end: 1px solid var(--noor-line);
+  animation: noor-strip-in var(--dur-4) var(--ease-out) both;
+}
+
+@keyframes noor-strip-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: none; }
+}
+
+.noor-stepper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.noor-stepper li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 10px 3px 3px;
+  font-size: 13px;
+  color: var(--noor-muted);
+  border-radius: 999px;
+}
+
+.noor-stepper__n {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 24px;
+  block-size: 24px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--noor-muted);
+  background: var(--c-white);
+  border-radius: 8px;
+  transition: background-color var(--dur-3) var(--ease-out), color var(--dur-3) var(--ease-out);
+}
+
+.noor-stepper .is-active { color: var(--noor-gold); font-weight: 600; }
+.noor-stepper .is-active .noor-stepper__n { color: var(--c-white); background: var(--noor-gold); }
+.noor-stepper .is-done { color: var(--noor-success); font-weight: 600; }
+.noor-stepper .is-done .noor-stepper__n { color: var(--noor-success); background: var(--noor-success-bg); }
+
+/* ---------- Question card ---------- */
+.noor-q__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px 0;
+}
+
+.noor-q__progress { font-size: 13.5px; font-weight: 600; color: var(--noor-ink); }
+.noor-q__hint { font-size: 13px; color: var(--noor-muted); }
+
+.noor-arc__track,
+.noor-arc__fill { fill: none; stroke-width: 3.5; }
+.noor-arc__track { stroke: var(--noor-line-strong); }
+
+.noor-arc__fill {
+  stroke: var(--noor-gold);
+  stroke-linecap: round;
+  stroke-dasharray: var(--arc-full);
+  stroke-dashoffset: var(--arc-full);
+  transform: rotate(-90deg);
+  transform-origin: 18px 18px;
+  animation: noor-arc var(--dur-5) var(--ease-out) 200ms forwards;
+}
+
+@keyframes noor-arc { to { stroke-dashoffset: var(--arc-to); } }
+
+.noor-arc__n { font-size: 12px; font-weight: 700; fill: var(--noor-ink); }
+
+/* ---------- Option cards (one tap answers) ---------- */
+.noor-opts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 8px;
+  padding: 12px 14px 14px;
+}
+
+.noor-optcard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-block-size: 96px;
+  padding: 12px;
+  text-align: start;
+  font-family: inherit;
+  cursor: pointer;
+  background: var(--c-white);
+  border: 1px solid var(--noor-line-strong);
+  border-radius: var(--radius-noor-chip);
+  animation: noor-rise var(--dur-3) var(--ease-out) calc(160ms + var(--i, 0) * 55ms) backwards;
+  transition:
+    border-color var(--dur-1) var(--ease-out),
+    background-color var(--dur-2) var(--ease-out),
+    transform var(--dur-1) var(--ease-out),
+    opacity var(--dur-2) var(--ease-out),
+    box-shadow var(--dur-2) var(--ease-out);
+}
+
+.noor-optcard:hover:not(:disabled) {
+  border-color: var(--noor-gold);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px -12px rgba(36, 29, 16, 0.45);
+}
+
+.noor-optcard:active:not(:disabled) { transform: scale(0.98); }
+.noor-optcard:disabled { cursor: default; }
+
+.noor-optcard__icon {
+  display: inline-flex;
+  color: var(--noor-gold);
+  transition: transform var(--dur-2) var(--ease-spring);
+}
+
+.noor-optcard:hover:not(:disabled) .noor-optcard__icon { transform: scale(1.12); }
+
+.noor-optcard__text { display: flex; flex-direction: column; gap: 2px; }
+.noor-optcard__title { font-size: 14.5px; font-weight: 600; line-height: 1.25; color: var(--noor-ink); }
+.noor-optcard__hint { font-size: 13px; line-height: 17px; color: var(--noor-muted); }
+
+.noor-optcard__check {
+  position: absolute;
+  inset-block-start: 10px;
+  inset-inline-end: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 20px;
+  block-size: 20px;
+  color: var(--c-white);
+  background: var(--noor-gold);
+  border-radius: 50%;
+  transform: scale(0);
+  transition: transform var(--dur-2) var(--ease-spring);
+}
+
+.noor-optcard.is-selected {
+  background: var(--noor-chip);
+  border-color: var(--noor-gold);
+  box-shadow: inset 0 0 0 1px var(--noor-gold);
+}
+
+.noor-optcard.is-selected .noor-optcard__check { transform: scale(1); }
+.noor-optcard.is-dim { opacity: 0.5; }
+
+/* ---------- Review card ---------- */
+.noor-rev {
+  display: flex;
+  flex-direction: column;
+  margin: 8px 0 0;
+}
+
+.noor-rev__row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: 8px;
+  align-items: center;
+  padding-block: 6px;
+  border-block-start: 1px solid var(--noor-line);
+}
+
+.noor-rev__row dt { grid-column: 1; font-size: 13px; color: var(--noor-muted); }
+.noor-rev__row dd { grid-column: 1; margin: 0; font-size: 14.5px; font-weight: 600; color: var(--noor-ink); }
+.noor-rev__row .noor-link-btn { grid-column: 2; grid-row: 1 / span 2; }
+
+.noor-link-btn {
+  min-block-size: 44px;
+  min-inline-size: 44px;
+  padding: 0 8px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--noor-gold);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.noor-link-btn:disabled { color: var(--noor-muted); text-decoration: none; cursor: default; }
+
+/* ---------- Outcome card (success layout) ---------- */
+.noor-done__top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 20px 16px 4px;
+  text-align: center;
+}
+
+.noor-done__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 64px;
+  block-size: 64px;
+  margin-block-end: 6px;
+  color: var(--noor-success);
+  background: color-mix(in srgb, var(--noor-success) 72%, var(--c-white));
+  border-radius: 50%;
+  box-shadow: inset -7px -7px 0 color-mix(in srgb, var(--noor-success) 80%, black);
+  animation: noor-pop var(--dur-5) var(--ease-spring) 200ms backwards;
+}
+
+.noor-done__badge > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 38px;
+  block-size: 38px;
+  background: var(--c-white);
+  border-radius: 50%;
+}
+
+.noor-done.is-info .noor-done__badge {
+  color: var(--noor-pending);
+  background: color-mix(in srgb, var(--noor-pending) 55%, var(--c-white));
+  box-shadow: inset -7px -7px 0 var(--noor-pending);
+}
+
+.noor-done__badge svg polyline {
+  stroke-dasharray: 300;
+  stroke-dashoffset: 300;
+  animation: noor-draw var(--dur-5) var(--ease-out) 500ms forwards;
+}
+
+.noor-done__title {
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--noor-ink);
+  animation: noor-rise var(--dur-3) var(--ease-out) 280ms backwards;
+}
+
+.noor-done__sub {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--noor-muted);
+  animation: noor-rise var(--dur-3) var(--ease-out) 340ms backwards;
+}
+
+.noor-done__list { padding: 12px 14px 14px; }
+
+.noor-done__label {
+  margin-block-end: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--noor-gold);
+}
+
+.noor-done__list ul {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.noor-done__list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--noor-chip);
+  border-radius: var(--radius-noor-chip);
+  animation: noor-rise var(--dur-3) var(--ease-out) calc(400ms + var(--i, 0) * 80ms) backwards;
+}
+
+.noor-done__icon { flex: none; display: inline-flex; color: var(--noor-gold); }
+.noor-done__item { display: block; font-size: 14.5px; font-weight: 600; color: var(--noor-ink); }
+.noor-done__text { display: block; font-size: 13px; line-height: 18px; color: var(--noor-muted); }
+
+.noor-done__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-block-start: 12px;
+}
+
+.noor-done__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  padding: 10px 14px 14px;
+  border-block-start: 1px solid var(--noor-line);
+}
+
+.noor-done__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.noor-btn--outline {
+  color: var(--noor-gold);
+  background: var(--c-white);
+  box-shadow: inset 0 0 0 1.5px var(--noor-gold);
+}
+
+.noor-btn--text {
+  color: var(--noor-ink);
+  background: transparent;
+  font-weight: 500;
+}
+
+.noor-btn--text:hover { background: var(--noor-chip); }
+
+@media (forced-colors: active) {
+  .noor-optcard, .noor-done__list li { border: 1px solid CanvasText; }
+  .noor-optcard.is-selected { border-width: 3px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .noor-arc__fill { animation: none; stroke-dashoffset: var(--arc-to); }
+  .noor-done__badge svg polyline { animation: none; stroke-dashoffset: 0; }
+  .noor-optcard:hover, .noor-optcard:hover .noor-optcard__icon { transform: none !important; }
+  .noor-strip { animation-name: noor-fade; }
+}
+
+/* ================= Outcome card, roomier (replaces the earlier tighter spacing) ================= */
+.noor-done { overflow: hidden; }
+
+.noor-done__top {
+  position: relative;
+  gap: 8px;
+  padding: 32px 24px 8px;
+  background: linear-gradient(to bottom, var(--noor-surface), var(--c-white));
+}
+
+.noor-done__halo {
+  position: absolute;
+  inset-inline-start: 50%;
+  inset-block-start: 6px;
+  inline-size: 150px;
+  block-size: 150px;
+  translate: -50% 0;
+  background: radial-gradient(circle, color-mix(in srgb, var(--noor-success) 20%, transparent), transparent 68%);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: noor-halo 3.2s ease-in-out infinite alternate;
+}
+
+.noor-done.is-info .noor-done__halo {
+  background: radial-gradient(circle, color-mix(in srgb, var(--noor-pending) 20%, transparent), transparent 68%);
+}
+
+@keyframes noor-halo {
+  from { transform: scale(0.9); opacity: 0.7; }
+  to { transform: scale(1.12); opacity: 1; }
+}
+
+.noor-done__top > :not(.noor-done__halo) { position: relative; }
+
+.noor-done__badge { margin-block-end: 10px; }
+
+.noor-done__title { font-size: 20px; line-height: 1.3; max-inline-size: 22ch; }
+.noor-done__sub { max-inline-size: 36ch; font-size: 14.5px; line-height: 22px; }
+
+.noor-done__list { padding: 20px 20px 8px; }
+.noor-done__label { margin-block-end: 12px; text-align: center; }
+
+.noor-done__list ul { gap: 10px; }
+
+.noor-done__list li {
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 16px;
+}
+
+.noor-done__icon {
+  inline-size: 40px;
+  block-size: 40px;
+  align-items: center;
+  justify-content: center;
+  background: var(--c-white);
+  border-radius: 12px;
+}
+
+.noor-done__copy { display: flex; flex-direction: column; gap: 2px; min-inline-size: 0; }
+.noor-done__item { font-size: 15px; }
+.noor-done__text { font-size: 13.5px; line-height: 19px; }
+
+.noor-done__meta {
+  display: block;
+  margin-block-start: 6px;
+  padding-block-start: 6px;
+  font-size: 12.5px;
+  line-height: 17px;
+  color: var(--noor-muted);
+  border-block-start: 1px dashed var(--noor-line-strong);
+}
+
+.noor-done__links { justify-content: center; margin-block-start: 16px; }
+
+.noor-done__foot {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  padding: 16px 20px 20px;
+  border-block-start: 0;
+}
+
+.noor-btn--wide { inline-size: 100%; min-block-size: 48px; font-size: 15px; }
+
+.noor-done__alt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.noor-done__note { text-align: center; font-size: 13px; color: var(--noor-muted); }
+
+/* ================= UAE PASS button (guidelines: black style, light background) ================= */
+.noor-pass__cta { padding: 4px 16px 18px; }
+
+.uaepass-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  inline-size: 100%;
+  min-inline-size: 140px;
+  min-block-size: 48px;
+  margin: 4px 0;
+  padding: 0 20px;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.2px;
+  color: var(--uaepass-white);
+  background: var(--uaepass-black);
+  border: 0;
+  border-radius: var(--radius-uaepass);
+  cursor: pointer;
+  transition: transform var(--dur-1) var(--ease-out), filter var(--dur-1) var(--ease-out);
+}
+
+.uaepass-btn:hover:not(:disabled) { filter: brightness(1.35); transform: translateY(-1px); }
+.uaepass-btn:active:not(:disabled) { filter: brightness(1.8); transform: scale(0.99); }
+.uaepass-btn:focus-visible { outline: 2px solid var(--uaepass-black); outline-offset: 3px; }
+.uaepass-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.uaepass-btn__logo { inline-size: 24px; block-size: 24px; flex: none; }
+.uaepass-btn__title { white-space: nowrap; }
+
+@media (forced-colors: active) {
+  .uaepass-btn { border: 1px solid ButtonText; }
+}
+
+/* ================= Details arriving from UAE PASS ================= */
+.noor-fetch__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.noor-fetch__rows li {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  grid-template-areas: 'state label' 'state value';
+  column-gap: 10px;
+  padding-block: 8px;
+  border-block-start: 1px solid var(--noor-line);
+}
+
+.noor-fetch__rows li:first-child { border-block-start: 0; }
+
+.noor-fetch__state { grid-area: state; position: relative; inline-size: 22px; block-size: 22px; }
+.noor-fetch__label { grid-area: label; font-size: 12.5px; color: var(--noor-muted); }
+
+.noor-fetch__value {
+  grid-area: value;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--noor-ink);
+  animation: noor-reveal var(--dur-3) var(--ease-out) var(--d, 0ms) backwards;
+}
+
+.noor-fetch__state .noor-spinner {
+  position: absolute;
+  inset: 4px;
+  inline-size: 14px;
+  block-size: 14px;
+  animation: noor-spin 700ms linear infinite, noor-vanish 1ms linear var(--d, 0ms) forwards;
+}
+
+.noor-fetch__tick {
+  position: absolute;
+  inset: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--noor-success);
+  background: var(--noor-success-bg);
+  border-radius: 50%;
+  animation: noor-pop var(--dur-3) var(--ease-spring) var(--d, 0ms) backwards;
+}
+
+.noor-fetch__tick svg polyline {
+  stroke-dasharray: 300;
+  stroke-dashoffset: 300;
+  animation: noor-draw var(--dur-4) var(--ease-out) calc(var(--d, 0ms) + 80ms) forwards;
+}
+
+.noor-fetch__note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px 16px 14px;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--noor-muted);
+  border-block-start: 1px solid var(--noor-line);
+  animation: noor-reveal var(--dur-3) var(--ease-out) var(--d, 0ms) backwards;
+}
+
+.noor-fetch__note svg { flex: none; margin-block-start: 2px; color: var(--noor-success); }
+
+@keyframes noor-reveal {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes noor-vanish { to { opacity: 0; } }
+
+/* ================= Choices (emirate) ================= */
+.noor-suggest--tight { margin-block-start: 0; }
+
+.noor-suggest__btn.is-selected {
+  color: var(--c-white);
+  background: var(--noor-gold);
+  border-color: var(--noor-gold);
+  font-weight: 600;
+}
+
+.noor-suggest__btn:disabled:not(.is-selected) { opacity: 0.5; cursor: default; }
+
+/* ================= Upload ================= */
+.noor-up__drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 14px 14px;
+  padding: 18px 12px;
+  text-align: center;
+  background: var(--noor-surface);
+  border: 1.5px dashed var(--noor-line-strong);
+  border-radius: var(--radius-noor-card);
+  transition: border-color var(--dur-1) var(--ease-out), background-color var(--dur-2) var(--ease-out);
+}
+
+.noor-up__drop.is-drag { border-color: var(--noor-gold); background: var(--noor-chip); }
+.noor-up__or { font-size: 13px; color: var(--noor-muted); }
+.noor-up__error { font-size: 13px; font-weight: 600; color: var(--noor-pending); }
+
+.noor-up__done {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 14px 14px;
+  padding: 10px 12px;
+  background: var(--noor-chip);
+  border-radius: var(--radius-noor-card);
+  animation: noor-rise var(--dur-3) var(--ease-out) both;
+}
+
+.noor-up__thumb {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 48px;
+  block-size: 48px;
+  overflow: hidden;
+  color: var(--noor-gold);
+  background: var(--c-white);
+  border-radius: 12px;
+}
+
+.noor-up__thumb img { inline-size: 100%; block-size: 100%; object-fit: cover; }
+.noor-up__meta { flex: 1; display: flex; flex-direction: column; min-inline-size: 0; }
+.noor-up__name { font-size: 14px; font-weight: 600; color: var(--noor-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.noor-up__size { font-size: 12.5px; color: var(--noor-muted); }
+
+.noor-up__ok {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 22px;
+  block-size: 22px;
+  color: var(--noor-success);
+  background: var(--noor-success-bg);
+  border-radius: 50%;
+  animation: noor-pop var(--dur-3) var(--ease-spring) both;
+}
+
+.noor-bubble__thumb {
+  display: block;
+  inline-size: 72px;
+  block-size: 72px;
+  margin-block-end: 8px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+/* ================= Review before submitting ================= */
+.noor-arev { padding-block: 6px 0; }
+.noor-arev__group { padding: 16px 20px 6px; }
+.noor-arev__group + .noor-arev__group { border-block-start: 1px solid var(--noor-line); }
+.noor-arev__title { margin-block-end: 6px; font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--noor-gold); }
+.noor-arev dl { margin: 0; }
+
+.noor-arev__row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: 8px;
+  align-items: center;
+  padding-block: 8px;
+}
+
+.noor-arev__row dt { grid-column: 1; font-size: 12.5px; color: var(--noor-muted); }
+.noor-arev__row dd { grid-column: 1; margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+.noor-arev__row .noor-link-btn { grid-column: 2; grid-row: 1 / span 2; }
+.noor-arev__value { font-size: 14.5px; font-weight: 600; color: var(--noor-ink); overflow-wrap: anywhere; }
+
+.noor-arev__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  font-size: 12px;
+  color: var(--noor-success);
+  background: var(--noor-success-bg);
+  border-radius: 999px;
+}
+
+.noor-arev__foot {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px 20px 20px;
+  background: var(--noor-surface);
+  border-block-start: 1px solid var(--noor-line);
+}
+
+.noor-arev__consent { font-size: 14px; line-height: 21px; color: var(--noor-ink); }
+
+/* ================= Submitted ================= */
+.noor-sub__top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 32px 24px 8px;
+  text-align: center;
+  background: linear-gradient(to bottom, var(--noor-surface), var(--c-white));
+}
+
+.noor-sub__label { margin-block-start: 6px; font-size: 13px; color: var(--noor-muted); }
+
+.noor-sub__ref {
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--noor-ink);
+}
+
+.noor-sub__next { padding: 20px 20px 22px; }
+.noor-sub__next .noor-done__label { text-align: start; }
+.noor-sub__notify { margin-block-start: 14px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .noor-done__halo { animation: none; }
+  .noor-fetch__state .noor-spinner { animation: none; opacity: 0; }
+  .noor-fetch__tick svg polyline { animation: none; stroke-dashoffset: 0; }
+  .uaepass-btn:hover:not(:disabled) { transform: none; }
+}

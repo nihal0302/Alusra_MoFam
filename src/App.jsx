@@ -8,6 +8,12 @@ import { NewsSection } from './components/NewsSection.jsx';
 import { CareersSection } from './components/CareersSection.jsx';
 import { ContactSection } from './components/ContactSection.jsx';
 import { Footer } from './components/Footer.jsx';
+import { Assistant } from './components/assistant/Assistant.jsx';
+import * as assistantCopy from './content/assistant.en.js';
+import { eligibility } from './content/eligibility.en.js';
+import { application } from './content/application.en.js';
+
+const assistant = { ...assistantCopy, eligibility, application };
 
 export function App() {
   return (
@@ -23,6 +29,7 @@ export function App() {
         <ContactSection content={home.contact} />
       </main>
       <Footer content={home.footer} />
+      <Assistant content={assistant} />
     </>
   );
 }

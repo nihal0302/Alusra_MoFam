@@ -50,3 +50,38 @@
   --shadow-cta-hover: 0 4px 14px var(--c-green-a35); /* EXACT */
   --shadow-card: 0 1px 2px rgba(33, 33, 27, 0.06), 0 8px 24px -12px rgba(33, 33, 27, 0.18); /* APPROX */
 }
+
+/* Assistant (Noor) — values read from the Figma Noor component set (2789:27388) and the
+   Al Usra design system, per decision D2. The assistant is the redesigned surface, so it
+   uses Archivo (D1) and gold; the replica around it keeps the live site's palette. */
+:root {
+  --font-assistant: "Archivo", var(--font-body);
+  --noor-ink: #241d10;
+  --noor-muted: #625c52;
+  --noor-placeholder: #8c8477;
+  --noor-gold: #7c5e24;          /* primary action (dark gold) */
+  --noor-chip: #faf6ec;
+  --noor-surface: #fcf9f2;
+  --noor-line: #f0eadc;
+  --noor-line-strong: #e4ded0;
+  --noor-success: #047857;       /* brief section 5 status set */
+  --noor-success-bg: #ecfdf5;
+  --noor-pending: #925e14;       /* Figma submitted screen; differs from brief warning — flagged */
+  --noor-pending-bg: #fef6e0;
+  --radius-noor-panel: 20px;
+  --radius-noor-card: 16px;
+  --radius-noor-chip: 12px;
+  --radius-noor-icon: 8px;
+  --radius-noor-button: 10px;
+  --radius-noor-input: 14px;
+  --shadow-noor-panel: 0 14px 30px rgba(36, 29, 16, 0.3);
+  --shadow-noor-launcher: 0 8px 24px rgba(36, 29, 16, 0.22);
+}
+
+/* UAE PASS button — colours fixed by the UAE PASS Buttons Guidelines (black style). Not part of the
+   MoFam palette and not to be altered. */
+:root {
+  --uaepass-black: #000000;
+  --uaepass-white: #ffffff;
+  --radius-uaepass: 8px; /* guideline default corner radius */
+}
