@@ -1,0 +1,72 @@
+/* APPROX — style.css not supplied. Dotted bands stand in for the
+   dotted-pattern-top/-bottom decorations. */
+.newsletter-section {
+  background: var(--c-surface-cream);
+}
+
+.dotted-pattern {
+  block-size: 40px;
+  background-image: radial-gradient(var(--c-green-a30) 1.5px, transparent 1.5px);
+  background-size: 16px 16px;
+}
+
+.newsletter-contact-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  padding-block: 48px;
+}
+
+.newsletter-info-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 32px;
+  background: var(--c-white);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-card);
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.newsletter-info-card h3 {
+  font-family: var(--font-heading);
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.3;
+  margin-block-end: 4px;
+}
+
+.newsletter-info-card strong {
+  color: var(--c-ink);
+  font-weight: 600;
+}
+
+.newsletter-contact-link {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.newsletter-contact-link a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--c-green);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.newsletter-contact-link a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 767px) {
+  .newsletter-contact-cards {
+    grid-template-columns: 1fr;
+    padding-block: 32px;
+  }
+  .newsletter-info-card {
+    padding: 24px;
+  }
+}

@@ -1,0 +1,52 @@
+/* Design tokens — single source of truth. Components never hard-code a hex.
+   EXACT  = copied from the saved page's inline CSS (banner + hero slider).
+   APPROX = the page's main style.css was not supplied; value chosen to sit with
+            the exact palette. Replace when style.css lands (docs/STATUS.md). */
+:root {
+  /* Brand — EXACT */
+  --c-green: #37573a;          /* primary CTA, dots */
+  --c-green-hover: #2f5538;    /* hero CTA hover */
+  --c-green-hover-alt: #3d6b47;/* banner CTA hover */
+  --c-green-a30: rgba(55, 87, 58, 0.3);
+  --c-green-a35: rgba(55, 87, 58, 0.35);
+  --c-indigo: #2f306b;         /* registration banner */
+  --c-gold: #d4a03f;           /* headline accent */
+  --c-cream-ink: #fff6e3;      /* text on green CTA */
+  --c-ink: #21211b;            /* headings */
+  --c-ink-strong: #1a1a1a;     /* CDSC slide heading */
+  --c-body: #444443;           /* body copy */
+  --c-white: #ffffff;
+
+  /* Surfaces — APPROX */
+  --c-page: #ffffff;
+  --c-surface-soft: #f7f5ef;
+  --c-surface-cream: #fbf6ea;
+  --c-line: #e7e3d8;
+  --c-muted: #6b6b66;
+  --c-on-dark-muted: rgba(255, 255, 255, 0.78);
+  --c-slot: #efebe1;
+  --c-slot-stripe: #e4dfd2;
+  --c-slot-ink: #7a7466;
+
+  /* Type — EXACT families (licensed; not supplied, so fallbacks render) */
+  --font-heading: "Lyon Arabic Display", "Lyon Display", Georgia, "Times New Roman", serif;
+  --font-body: "Graphik Arabic", "Graphik", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+
+  /* Layout — EXACT */
+  --container-max: 1440px;
+  --gutter-desktop: 70px;
+  --gutter-tablet: 24px;
+  --gutter-mobile: 20px;
+  --gutter-small: 16px;
+
+  /* Radii */
+  --radius-cta: 4px;           /* EXACT hero CTA */
+  --radius-banner-cta: 2px;    /* EXACT */
+  --radius-dot: 110px;         /* EXACT */
+  --radius-card: 12px;         /* APPROX */
+  --radius-media: 16px;        /* APPROX */
+
+  /* Elevation */
+  --shadow-cta-hover: 0 4px 14px var(--c-green-a35); /* EXACT */
+  --shadow-card: 0 1px 2px rgba(33, 33, 27, 0.06), 0 8px 24px -12px rgba(33, 33, 27, 0.18); /* APPROX */
+}

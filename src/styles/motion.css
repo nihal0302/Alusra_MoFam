@@ -1,0 +1,30 @@
+/* Motion tokens — values are the live site's own (EXACT, from inline CSS). */
+:root {
+  --dur-banner: 200ms;
+  --dur-cta: 250ms;
+  --dur-dot: 350ms;
+  --dur-slide: 650ms;
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-plain: ease;
+  --slide-shift: 48px;
+  --slide-shift-stacked: 24px;
+}
+
+/* Reduced motion is built in, not retrofitted: movement collapses to opacity,
+   and autoplay is stopped in HeroSlider.jsx. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --slide-shift: 0px;
+    --slide-shift-stacked: 0px;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+  .motion-transform-none {
+    transform: none !important;
+  }
+}

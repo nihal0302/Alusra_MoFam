@@ -1,0 +1,120 @@
+/* APPROX — style.css not supplied. White logo variants imply a dark footer. */
+.footer {
+  background: var(--c-ink);
+  color: var(--c-on-dark-muted);
+  padding-block: 64px;
+}
+
+.footer-content {
+  display: grid;
+  grid-template-columns: 1.2fr 0.6fr 1.2fr;
+  gap: 48px;
+}
+
+.footer-logo {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.footer-logo-img {
+  inline-size: 150px;
+  block-size: 52px;
+  border-radius: 6px;
+}
+
+.footer-separator {
+  inline-size: 1px;
+  block-size: 44px;
+  background: var(--c-on-dark-muted);
+  opacity: 0.5;
+}
+
+.footer-social {
+  list-style: none;
+  margin: 28px 0 0;
+  padding: 0;
+  display: flex;
+  gap: 12px;
+}
+
+.social-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 40px;
+  block-size: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 50%;
+  color: var(--c-white);
+  transition: background-color var(--dur-cta) var(--ease-plain);
+}
+
+.social-link:hover,
+.social-link:focus-visible {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.footer-heading {
+  font-family: var(--font-body);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--c-white);
+  margin-block-end: 20px;
+}
+
+.footer-contact-info {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.contact-info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.contact-icon {
+  flex-shrink: 0;
+  display: inline-flex;
+  margin-block-start: 3px;
+  color: var(--c-gold);
+}
+
+.footer-contact-info a {
+  color: var(--c-white);
+  text-decoration: none;
+}
+
+.footer-contact-info a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 991px) {
+  .footer-content {
+    grid-template-columns: 1fr 1fr;
+  }
+  .footer-section--spacer {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .footer {
+    padding-block: 48px;
+  }
+  .footer-content {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+  .footer-logo-img {
+    inline-size: 120px;
+    block-size: 42px;
+  }
+}

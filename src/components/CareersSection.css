@@ -1,0 +1,77 @@
+/* APPROX — style.css not supplied. */
+.shape-future-section {
+  padding-block: 88px;
+  background: var(--c-page);
+}
+
+.shape-future-section__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 48px;
+}
+
+.shape-image-container {
+  aspect-ratio: 1;
+  max-inline-size: 520px;
+  border-radius: var(--radius-media);
+  overflow: hidden;
+}
+
+.shape-content {
+  position: relative;
+  padding-block-start: 48px;
+}
+
+.airplane-icons1,
+.airplane-icons2 {
+  position: absolute;
+  inline-size: 56px;
+  block-size: 40px;
+  border-radius: 6px;
+}
+
+.airplane-icons1 {
+  inset-block-start: 0;
+  inset-inline-end: 96px;
+}
+
+.airplane-icons2 {
+  inset-block-start: 20px;
+  inset-inline-end: 24px;
+}
+
+.shape-title {
+  font-family: var(--font-heading);
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--c-ink);
+  margin-block-end: 24px;
+}
+
+.shape-description {
+  font-size: 20px;
+  line-height: 1.6;
+  color: var(--c-body);
+}
+
+.shape-description + .shape-description {
+  margin-block: 16px 48px;
+}
+
+@media (max-width: 767px) {
+  .shape-future-section {
+    padding-block: 56px;
+  }
+  .shape-future-section__grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .shape-title {
+    font-size: 30px;
+  }
+  .shape-description {
+    font-size: 17px;
+  }
+}

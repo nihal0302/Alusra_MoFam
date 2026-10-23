@@ -1,0 +1,69 @@
+/* APPROX — the page's style.css (navbar rules) was not supplied. */
+.navbar {
+  background: var(--c-white);
+  border-block-end: 1px solid var(--c-line);
+}
+
+.navbar__inner {
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding: 16px var(--gutter-desktop);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.navbar__logo,
+.navbar__uae {
+  display: block;
+  block-size: 56px;
+  inline-size: 168px;
+  border-radius: 6px;
+}
+
+.navbar__end {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.navbar__lang {
+  font-family: var(--font-body);
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--c-ink);
+  text-decoration: none;
+}
+
+.navbar__lang:hover {
+  color: var(--c-green);
+}
+
+.navbar__lang-short {
+  display: none;
+  font-size: 16px;
+}
+
+@media (max-width: 767px) {
+  .navbar__lang-full {
+    display: none;
+  }
+  .navbar__lang-short {
+    display: inline;
+  }
+  .navbar__logo,
+  .navbar__uae {
+    block-size: 40px;
+    inline-size: 112px;
+  }
+  .navbar__end {
+    gap: 16px;
+  }
+}
+
+@media (max-width: 991px) {
+  .navbar__inner {
+    padding-inline: var(--gutter-tablet);
+  }
+}

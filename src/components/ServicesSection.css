@@ -1,0 +1,113 @@
+/* APPROX — style.css not supplied. */
+.what-we-do {
+  padding-block: 88px;
+  background: var(--c-page);
+}
+
+.section-title {
+  font-family: var(--font-heading);
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--c-ink);
+}
+
+.section-description {
+  max-width: 720px;
+  margin-block: 16px 40px;
+  font-size: 20px;
+  line-height: 1.6;
+  color: var(--c-body);
+}
+
+.services-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.service-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 28px;
+  background: var(--c-surface-soft);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-card);
+  transition: box-shadow var(--dur-cta) var(--ease-plain), border-color var(--dur-cta) var(--ease-plain);
+}
+
+.service-card:hover,
+.service-card:focus-within {
+  border-color: var(--c-green-a30);
+  box-shadow: var(--shadow-card);
+}
+
+.service-card-title {
+  font-family: var(--font-body);
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.service-card-title a {
+  color: var(--c-ink);
+  text-decoration: none;
+}
+
+.service-card-title a:hover {
+  color: var(--c-green);
+}
+
+.service-card-description {
+  flex: 1;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--c-body);
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.service-learn-more {
+  align-self: flex-start;
+  margin-block-start: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--c-green);
+  text-decoration: none;
+}
+
+.service-learn-more:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 991px) {
+  .services-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .what-we-do {
+    padding-block: 56px;
+  }
+  .section-title {
+    font-size: 30px;
+  }
+  .section-description {
+    font-size: 17px;
+    margin-block-end: 28px;
+  }
+  .services-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .service-card {
+    padding: 22px;
+  }
+}

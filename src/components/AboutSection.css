@@ -1,0 +1,73 @@
+/* APPROX — style.css not supplied. Markup sets the copy white (text-white), so
+   the section sits on the brand green. */
+.about-section {
+  background: var(--c-green);
+  color: var(--c-white);
+  padding-block: 80px;
+}
+
+.about-section__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 48px;
+}
+
+.about-title {
+  font-family: var(--font-heading);
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--c-white);
+  margin-block-end: 24px;
+}
+
+.about-text {
+  font-size: 20px;
+  line-height: 1.6;
+  color: var(--c-white);
+}
+
+.about-text + .about-text {
+  margin-block-start: 16px;
+}
+
+.about-image-container {
+  position: relative;
+}
+
+.about-image {
+  position: relative;
+  z-index: 1;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-media);
+  overflow: hidden;
+}
+
+.wave-decoration {
+  position: absolute;
+  inset-inline-end: -24px;
+  inset-block-end: -24px;
+  inline-size: 160px;
+  block-size: 96px;
+  border-radius: 8px;
+}
+
+@media (max-width: 767px) {
+  .about-section {
+    padding-block: 56px;
+  }
+  .about-section__grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .about-title {
+    font-size: 30px;
+  }
+  .about-text {
+    font-size: 17px;
+  }
+  .wave-decoration {
+    inset-inline-end: 0;
+  }
+}
