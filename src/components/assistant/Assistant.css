@@ -1743,9 +1743,9 @@
 }
 
 .noor-shell .noor-topics .noor-topic[data-topic='ask'] {
-  --tint: var(--noor-glow-ember);
-  --art-from: color-mix(in srgb, var(--noor-glow-ember) 85%, var(--c-white));
-  --art-to: color-mix(in oklab, var(--noor-glow-ember) 55%, var(--noor-gold));
+  --tint: var(--noor-glow-blue);
+  --art-from: color-mix(in srgb, var(--noor-glow-blue) 85%, var(--c-white));
+  --art-to: color-mix(in oklab, var(--noor-glow-blue) 40%, var(--c-indigo));
 }
 
 .noor-shell .noor-topics .noor-topic[data-topic='status'] {
@@ -1847,3 +1847,39 @@
     .noor-topic__art { grid-row: 1; inline-size: 48px; block-size: 48px; }
   }
 }
+
+/* A little more air: between the three cards, and between the cards and the message box. */
+.noor-shell .noor-topics { gap: 16px; margin-block-end: 10px; }
+
+/* Hover keeps each card's own colour: a deeper wash of its tint, a glow in that tint, and an arrow chip in the tile's colour. */
+.noor-shell .noor-topics .noor-topic::before {
+  background: linear-gradient(120deg, color-mix(in srgb, var(--tint) 62%, var(--c-white)), color-mix(in srgb, var(--tint) 24%, var(--c-white)));
+}
+
+.noor-shell .noor-topics .noor-topic:hover:not([aria-disabled='true']),
+.noor-shell .noor-topics .noor-topic:focus-visible:not([aria-disabled='true']) {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--c-white) 80%, transparent),
+    0 16px 28px -10px color-mix(in srgb, var(--tint) 85%, transparent);
+}
+
+.noor-shell .noor-topics .noor-topic:hover:not([aria-disabled='true']) .noor-topic__go,
+.noor-shell .noor-topics .noor-topic:focus-visible:not([aria-disabled='true']) .noor-topic__go {
+  background: var(--art-to);
+}
+
+/* Hover, kept gentle: a small step up in tint, a soft glow, a light lift. */
+.noor-shell .noor-topics .noor-topic::before {
+  background: linear-gradient(120deg, color-mix(in srgb, var(--tint) 44%, var(--c-white)), color-mix(in srgb, var(--tint) 15%, var(--c-white)));
+}
+
+.noor-shell .noor-topics .noor-topic:hover:not([aria-disabled='true']),
+.noor-shell .noor-topics .noor-topic:focus-visible:not([aria-disabled='true']) {
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--c-white) 80%, transparent),
+    0 10px 20px -12px color-mix(in srgb, var(--tint) 55%, transparent);
+}
+
+.noor-shell .noor-topics .noor-topic:hover:not([aria-disabled='true']) .noor-topic__art,
+.noor-shell .noor-topics .noor-topic:focus-visible:not([aria-disabled='true']) .noor-topic__art { transform: rotate(3deg) scale(1.04); }
