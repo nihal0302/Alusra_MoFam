@@ -1,6 +1,6 @@
 /* APPROX — the page's style.css (navbar rules) was not supplied. */
 .navbar {
-  background: var(--c-white);
+  background: var(--c-surface-cream); /* matches the wall of the registration hero photo */
   border-block-end: 1px solid var(--c-line);
 }
 

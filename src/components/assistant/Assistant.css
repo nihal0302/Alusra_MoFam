@@ -274,6 +274,7 @@
   text-align: center;
   background: linear-gradient(to bottom, var(--c-white), var(--noor-surface));
   overflow: hidden;
+  overflow: clip; /* never a scroll container, so a leftover scroll position cannot push the content up */
   animation: noor-fade var(--dur-4) var(--ease-out) both;
 }
 
@@ -1396,47 +1397,47 @@
 
 .noor-glow i {
   position: absolute;
-  inset-block-end: -26%;
+  inset-block-end: -14%;
   border-radius: 50%;
-  filter: blur(42px);
+  filter: blur(34px);
   transform-origin: 50% 100%;
-  /* very quiet at rest (about 28%), and about 25 points stronger at full voice; --w tones a colour down */
-  scale: calc(1 + var(--level) * 0.4);
-  opacity: calc((0.28 + var(--level) * 0.28) * var(--w, 1));
+  /* a flat, low band at rest (about 15% opacity); with voice it gains ~27 points and rises to roughly 2.6x its height; --w tones a colour down */
+  scale: calc(1 + var(--level) * 0.24) calc(1 + var(--level) * 1.8);
+  opacity: calc((0.15 + var(--level) * 0.3) * var(--w, 1));
   will-change: translate, scale, opacity;
 }
 
 /* a wide gold mass, a warm ember edge, a mint accent, and a pale core */
 .noor-glow i:nth-child(1) {
-  inline-size: 92%; block-size: 70%; inset-inline-start: -22%;
+  inline-size: 78%; block-size: 26%; inset-inline-start: -16%;
   background: radial-gradient(closest-side, var(--noor-glow-gold), transparent);
   animation: noor-glow-a 13s ease-in-out infinite alternate;
 }
 
 .noor-glow i:nth-child(2) {
-  inline-size: 86%; block-size: 64%; inset-inline-end: -22%;
+  inline-size: 70%; block-size: 24%; inset-inline-end: -14%;
   --w: 0.55;
   background: radial-gradient(closest-side, var(--noor-glow-ember), transparent);
   animation: noor-glow-b 17s ease-in-out infinite alternate;
 }
 
 .noor-glow i:nth-child(3) {
-  inline-size: 52%; block-size: 42%; inset-inline-start: -2%; inset-block-end: -22%;
+  inline-size: 44%; block-size: 20%; inset-inline-start: 12%; inset-block-end: -12%;
   --w: 0.5;
   background: radial-gradient(closest-side, var(--noor-glow-green), transparent);
   animation: noor-glow-c 15s ease-in-out infinite alternate;
 }
 
 .noor-glow i:nth-child(4) {
-  inline-size: 52%; block-size: 38%; inset-inline-start: 24%; inset-block-end: -14%;
+  inline-size: 60%; block-size: 18%; inset-inline-start: 20%; inset-block-end: -10%;
   background: radial-gradient(closest-side, var(--noor-glow-core), transparent);
   animation: noor-glow-d 11s ease-in-out infinite alternate;
 }
 
-@keyframes noor-glow-a { from { translate: 0 0; } to { translate: 26% -6%; } }
-@keyframes noor-glow-b { from { translate: 0 0; } to { translate: -30% -4%; } }
-@keyframes noor-glow-c { from { translate: 0 0; } to { translate: 70% -8%; } }
-@keyframes noor-glow-d { from { translate: -18% 0; } to { translate: 22% -10%; } }
+@keyframes noor-glow-a { from { translate: 0 0; } to { translate: 24% -3%; } }
+@keyframes noor-glow-b { from { translate: 0 0; } to { translate: -28% -2%; } }
+@keyframes noor-glow-c { from { translate: 0 0; } to { translate: 80% -3%; } }
+@keyframes noor-glow-d { from { translate: -18% 0; } to { translate: 22% -4%; } }
 @keyframes noor-glow-in { from { opacity: 0; } }
 
 /* Panel chrome stays above the veil */
@@ -1474,3 +1475,245 @@
   .noor-glow, .noor-glow i { animation: none; }
   .noor-glow i { scale: 1.1; }
 }
+
+/* ================= Entry options: soft white cards, no outlines or arrows ================= */
+.noor-topics { gap: 10px; }
+
+.noor-topic {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  gap: 14px;
+  min-block-size: 64px;
+  padding: 10px 16px 10px 10px;
+  font-weight: 500;
+  background: var(--c-white);
+  border-radius: 16px;
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--noor-gold) 14%, transparent),
+    0 4px 12px -4px color-mix(in srgb, var(--noor-gold) 16%, transparent);
+  transition:
+    transform var(--dur-2) var(--ease-out),
+    box-shadow var(--dur-3) var(--ease-out);
+}
+
+/* a soft warm wash that fills in on hover, and a light sweep that crosses the card */
+.noor-topic::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(120deg, color-mix(in srgb, var(--noor-gold) 13%, var(--c-white)), color-mix(in srgb, var(--noor-glow-core) 55%, var(--c-white)));
+  opacity: 0;
+  transition: opacity var(--dur-3) var(--ease-out);
+}
+
+.noor-topic::after {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: -60%;
+  inline-size: 40%;
+  z-index: -1;
+  background: linear-gradient(100deg, transparent, color-mix(in srgb, var(--c-white) 80%, transparent), transparent);
+  transform: skewX(-18deg);
+  opacity: 0;
+}
+
+.noor-topic__label { flex: 1; min-inline-size: 0; line-height: 1.25; }
+
+.noor-topic__icon {
+  flex: none;
+  inline-size: 44px;
+  block-size: 44px;
+  border-radius: 14px;
+  color: var(--noor-gold);
+  background: color-mix(in srgb, var(--noor-gold) 10%, var(--c-white));
+  transition:
+    transform var(--dur-3) var(--ease-spring),
+    background-color var(--dur-2) var(--ease-out),
+    color var(--dur-2) var(--ease-out),
+    box-shadow var(--dur-3) var(--ease-out);
+}
+
+/* Hover and keyboard focus: lift and glow, with no outline */
+.noor-topic:hover:not([aria-disabled='true']),
+.noor-topic:focus-visible:not([aria-disabled='true']) {
+  transform: translateY(-3px);
+  box-shadow:
+    0 14px 26px -8px color-mix(in srgb, var(--noor-gold) 40%, transparent),
+    0 2px 6px color-mix(in srgb, var(--noor-gold) 16%, transparent);
+}
+
+.noor-topic:hover:not([aria-disabled='true'])::before,
+.noor-topic:focus-visible:not([aria-disabled='true'])::before { opacity: 1; }
+
+.noor-topic:hover:not([aria-disabled='true'])::after { animation: noor-topic-sheen 700ms var(--ease-out) both; }
+
+.noor-topic:hover:not([aria-disabled='true']) .noor-topic__icon,
+.noor-topic:focus-visible:not([aria-disabled='true']) .noor-topic__icon {
+  transform: scale(1.08) rotate(-6deg);
+  color: var(--c-white);
+  background: var(--noor-gold);
+  box-shadow: 0 6px 14px -4px color-mix(in srgb, var(--noor-gold) 70%, transparent);
+}
+
+.noor-topic:active:not([aria-disabled='true']) { transform: translateY(-1px) scale(0.985); }
+
+@keyframes noor-topic-sheen {
+  from { inset-inline-start: -60%; opacity: 0.9; }
+  to { inset-inline-start: 120%; opacity: 0; }
+}
+
+/* Expanded: three taller cards, icon on top */
+.noor-shell.is-expanded .noor-topic {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  min-block-size: 124px;
+  padding: 16px;
+  gap: 16px;
+}
+
+.noor-shell.is-expanded .noor-topic__label { flex: none; font-size: 15.5px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .noor-topic, .noor-topic__icon { transition: none; }
+  .noor-topic:hover:not([aria-disabled='true']),
+  .noor-topic:hover:not([aria-disabled='true']) .noor-topic__icon { transform: none; }
+  .noor-topic:hover:not([aria-disabled='true'])::after { animation: none; }
+}
+
+/* Expanded: the dot field is about 25% larger (455px to 570px), so it covers more of the wider panel. */
+@media (min-width: 521px) {
+  .noor-shell.is-expanded .noor-welcome__dots {
+    inline-size: 570px;
+    block-size: 570px;
+  }
+}
+
+/* ================= Voice mode: waveform inside the glass box ================= */
+.noor-vwave { flex: 1; min-inline-size: 0; display: flex; align-items: center; margin-inline: 14px 10px; }
+
+.noor-vwave__bars {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  inline-size: 100%;
+  block-size: 36px;
+}
+
+/* Quiet: a row of small dots. Speaking: the bars rise with the microphone level. */
+.noor-vwave__bars i {
+  flex: none;
+  inline-size: 3px;
+  block-size: calc(4px + var(--level, 0.2) * var(--p, 0.5) * 30px);
+  border-radius: 3px;
+  background: linear-gradient(to top, var(--noor-gold), color-mix(in srgb, var(--noor-gold) 55%, var(--c-white)));
+  transition: block-size 90ms linear;
+  animation: noor-vbar 1.1s ease-in-out var(--d, 0ms) infinite alternate;
+}
+
+@keyframes noor-vbar {
+  from { transform: scaleY(0.8); }
+  to { transform: scaleY(1.12); }
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  .noor-vwave__bars i { animation: none; transition: none; }
+}
+
+/* ================= Voice mode: denser, thinner, livelier ================= */
+.noor-vwave { container-type: inline-size; }
+
+.noor-vwave__bars { block-size: 50px; }
+
+.noor-vwave__bars i {
+  inline-size: 2px;
+  block-size: calc(4px + var(--level, 0.2) * var(--p, 0.5) * 46px);
+  border-radius: 2px;
+  transition: block-size 70ms linear;
+  animation: noor-vbar 0.9s ease-in-out var(--d, 0ms) infinite alternate;
+}
+
+@keyframes noor-vbar {
+  from { transform: scaleY(0.62); }
+  to { transform: scaleY(1.18); }
+}
+
+/* Narrower boxes thin the field out instead of crowding it */
+@container (max-width: 420px) { .noor-vwave__bars i:nth-child(2n) { display: none; } }
+@container (max-width: 210px) { .noor-vwave__bars i:nth-child(3n) { display: none; } }
+
+/* The background glow reacts harder to the voice: taller, wider and brighter */
+.noor-glow i {
+  scale: calc(1 + var(--level) * 0.42) calc(1 + var(--level) * 2.5);
+  opacity: calc((0.15 + var(--level) * 0.48) * var(--w, 1));
+}
+
+/* ================= Voice mode fixes: shorter glow, bars stay inside the box, title above the veil ================= */
+.noor-glow i {
+  scale: calc(1 + var(--level) * 0.42) calc(1 + var(--level) * 1.42);
+}
+
+/* Bars top out well inside the glass box (box is 56px; tallest bar about 35px) */
+.noor-vwave__bars { block-size: 38px; }
+
+.noor-vwave__bars i {
+  block-size: calc(4px + var(--level, 0.2) * var(--p, 0.5) * 28px);
+}
+
+@keyframes noor-vbar {
+  from { transform: scaleY(0.7); }
+  to { transform: scaleY(1.1); }
+}
+
+/* The welcome view (title and hint) sits above the colour veil; its own background steps aside. */
+.noor-panel:has(> .noor-glow) .noor-welcome {
+  z-index: 2;
+  background: transparent;
+}
+
+/* While listening the entry cards fade out but keep their space, so the avatar and heading stay exactly where they were. */
+.noor-topics.is-muted {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity var(--dur-2) var(--ease-out), visibility 0s linear var(--dur-2);
+}
+
+/* ================= Voice mode in the middle of a conversation ================= */
+/* The stage holds the chat (or the welcome); in voice mode the avatar and heading sit over the chat, which stays mounted so its scroll position survives. */
+.noor-stage {
+  position: relative;
+  flex: 1;
+  min-block-size: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.noor-welcome.is-over-log {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: transparent;
+}
+
+.noor-log.is-covered {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* ================= Application status: the step in progress ================= */
+.noor-steps__item.is-current .noor-steps__mark {
+  border-color: var(--noor-gold);
+  background: radial-gradient(circle, var(--noor-gold) 0 34%, transparent 38%);
+}
+
+.is-current .noor-steps__state {
+  color: var(--noor-gold);
+  background: color-mix(in srgb, var(--noor-gold) 12%, var(--c-white));
+}
+
+.noor-steps__item.is-current .noor-steps__label { font-weight: 600; }

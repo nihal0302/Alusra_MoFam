@@ -24,6 +24,7 @@ export const home = {
 
   hero: {
     label: 'Homepage carousel',
+    autoplay: false, // the prototype keeps the hero still; set true to rotate every slideDurationMs
     slideDurationMs: 6000,
     slides: [
       {
@@ -34,7 +35,7 @@ export const home = {
           'We invite parents wishing to register their children in government early intervention centers to submit registration applications during the specified period and complete the required requirements according to the approved procedures.',
         dates: 'For the 2027-2026 academic year, starting from 24 August 2026 until 14 December 2026',
         cta: { label: 'Register', href: REGISTER_URL, external: true },
-        image: { file: 'Our Partnership hero-02.png', alt: 'Registration in Government People of Determination Centers', fit: 'cover' },
+        image: { file: 'Our Partnership hero-02.webp', alt: 'Registration in Government People of Determination Centers', fit: 'cover' },
       },
       {
         id: 'empowerment',

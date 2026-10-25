@@ -12,12 +12,12 @@ const SERVICE_PAGE = 'https://www.alusra.gov.ae/en/services/determination-card/'
 
 export const eligibility = {
   hint: 'Choose one, or type or speak in your own words.',
-  change: { lead: 'Understood. Let’s update that.' },
+  change: { lead: 'Certainly. Let’s update that.' },
   steps: ['Eligibility', 'Documents', 'Application'],
   stepsLabel: 'Application steps',
   question: 'Question {step} of {total}',
   say: {
-    placeholder: 'Or tell Mira in your own words',
+    placeholder: 'Type or speak your answer…',
     send: 'Send answer',
     mic: 'Answer by voice',
     stop: 'Stop listening',
@@ -29,7 +29,7 @@ export const eligibility = {
   questions: {
     who: {
       label: 'Applying for',
-      lead: 'Let’s begin.',
+      lead: 'Thank you. Let’s begin.',
       text: 'Who is the card for?',
       voiceSample: 'It’s for my son',
       options: [
@@ -62,7 +62,7 @@ export const eligibility = {
     },
     accredited: {
       label: 'Report from an accredited authority',
-      lead: 'One last question.',
+      lead: 'Almost done. One last question.',
       text: 'Is the report from an accredited official authority, such as a government hospital?',
       voiceSample: 'Yes, from a government hospital',
       options: [

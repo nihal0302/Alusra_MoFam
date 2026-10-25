@@ -80,7 +80,7 @@ export function evaluate(copy, answers) {
       subtitle: u.subtitle,
       listLabel: res.listLabel.unsure,
       items: unsure.map((q) => u.confirm[q]),
-      summary: { lead: 'A few details still need to be confirmed.' },
+      summary: { lead: 'Thank you. A few details still need to be confirmed.' },
     };
   }
 
@@ -92,7 +92,7 @@ export function evaluate(copy, answers) {
     subtitle: fill(e.subtitle, who),
     listLabel: res.listLabel.eligible,
     items: who === 'child' ? [...e.items, e.childItem] : e.items,
-    summary: { lead: 'Eligibility check complete.' },
+    summary: { lead: 'Good news. The check is complete.' },
   };
 }
 
@@ -147,13 +147,11 @@ export function buildResult(copy, answers) {
   const actions =
     result.kind === 'eligible'
       ? [
-          { label: res.eligible.actions.review, event: 'reviewAnswers', variant: 'text' },
           { label: res.eligible.actions.later, event: 'later', variant: 'outline' },
           { label: res.eligible.actions.apply, event: 'apply', variant: 'primary' },
         ]
       : [
-          { label: res.otherActions.review, event: 'reviewAnswers', variant: 'text' },
-          { label: res.otherActions.again, event: 'restartCheck', variant: 'outline' },
+          { label: res.otherActions.again, event: 'restartCheck', variant: 'text', icon: 'refresh' },
         ];
   return {
     kind: result.kind,

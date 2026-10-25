@@ -959,3 +959,7 @@
 .noor-signing .noor-card__title { margin-block-end: 6px; }
 .noor-signing__steps { margin-block-start: 22px; gap: 14px; }
 .noor-sub__next .noor-sub__notify { margin-block-start: 26px; }
+
+/* ================= Outcome actions: same footer as the success card ================= */
+/* Text action left; secondary + primary together on the right. Links are ordinary buttons. */
+.noor-done__main a.noor-btn { text-decoration: none; white-space: nowrap; }

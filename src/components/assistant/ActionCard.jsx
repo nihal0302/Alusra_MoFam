@@ -4,6 +4,7 @@ import { UaePassButton } from './UaePassButton.jsx';
 import { usePrefersReducedMotion } from '../../lib/usePrefersReducedMotion.js';
 import { formatSize } from '../../lib/application.js';
 import { SuccessCheck } from './SuccessCheck.jsx';
+import { InfoMark } from './InfoMark.jsx';
 
 const ARC_R = 15;
 const ARC_LEN = 2 * Math.PI * ARC_R;
@@ -85,14 +86,15 @@ function InfoTip({ text, label }) {
   );
 }
 
-function LinkButton({ link }) {
+function LinkButton({ link, solid }) {
   const external = link.href.startsWith('http');
   return (
     <a
-      className="noor-btn noor-btn--link"
+      className={`noor-btn${solid ? '' : ' noor-btn--outline'}`}
       href={link.href}
       {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
     >
+      {link.href.startsWith('tel:') && <ChatIcon name="phone" size={16} />}
       {link.label}
       {external && <ChatIcon name="arrowUpRight" size={14} />}
       {external && <span className="visually-hidden"> (opens in a new tab)</span>}
@@ -260,7 +262,7 @@ function SubmittedCard({ card, style }) {
                 {s.state === 'done' && <ChatIcon name="check" size={12} />}
               </span>
               <span className="noor-steps__label">{s.label}</span>
-              <span className="noor-steps__state">{s.state === 'done' ? 'Done' : 'Pending'}</span>
+              <span className="noor-steps__state">{s.stateLabel ?? (s.state === 'done' ? 'Done' : 'Pending')}</span>
             </li>
           ))}
         </ol>
@@ -393,6 +395,7 @@ export function ActionCard({ card, index = 0, onAction, chosen }) {
         disabled={locked}
         onClick={() => onAction?.(a.event, a)}
       >
+        {a.icon && <ChatIcon name={a.icon} size={16} />}
         {a.label}
       </button>
     );
@@ -403,11 +406,7 @@ export function ActionCard({ card, index = 0, onAction, chosen }) {
           {card.tone === 'success' ? (
             <SuccessCheck className="noor-done__check" />
           ) : (
-            <span className="noor-done__badge" aria-hidden="true">
-              <span>
-                <ChatIcon name="info" size={26} />
-              </span>
-            </span>
+            <InfoMark className="noor-done__check" />
           )}
           <h3 className="noor-done__title">{card.title}</h3>
           <p className="noor-done__sub">{card.subtitle}</p>
@@ -429,17 +428,14 @@ export function ActionCard({ card, index = 0, onAction, chosen }) {
               </li>
             ))}
           </ul>
-          {card.links.length > 0 && (
-            <div className="noor-done__links">
-              {card.links.map((l) => (
-                <LinkButton key={l.href} link={l} />
-              ))}
-            </div>
-          )}
         </div>
         <div className="noor-done__foot">
           <div className="noor-done__quiet">{quiet.map((a) => act(a, 'noor-btn--text'))}</div>
           <div className="noor-done__main">
+            {/* Same order as the success card: secondary first, the main action last on the right */}
+            {[...card.links].reverse().map((l, i) => (
+              <LinkButton key={l.href} link={l} solid={i === card.links.length - 1} />
+            ))}
             {outlined.map((a) => act(a, 'noor-btn--outline'))}
             {primary && act(primary, '')}
           </div>
@@ -647,7 +643,7 @@ export function ActionCard({ card, index = 0, onAction, chosen }) {
                   {s.state === 'done' && <ChatIcon name="check" size={12} />}
                 </span>
                 <span className="noor-steps__label">{s.label}</span>
-                <span className="noor-steps__state">{s.state === 'done' ? 'Done' : 'Pending'}</span>
+                <span className="noor-steps__state">{s.stateLabel ?? (s.state === 'done' ? 'Done' : 'Pending')}</span>
               </li>
             ))}
           </ol>

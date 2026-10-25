@@ -48,11 +48,11 @@ function SlideText({ slide }) {
 }
 
 export function HeroSlider({ content }) {
-  const { slides, slideDurationMs, label } = content;
+  const { slides, slideDurationMs, label, autoplay: autoplayOn = true } = content;
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
   const reducedMotion = usePrefersReducedMotion();
-  const autoplay = !reducedMotion && !paused;
+  const autoplay = autoplayOn && !reducedMotion && !paused;
   const timer = useRef(null);
 
   useEffect(() => {

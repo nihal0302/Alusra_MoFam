@@ -53,13 +53,13 @@ export function buildPrompt(app, step, { changing = false } = {}) {
   return {
     id: `app:${step}`,
     tool: null,
-    text: [{ lead: changing ? 'Understood. Let’s update that.' : st.lead, primary: st.text }],
+    text: [{ lead: changing ? 'Certainly. Let’s update that.' : st.lead, primary: st.text }],
     cards,
   };
 }
 
 export function buildNudge(text) {
-  return { id: 'app:nudge', tool: null, text: [{ lead: 'Please check your entry.', primary: text }], cards: [] };
+  return { id: 'app:nudge', tool: null, text: [{ lead: 'Thank you. One small correction is needed.', primary: text }], cards: [] };
 }
 
 export function buildReview(app, data) {

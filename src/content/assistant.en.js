@@ -22,7 +22,7 @@ export const ui = {
   welcome: { title: 'How can I help you today?', subtitle: 'Choose a task, or just tell me in your own words.' },
   today: 'Today',
   footer: 'Mira gives general guidance about MoFam services.',
-  input: { answer: 'Type or speak your answer…', welcome: 'Or tell me in your own words…', conversation: 'Type your message…' },
+  input: { answer: 'Type or speak your answer…', welcome: 'Describe how I can help you…', conversation: 'Type your message to Mira…' },
   listening: 'Listening…',
   listeningHint: 'Speak naturally, then press stop',
   attach: {
@@ -31,7 +31,7 @@ export const ui = {
     accept: 'application/pdf,image/jpeg,image/png',
     types: ['application/pdf', 'image/jpeg', 'image/png'],
     maxMb: 10,
-    placeholder: 'Add a message (optional)…',
+    placeholder: 'Add a note to your file (optional)…',
     errors: { type: 'Please attach a PDF, JPG or PNG file.', size: 'That file is larger than 10 MB. Please choose a smaller one.' },
   },
   announce: { thinking: 'Mira is typing', expanded: 'Chat expanded', collapsed: 'Chat returned to compact size', youSaid: 'You said: ', noorSaid: 'Mira said: ' },
@@ -50,7 +50,7 @@ export const ui = {
 export const topics = [
   { id: 'apply', label: 'Start POD application', icon: 'fileAdd', message: 'Start POD application' },
   { id: 'ask', label: 'Ask a question', icon: 'messageQuestion', message: 'Ask a question' },
-  { id: 'status', label: 'Check application status', icon: 'fileSearch', message: 'Check application status' },
+  { id: 'status', label: 'Check application status', icon: 'search', message: 'Check application status' },
 ];
 
 // Voice is simulated: the mic shows a listening state, then "hears" this utterance.
@@ -95,7 +95,7 @@ export const scenarios = [
     tool: { working: 'Reading the marriage grant service card…', done: 'Service card · Marriage grant' },
     text: [
       {
-        lead: 'Marriage grant information.',
+        lead: 'Thank you for asking about the marriage grant.',
         primary: 'Couples receive a financial grant of AED 70,000, together with a package of social services that prepares you for married life.',
         secondary: 'Marriage grant applications are made on the Ministry website. I can point you to the right page.',
       },
@@ -112,28 +112,15 @@ export const scenarios = [
   {
     id: 'track',
     match: ['track', 'status', 'applied', 'my application'],
-    tool: { working: 'Checking your applications…', done: 'Applications · sample data' },
+    tool: null,
     text: [
       {
-        lead: 'Application status.',
-        primary: 'Here’s where your application stands.',
-        secondary: 'This is sample data for the prototype. Signing in with UAE PASS will show your real applications.',
+        lead: 'Happy to help you check your application.',
+        primary: 'Please share your application ID.',
+        secondary: 'It starts with POD- and is in the confirmation you received after submitting, for example POD-1042.',
       },
     ],
-    cards: [
-      {
-        type: 'status',
-        title: 'Case reference POD-0004',
-        summary: '2 of 5 steps complete',
-        steps: [
-          { label: 'Eligibility check', state: 'done' },
-          { label: 'Submitted', state: 'done' },
-          { label: 'Document processing', state: 'pending' },
-          { label: 'Authorized Reviewer', state: 'pending' },
-          { label: 'Decision', state: 'pending' },
-        ],
-      },
-    ],
+    cards: [],
   },
   {
     id: 'counselling',
@@ -141,7 +128,7 @@ export const scenarios = [
     tool: { working: 'Finding counselling services…', done: 'Service pages · Family counselling' },
     text: [
       {
-        lead: 'Support is available.',
+        lead: 'Thank you for reaching out. Support is available.',
         primary: 'Family counselling is confidential support for families going through change.',
         secondary: 'Counselling services are listed on the Ministry website, where you can find the right one.',
       },
@@ -161,7 +148,7 @@ export const scenarios = [
     tool: { working: 'Looking through the service list…', done: 'Service pages · All services' },
     text: [
       {
-        lead: 'I can help you find the right service.',
+        lead: 'Happy to help you find the right service.',
         primary: 'The Ministry’s services are listed on its website, each with who it’s for and what you’ll need.',
         secondary: 'I can walk you through the People of Determination card here. For anything else I’ll point you to the right page.',
       },
@@ -182,7 +169,7 @@ export const scenarios = [
     tool: { working: 'Reading the POD card service card…', done: 'Service card · POD' },
     text: [
       {
-        lead: 'Applying for a child.',
+        lead: 'Thank you for applying on your child’s behalf.',
         primary: 'If your child is under 18, you’ll apply for them as their guardian.',
         secondary: 'I’ll ask a few things first so you know what to prepare. Nothing is submitted until you say so.',
       },
@@ -193,7 +180,7 @@ export const scenarios = [
     id: 'documents',
     match: ['document', 'what do i need', 'prepare', 'bring'],
     tool: { working: 'Reading the service card…', done: 'Service card · Required documents' },
-    text: [{ lead: 'Required documents.', primary: 'Here’s what you’ll need for the People of Determination card.' }],
+    text: [{ lead: 'Good idea to prepare ahead.', primary: 'Here’s what you’ll need for the People of Determination card.' }],
     cards: [
       { type: 'list', title: 'Required documents', items: REQUIRED_DOCS },
       { type: 'link', title: 'People of Determination Card', description: 'See the full service card, including who may apply.', links: [{ label: 'View service', href: SERVICE_BASE + 'determination-card/' }] },
@@ -203,7 +190,7 @@ export const scenarios = [
     id: 'who',
     match: ['who can apply', 'who is eligible', 'who qualifies', 'requirement', 'terms and conditions', 'criteria'],
     tool: { working: 'Reading the terms and conditions…', done: 'Website terms & conditions' },
-    text: [{ lead: 'Eligibility requirements.', primary: 'To get the card, the person must meet these terms and conditions.' }],
+    text: [{ lead: 'Thank you for your question.', primary: 'To get the card, the person must meet these terms and conditions.' }],
     cards: [
       {
         type: 'list',
@@ -225,7 +212,7 @@ export const scenarios = [
     then: 'startEligibility',
     text: [
       {
-        lead: 'Let’s begin the eligibility check.',
+        lead: 'Certainly, let’s begin the eligibility check.',
         primary: 'I’ll ask a few quick questions first, so you know you’re eligible before anything else.',
         secondary: 'Nothing is submitted, and you can change any answer.',
       },
@@ -238,7 +225,7 @@ export const scenarios = [
     tool: null,
     text: [
       {
-        lead: 'You can ask me about the POD card.',
+        lead: 'Of course. You can ask me about the POD card.',
         primary: 'You can type or speak in your own words, or try one of these.',
       },
     ],
@@ -256,7 +243,7 @@ export const scenarios = [
     tool: { working: 'Reading the POD card service card…', done: 'Service card · POD' },
     text: [
       {
-        lead: 'About the People of Determination card.',
+        lead: 'Happy to explain the People of Determination card.',
         primary: 'The People of Determination card gives access to services, discounts and priority support across the UAE.',
         // VERIFY: "It's free" is copied from Figma; confirm against the service card.
         secondary: 'It’s free, and you can apply for yourself or someone you care for.',
@@ -266,6 +253,28 @@ export const scenarios = [
   },
 ];
 
+// Checking an application's status: Mira asks for the application ID, then reports where it stands (sample data).
+export const statusCheck = {
+  placeholder: 'Enter your application ID, e.g. POD-1042',
+  voiceSample: 'POD 1042',
+  invalid: 'I could not find an application ID in that. It looks like POD-1042: the letters POD, then four digits. Could you check it and send it again?',
+  tool: { working: 'Looking up your application…', done: 'Application status · sample data' },
+  reply: {
+    lead: 'Thank you, I have found your application.',
+    primary: 'Application {id} is currently at the “{stage}” step.',
+    sample: 'This is sample data for the prototype.',
+  },
+  card: { title: 'Application {id}', summary: '{done} of {total} steps complete' },
+  steps: ['Eligibility check', 'Submitted', 'Document processing', 'Authorized Reviewer', 'Decision'],
+  states: { done: 'Done', current: 'In progress', pending: 'Pending' },
+  // One line per sample stage, in the order the steps are reached.
+  stages: [
+    'Your documents are being checked.',
+    'An authorized reviewer is looking at your application.',
+    'Your application is awaiting its final decision.',
+  ],
+};
+
 // Off-topic or unrecognised: redirect gracefully and offer a person.
 // Reply when someone sends a file in the main chat. The file stays on the device; nothing reads it yet.
 export const attachmentReply = {
@@ -273,7 +282,7 @@ export const attachmentReply = {
   tool: null,
   text: [
     {
-      lead: 'File received.',
+      lead: 'Thank you, your file has been received.',
       primary: 'I cannot read or review documents in this chat yet. The file stays on your device and has not been submitted.',
       secondary: 'You can still ask your question in words, and I will answer from the service information.',
     },
@@ -286,7 +295,7 @@ export const fallback = {
   tool: null,
   text: [
     {
-      lead: 'That is outside what I can help with.',
+      lead: 'Thank you for asking.',
       primary: 'I can help with the People of Determination card, and point you to other Ministry services. I can’t answer that one yet.',
       secondary: 'A person can help with anything else.',
     },
@@ -309,13 +318,13 @@ export const afterCheck = {
   later: {
     id: 'check:later',
     tool: null,
-    text: [{ lead: 'Understood.', primary: 'Nothing has been submitted. Whenever you’re ready, I can run the check again.' }],
+    text: [{ lead: 'Understood, thank you.', primary: 'Nothing has been submitted. Whenever you’re ready, I can run the check again.' }],
     cards: [eligibilityCard],
   },
   close: {
     id: 'check:close',
     tool: null,
-    text: [{ lead: 'Understood.', primary: 'Your answers weren’t saved and nothing was submitted. I’m here whenever you want to continue.' }],
+    text: [{ lead: 'Understood, thank you.', primary: 'Your answers weren’t saved and nothing was submitted. I’m here whenever you want to continue.' }],
     cards: [eligibilityCard],
   },
   apply: {
@@ -323,7 +332,7 @@ export const afterCheck = {
     tool: null,
     text: [
       {
-        lead: 'To continue, please sign in.',
+        lead: 'Thank you. To continue, please sign in.',
         primary: 'To fill in your details for you, I’ll ask you to sign in with UAE PASS.',
         secondary: 'Your name, Emirates ID, contact details, nationality and date of birth are filled in for you.',
       },
@@ -345,7 +354,7 @@ export const uaePassStub = {
   tool: null,
   text: [
     {
-      lead: 'Sign-in is not available yet.',
+      lead: 'Thank you for your patience.',
       primary: 'UAE PASS sign-in is the next part of this prototype, so it isn’t available yet.',
       secondary: 'Nothing has been submitted.',
     },

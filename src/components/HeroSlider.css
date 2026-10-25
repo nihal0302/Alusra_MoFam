@@ -3,8 +3,9 @@
    the missing style.css; those few lines are marked APPROX. */
 .hero.hero-slider {
   overflow: hidden;
-  padding: 48px var(--gutter-desktop) 40px;
-  margin-block-end: 48px; /* Bootstrap mb-5 */
+  /* The page is cream here so the registration photo (transparent edges, cream wall) blends in. The old mb-5 gap is padding now, so it stays cream. */
+  background: var(--c-surface-cream);
+  padding: 48px var(--gutter-desktop) 88px;
 }
 
 .hero-slider__viewport {

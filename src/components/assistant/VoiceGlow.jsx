@@ -14,6 +14,7 @@ export function VoiceGlow() {
     const el = box.current;
     if (!el || reduced) return undefined;
 
+    const panel = el.closest('.noor-panel');
     let stopped = false;
     let raf = 0;
     let stream = null;
@@ -34,15 +35,18 @@ export function VoiceGlow() {
           sum += v * v;
         }
         const rms = Math.sqrt(sum / data.length);
-        target = Math.min(1, Math.max(0, (rms - 0.015) * 7));
+        // sqrt curve: quiet and normal speech already register strongly, shouting simply tops out
+        target = Math.min(1, Math.sqrt(Math.max(0, (rms - 0.008) * 16)));
       } else {
         // Idle: a calm, uneven breath.
         const s = (now - t0) / 1000;
         target = 0.22 + 0.14 * Math.sin(s / 1.6) + 0.07 * Math.sin(s / 0.7);
       }
-      // Quick to rise, slow to settle, so it never flickers.
-      level += (target - level) * (target > level ? 0.18 : 0.045);
-      el.style.setProperty('--level', level.toFixed(3));
+      // Quick to rise, slower to settle, so it feels alive without flickering.
+      level += (target - level) * (target > level ? 0.38 : 0.07);
+      const v = level.toFixed(3);
+      el.style.setProperty('--level', v);
+      panel?.style.setProperty('--level', v);
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
@@ -70,6 +74,7 @@ export function VoiceGlow() {
 
     return () => {
       stopped = true;
+      panel?.style.removeProperty('--level');
       cancelAnimationFrame(raf);
       stream?.getTracks().forEach((t) => t.stop());
       ctx?.close().catch(() => {});

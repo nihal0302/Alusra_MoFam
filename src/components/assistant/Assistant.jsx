@@ -9,6 +9,7 @@ import { buildQuestion, buildResult, buildReview, nextStep, parseAnswer, purge }
 import { useApplication } from './useApplication.js';
 import { usePrefersReducedMotion } from '../../lib/usePrefersReducedMotion.js';
 import { buildNudge, formatSize } from '../../lib/application.js';
+import { buildStatusReply, parseApplicationId } from '../../lib/status.js';
 import './Assistant.css';
 import './EligibilityFlow.css';
 
@@ -16,6 +17,13 @@ let nextId = 1;
 const LEAVE_MS = 200; // welcome → conversation
 const CLOSE_MS = 180; // panel back into the launcher
 const FOLLOW_MS = 350; // pause before the first question follows its intro
+
+// Heights (0 to 1) for the waveform bars: taller in the middle, uneven like speech.
+const VOICE_COUNT = 112;
+const VOICE_BARS = Array.from({ length: VOICE_COUNT }, (_, i) => {
+  const envelope = 0.3 + 0.7 * Math.sin((Math.PI * (i + 0.5)) / VOICE_COUNT);
+  return +Math.max(0.16, envelope * (0.45 + 0.55 * Math.abs(Math.sin(i * 1.9 + 0.6) * Math.cos(i * 0.37)))).toFixed(2);
+});
 
 // What a screen reader hears once a reply has finished: the words, then the card titles.
 function spokenReply(scenario) {
@@ -36,7 +44,7 @@ function stepState(stage, i) {
 }
 
 export function Assistant({ content }) {
-  const { persona, ui, topics, voice, scenarios, fallback, afterCheck, eligibility, application, attachmentReply } = content;
+  const { persona, ui, topics, voice, scenarios, fallback, afterCheck, eligibility, application, attachmentReply, statusCheck } = content;
   const reduced = usePrefersReducedMotion();
   const [open, setOpen] = useState(false);
   const [closing, setClosing] = useState(false);
@@ -50,6 +58,8 @@ export function Assistant({ content }) {
   const [announcement, setAnnouncement] = useState('');
   const [stage, setStage] = useState(null); // stepper: null | check | checkDone | docs | review | complete
   const [awaiting, setAwaiting] = useState(false); // a question is waiting for an answer
+  const [statusAwait, setStatusAwait] = useState(false); // Mira has asked for an application ID
+  const statusRef = useRef(false);
 
   const [attachment, setAttachment] = useState(null); // a file chosen for the next message
   const [attachError, setAttachError] = useState('');
@@ -303,6 +313,24 @@ export function Assistant({ content }) {
           pushNoor(attachmentReply);
           return;
         }
+        if (statusRef.current) {
+          const id = parseApplicationId(text);
+          if (id) {
+            statusRef.current = false;
+            setStatusAwait(false);
+            pushUser(text);
+            pushNoor(buildStatusReply(statusCheck, id));
+            return;
+          }
+          if (scenario === fallback) {
+            pushUser(text);
+            pushNoor(buildNudge(statusCheck.invalid));
+            return;
+          }
+          // Something else was asked: leave the ID question and answer that instead.
+          statusRef.current = false;
+          setStatusAwait(false);
+        }
         if (app.handleText(text, { known: scenario !== fallback })) return;
         if (option) {
           answer(waiting.msgId, waiting.qid, option.value, text);
@@ -310,6 +338,10 @@ export function Assistant({ content }) {
         }
         pushUser(text);
         pushNoor(scenario);
+        if (scenario.id === 'track') {
+          statusRef.current = true;
+          setStatusAwait(true);
+        }
       });
       focusInput();
     },
@@ -354,7 +386,7 @@ export function Assistant({ content }) {
     setListening(false);
     const waiting = flowRef.current.awaiting;
     // The transcript lands in the message box; the person decides whether to send it.
-    const said = app.voiceSample ?? (waiting ? eligibility.questions[waiting.qid].voiceSample : voice.transcript);
+    const said = app.voiceSample ?? (statusRef.current ? statusCheck.voiceSample : waiting ? eligibility.questions[waiting.qid].voiceSample : voice.transcript);
     setDraft((d) => (d.trim() ? `${d.trim()} ${said}` : said));
     focusInput();
   };
@@ -367,6 +399,8 @@ export function Assistant({ content }) {
   const restart = () => {
     timers.current.forEach(clearTimeout);
     flowRef.current = { answers: {}, awaiting: null };
+    statusRef.current = false;
+    setStatusAwait(false);
     followed.current = new Set();
     app.reset();
     setStage(null);
@@ -402,9 +436,25 @@ export function Assistant({ content }) {
   };
 
   const avatarState = listening ? 'listening' : thinking ? 'thinking' : 'idle';
+  const welcomeView = (
+    <div key="welcome" className={`noor-welcome${leaving ? ' is-leaving' : ''}${started ? ' is-over-log' : ''}`}>
+      <div className="noor-welcome__dots" aria-hidden="true" />
+      <div className="noor-welcome__aurora" aria-hidden="true">
+        <i /><i /><i />
+      </div>
+      <div className="noor-welcome__hero">
+        <span className="noor-welcome__glow" aria-hidden="true" />
+        <NoorAvatar src={persona.avatar} size={76} ring state={avatarState} className="noor-welcome__avatar" />
+      </div>
+      <h2 className="noor-welcome__title" key={listening ? 'listening' : 'idle'}>
+        {listening ? ui.listening : ui.welcome.title}
+      </h2>
+      <p className="noor-welcome__sub">{listening ? ui.listeningHint : ui.welcome.subtitle}</p>
+    </div>
+  );
   const pose = started ? persona.poses.selection : persona.poses.greeting;
   const blocked = busy || leaving;
-  const placeholder = attachment ? ui.attach.placeholder : app.awaiting?.placeholder ?? (awaiting ? ui.input.answer : started ? ui.input.conversation : ui.input.welcome);
+  const placeholder = attachment ? ui.attach.placeholder : app.awaiting?.placeholder ?? (statusAwait ? statusCheck.placeholder : awaiting ? ui.input.answer : started ? ui.input.conversation : ui.input.welcome);
 
   return (
     <div className="noor">
@@ -490,8 +540,9 @@ export function Assistant({ content }) {
               </nav>
             )}
 
+            <div className="noor-stage">
             {started ? (
-              <div className="noor-log" ref={logRef} role="log" aria-live="off" aria-label="Conversation">
+              <div key="log" className={`noor-log${listening ? ' is-covered' : ''}`} ref={logRef} role="log" aria-live="off" aria-label="Conversation">
                 <div className="noor-log__inner" ref={innerRef}>
                   <p className="noor-log__day">{ui.today}</p>
                   {messages.map((m) =>
@@ -519,25 +570,17 @@ export function Assistant({ content }) {
                 </div>
               </div>
             ) : (
-              <div className={`noor-welcome${leaving ? ' is-leaving' : ''}`}>
-                <div className="noor-welcome__dots" aria-hidden="true" />
-                <div className="noor-welcome__aurora" aria-hidden="true">
-                  <i /><i /><i />
-                </div>
-                <div className="noor-welcome__hero">
-                  <span className="noor-welcome__glow" aria-hidden="true" />
-                  <NoorAvatar src={persona.avatar} size={76} ring state={avatarState} className="noor-welcome__avatar" />
-                </div>
-                <h2 className="noor-welcome__title">{ui.welcome.title}</h2>
-                <p className="noor-welcome__sub">{ui.welcome.subtitle}</p>
-              </div>
+              welcomeView
             )}
+            {/* Mid-conversation, voice mode shows the same avatar and heading over the (still mounted) chat. */}
+            {started && listening && welcomeView}
+            </div>
 
             {listening && <VoiceGlow />}
 
             <footer className="noor-footer">
-              {!started && !listening && (
-                <div className={`noor-topics${leaving ? ' is-leaving' : ''}`}>
+              {!started && (
+                <div className={`noor-topics${leaving ? ' is-leaving' : ''}${listening ? ' is-muted' : ''}`} inert={listening || undefined}>
                   {topics.map((t, i) => (
                     <button
                       key={t.id}
@@ -550,7 +593,7 @@ export function Assistant({ content }) {
                       <span className="noor-topic__icon" aria-hidden="true">
                         <ChatIcon name={t.icon} size={22} weight={1.5} />
                       </span>
-                      {t.label}
+                      <span className="noor-topic__label">{t.label}</span>
                     </button>
                   ))}
                 </div>
@@ -584,10 +627,14 @@ export function Assistant({ content }) {
               >
                 {listening ? (
                   <>
-                    <span className="noor-input__listening" role="status">
-                      {ui.listening}
+                    <span className="noor-vwave" role="status">
+                      <span className="visually-hidden">{ui.listening}</span>
+                      <span className="noor-vwave__bars" aria-hidden="true">
+                        {VOICE_BARS.map((p, i) => (
+                          <i key={i} style={{ '--p': p, '--d': `${(i * 59) % 700}ms` }} />
+                        ))}
+                      </span>
                     </span>
-                    <span className="noor-input__hint" aria-hidden="true">{ui.listeningHint}</span>
                     <button type="button" className="noor-send" aria-label={ui.actions.stop} onClick={stopListening}>
                       <span className="noor-stop" aria-hidden="true" />
                     </button>
