@@ -63,7 +63,44 @@ Deviations from Figma: no "Apply service" (scope), "a few quick questions" (adap
 ### Application, applying for yourself (23 Oct 2026)
 - **Flow (all in the chat, no forms):** eligible → "Yes, I want to apply" → UAE PASS card → sign-in (simulated) → details fetched row by row (name, gender, date of birth, nationality, Emirates ID, mobile, email; sample data for "Hamdan Al Ketbi") → Noor asks emirate, emergency contact name and number → personal photograph upload → medical/psychological report upload → review (UAE PASS rows tagged, own answers editable) → "Confirm and submit" → application number (counts up, sample `PoC-xxxx`) + tracker.
 - **Expanded layout** opens automatically when the check starts (not on phones, already full screen).
-- **UAE PASS button:** black style, "Sign in with UAE PASS", per the UAE PASS Buttons Guidelines (2023). The fingerprint logo in `src/assets/uaepass/uae-pass-logo.svg` is an approximation; replace with the official artwork.
+- **UAE PASS button:** now built from the official black button artwork (`UaePassLogo.jsx` holds the official logo paths; states active, pressed, focus ring, disabled from the supplied SVGs) and the Buttons Guidelines v2: black style on the light card, title "Sign in with UAE PASS", 300 x 44, radius 12. Title is live text, not the artwork's embedded SF Pro. White and outline styles not built (not needed on this light card); hover is not specified by the guidelines, so none is added.
 - **Uploads** are checked on the device (type, 10 MB) and kept in memory only. No backend: nothing is sent anywhere.
 - **Docs list** now follows the website's "Required documents" (medical report for physical and sensory, psychological report for intellectual, psychological, ADHD, autism and learning difficulties, from an accredited authority; passport-size photo, white background).
 - **Not built / flagged:** Figma's "Proof of residency" upload (not in the website's list), dependants/guardian path, draft saving, real notifications, Arabic.
+
+### Outcome card and expand timing (25 Oct 2026)
+- **Expand on click:** "Start POD application" (chip or typed) grows the panel immediately, before Noor replies.
+- **Outcome card:** opens at its heading when taller than the window (otherwise the whole card is simply in view); supplied green check asset (`src/assets/noor/check-success.png`); title and subtitle on one line when there is room; more space under the checklist label.
+- **Report types** moved into an "i" tooltip (hover, keyboard focus or tap) on the report row.
+- **Actions:** "Nothing is submitted" removed from outcome cards. One row: "Review answers" (left), "I'll apply later" + primary (right); stacks primary-first when the card is narrow.
+
+### UAE PASS wait (25 Oct 2026)
+- After "Sign in with UAE PASS", Noor shows a "Signing in with UAE PASS" card for 30 s (`signIn.wait.ms` in `application.en.js`): progress bar plus four steps, ending on "Signed in". Then the details arrive exactly as before.
+- Typing is ignored during the wait; Restart cancels it. The approval itself is simulated; swap the timer in `useApplication.js` for the real UAE PASS callback.
+
+### Success animation (25 Oct 2026)
+- The eligible outcome card plays the LottieFiles "Success Check" once and rests on its last frame (`SuccessCheck.jsx`, `src/assets/noor/success-check.json`, player `lottie-web` light build). Its white background layer was removed so it sits on the card. Reduced motion shows the final frame only. Replaces the static green check image.
+
+### Chat polish (25 Oct 2026)
+- **Icons:** the assistant now uses Hugeicons (stroke, rounded; the set in the Majlis Figma library) via `@hugeicons/core-free-icons` and `ChatIcon.jsx`. The website's own icons are unchanged. Small ticks use a heavier stroke so they stay readable inside circles.
+- **UAE PASS wait:** progress bar removed; steps only.
+- **Upload box:** icon tile, headline, "or choose a file from your device", button; drag-over state.
+- **Review:** "From UAE PASS" tags and Change links sit on one fixed right edge.
+- **Submitted:** uses the success animation and opens at its top, like the eligibility result.
+- **Tone:** bot lines rewritten to neutral, factual wording (no praise or claims about what the user provided).
+
+### Round of tweaks (25 Oct 2026)
+- Assistant renamed **Mira** (visible text only; `noor-*` class names, `NoorMessage`/`NoorAvatar` and asset file names are unchanged internally).
+- Entry options use File add / Message question / File search icons; "Myself" / "My child" use the earlier person icons; Legal UAE resident uses a house with a door (Home03); the accredited-authority "Yes" uses Hospital02; upload button uses Upload01.
+- Reference numbers read **POD-xxxx**. More space under the sign-in title and above the notification line.
+
+### Entry, dots and attachments (25 Oct 2026)
+- Entry options: 40px tiles with 22px, lighter-stroke icons. Expand/collapse use ArrowExpand01 / ArrowShrink01.
+- Welcome dots: unchanged (the livelier, full-width version was tried and reverted).
+- Message box has an attach (paperclip) button: PDF, JPG or PNG up to 10 MB, shown as a removable chip, sent with an optional message. Mira says plainly that she cannot read documents yet and nothing is submitted (`attachmentReply`). Always available. At the photograph and report steps, a file sent from the message box counts as that upload (same type and size checks); elsewhere Mira replies as above.
+
+### Listening state (25 Oct 2026)
+- Tapping the mic hides the three entry options and keeps the light theme: a soft white veil with four blurred colour blobs (gold, warm ember, sage, pale core) rising from the bottom and drifting slowly. No waveform. The input becomes glassmorphic (translucent sheen, strong blur and saturation, bright top edge, soft tinted shadow) ("Listening…", a hint, a small stop button). Listening lasts until stop is pressed.
+- The glow is subtle at rest (about 28% opacity) and gains roughly 25 points of opacity, and swells a little, as the person speaks, following the real microphone level, read on the device only (Web Audio analyser; nothing is recorded or sent) and written to the CSS variable --level. If the microphone is blocked or missing, a slow idle pulse is used; under reduced motion the glow is still and the microphone is not requested.
+- New tokens --noor-glow-gold/ember/green/core (oklch, APPROX): saturated shades of the theme colours, used only here. Flagged as a design decision.
+- Speech itself is still simulated: pressing stop puts a fixed sample sentence into the message box for the person to edit and send (it is not sent automatically).

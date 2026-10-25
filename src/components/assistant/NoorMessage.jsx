@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Icon } from '../Icon.jsx';
+import { ChatIcon } from './ChatIcon.jsx';
 import { NoorAvatar } from './NoorAvatar.jsx';
 import { ActionCard } from './ActionCard.jsx';
 import { usePrefersReducedMotion } from '../../lib/usePrefersReducedMotion.js';
@@ -9,11 +9,11 @@ const TOOL_MS = 900;
 const WORD_MS = 34;
 const PARTS = ['lead', 'primary', 'secondary'];
 
-// One Noor turn, played as: thinking dots → "shows its work" chip → streamed words → cards.
+// One Mira turn, played as: thinking dots → "shows its work" chip → streamed words → cards.
 // Stages: thinking → tool → stream → done. Reduced motion skips straight to done.
 // Screen readers: the streaming text is hidden from them and the finished reply is announced
 // once through the panel's live region (see Assistant.jsx), so they never hear it word by word.
-export function NoorMessage({ scenario, avatar, onStage, onAction, labels, chosen }) {
+export function NoorMessage({ msgId, scenario, avatar, onStage, onAction, labels, chosen }) {
   const reduced = usePrefersReducedMotion();
   const hasTool = Boolean(scenario.tool);
   const [stage, setStage] = useState(reduced ? 'done' : 'thinking');
@@ -75,7 +75,7 @@ export function NoorMessage({ scenario, avatar, onStage, onAction, labels, chose
   };
 
   return (
-    <div className="noor-msg noor-msg--noor">
+    <div className="noor-msg noor-msg--noor" data-msg={msgId}>
       <NoorAvatar src={avatar} size={30} className="noor-msg__avatar" />
       <div className="noor-msg__col">
         {stage === 'thinking' && (
@@ -86,7 +86,7 @@ export function NoorMessage({ scenario, avatar, onStage, onAction, labels, chose
         {hasTool && stage !== 'thinking' && (
           <div className={`noor-chip-tool${toolDone ? ' is-done' : ''}`} aria-hidden={!toolDone || undefined}>
             <span className="noor-chip-tool__icon" aria-hidden="true">
-              {toolDone ? <Icon name="check" size={12} /> : <span className="noor-spinner" />}
+              {toolDone ? <ChatIcon name="check" size={12} /> : <span className="noor-spinner" />}
             </span>
             {toolDone ? scenario.tool.done : scenario.tool.working}
           </div>

@@ -237,9 +237,9 @@
   box-shadow: inset -7px -7px 0 var(--noor-pending);
 }
 
-.noor-done__badge svg polyline {
-  stroke-dasharray: 300;
-  stroke-dashoffset: 300;
+.noor-done__badge svg path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
   animation: noor-draw var(--dur-5) var(--ease-out) 500ms forwards;
 }
 
@@ -336,7 +336,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .noor-arc__fill { animation: none; stroke-dashoffset: var(--arc-to); }
-  .noor-done__badge svg polyline { animation: none; stroke-dashoffset: 0; }
+  .noor-done__badge svg path { animation: none; stroke-dashoffset: 0; }
   .noor-optcard:hover, .noor-optcard:hover .noor-optcard__icon { transform: none !important; }
   .noor-strip { animation-name: noor-fade; }
 }
@@ -441,34 +441,56 @@
 .noor-pass__cta { padding: 4px 16px 18px; }
 
 .uaepass-btn {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 4px;
   inline-size: 100%;
-  min-inline-size: 140px;
-  min-block-size: 48px;
-  margin: 4px 0;
-  padding: 0 20px;
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
-  font-size: 17px;
+  max-inline-size: 300px;
+  block-size: 44px;
+  margin: 4px auto;
+  padding: 0 16px;
+  font-family: 'SF Pro Text', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  font-size: 19px;
   font-weight: 600;
   line-height: 1;
-  letter-spacing: -0.2px;
   color: var(--uaepass-white);
   background: var(--uaepass-black);
   border: 0;
   border-radius: var(--radius-uaepass);
+  box-shadow: 0 2px 2px var(--uaepass-shadow), 0 0 2px var(--uaepass-shadow);
   cursor: pointer;
-  transition: transform var(--dur-1) var(--ease-out), filter var(--dur-1) var(--ease-out);
 }
 
-.uaepass-btn:hover:not(:disabled) { filter: brightness(1.35); transform: translateY(-1px); }
-.uaepass-btn:active:not(:disabled) { filter: brightness(1.8); transform: scale(0.99); }
-.uaepass-btn:focus-visible { outline: 2px solid var(--uaepass-black); outline-offset: 3px; }
-.uaepass-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.uaepass-btn__logo { inline-size: 24px; block-size: 24px; flex: none; }
+.uaepass-btn__logo { flex: none; inline-size: 25px; block-size: 25px; }
 .uaepass-btn__title { white-space: nowrap; }
+
+/* Logo colours: official black-button form is white with green and red accents. */
+.uaepass-logo__ink { fill: var(--uaepass-white); }
+.uaepass-logo__green { fill: var(--uaepass-green); }
+.uaepass-logo__red { fill: var(--uaepass-red); }
+
+/* Pressed: lighter fill with a 1px dark edge, as in the supplied artwork. */
+.uaepass-btn:active:not(:disabled) {
+  background: var(--uaepass-pressed);
+  box-shadow: inset 0 0 0 1px var(--uaepass-edge);
+}
+
+/* Focus: green ring around the button. */
+.uaepass-btn:focus-visible { outline: 0; box-shadow: 0 0 0 3px var(--uaepass-focus); }
+
+/* Disabled: white button, 40% edge, everything inside at 40%. */
+.uaepass-btn:disabled {
+  color: var(--uaepass-black);
+  background: var(--uaepass-white);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--uaepass-edge) 40%, transparent);
+  cursor: not-allowed;
+}
+.uaepass-btn:disabled .uaepass-btn__logo,
+.uaepass-btn:disabled .uaepass-btn__title { opacity: 0.4; }
+.uaepass-btn:disabled .uaepass-logo__ink,
+.uaepass-btn:disabled .uaepass-logo__green,
+.uaepass-btn:disabled .uaepass-logo__red { fill: var(--uaepass-black); }
 
 @media (forced-colors: active) {
   .uaepass-btn { border: 1px solid ButtonText; }
@@ -526,9 +548,9 @@
   animation: noor-pop var(--dur-3) var(--ease-spring) var(--d, 0ms) backwards;
 }
 
-.noor-fetch__tick svg polyline {
-  stroke-dasharray: 300;
-  stroke-dashoffset: 300;
+.noor-fetch__tick svg path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
   animation: noor-draw var(--dur-4) var(--ease-out) calc(var(--d, 0ms) + 80ms) forwards;
 }
 
@@ -652,7 +674,8 @@
 
 .noor-arev__row dt { grid-column: 1; font-size: 12.5px; color: var(--noor-muted); }
 .noor-arev__row dd { grid-column: 1; margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
-.noor-arev__row .noor-link-btn { grid-column: 2; grid-row: 1 / span 2; }
+.noor-arev__row .noor-link-btn,
+.noor-arev__row .noor-arev__tag { grid-column: 2; grid-row: 1 / span 2; justify-self: end; }
 .noor-arev__value { font-size: 14.5px; font-weight: 600; color: var(--noor-ink); overflow-wrap: anywhere; }
 
 .noor-arev__tag {
@@ -705,6 +728,234 @@
 @media (prefers-reduced-motion: reduce) {
   .noor-done__halo { animation: none; }
   .noor-fetch__state .noor-spinner { animation: none; opacity: 0; }
-  .noor-fetch__tick svg polyline { animation: none; stroke-dashoffset: 0; }
+  .noor-fetch__tick svg path { animation: none; stroke-dashoffset: 0; }
   .uaepass-btn:hover:not(:disabled) { transform: none; }
 }
+
+/* ================= Outcome card, compact (supersedes the roomier block above) ================= */
+.noor-done { container-type: inline-size; }
+
+.noor-done__top { gap: 4px; padding: 18px 16px 4px; }
+.noor-done__halo { inline-size: 120px; block-size: 120px; inset-block-start: 4px; }
+
+.noor-done__check {
+  display: block;
+  inline-size: 104px;
+  block-size: 104px;
+  margin-block: -14px -6px; /* the animation canvas has room around the circle for its ripple */
+}
+
+.noor-done__badge { inline-size: 56px; block-size: 56px; margin-block-end: 6px; }
+.noor-done__badge > span { inline-size: 34px; block-size: 34px; }
+
+.noor-done__title { font-size: 19px; max-inline-size: none; text-wrap: balance; }
+.noor-done__sub { font-size: 14px; line-height: 20px; max-inline-size: none; text-wrap: balance; }
+
+.noor-done__list { padding: 14px 16px 4px; }
+.noor-done__label { margin-block-end: 14px; }
+.noor-done__list ul { gap: 8px; }
+.noor-done__list li { align-items: center; gap: 12px; padding: 12px 14px; }
+.noor-done__icon { inline-size: 36px; block-size: 36px; }
+.noor-done__item { display: flex; align-items: center; gap: 4px; }
+
+/* Extra detail lives behind the "i": hover, keyboard focus, or tap. */
+.noor-tip { position: relative; display: inline-flex; }
+
+.noor-tip__btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 22px;
+  block-size: 22px;
+  padding: 0;
+  color: var(--noor-muted);
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  cursor: help;
+}
+
+/* 44px hit area around the 22px icon */
+.noor-tip__btn::after { content: ''; position: absolute; inset: -11px; }
+.noor-tip__btn:hover, .noor-tip__btn:focus-visible, .noor-tip.is-open .noor-tip__btn { color: var(--noor-gold); }
+
+.noor-tip__pop {
+  position: absolute;
+  inset-block-end: calc(100% + 8px);
+  inset-inline-start: -12px;
+  z-index: 3;
+  inline-size: max-content;
+  max-inline-size: min(300px, 70cqi);
+  padding: 10px 12px;
+  font-size: 12.5px;
+  font-weight: 400;
+  line-height: 18px;
+  color: var(--c-white);
+  background: var(--noor-ink);
+  border-radius: 10px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(4px);
+  transition: opacity var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out), visibility 0s linear var(--dur-2);
+  pointer-events: none;
+}
+
+.noor-tip:hover .noor-tip__pop,
+.noor-tip:focus-within .noor-tip__pop,
+.noor-tip.is-open .noor-tip__pop {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition-delay: 0s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .noor-tip__pop { transition: none; transform: none; }
+}
+
+/* One tidy action row: the quiet link on the left, the choices on the right. */
+.noor-done__foot {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  padding: 16px;
+}
+
+.noor-done__quiet, .noor-done__main { display: flex; align-items: center; gap: 8px; }
+.noor-done__main { margin-inline-start: auto; }
+.noor-done__foot .noor-btn { min-block-size: 44px; }
+
+@container (max-width: 520px) {
+  .noor-done__foot { flex-direction: column-reverse; align-items: stretch; }
+  .noor-done__main { flex-direction: column-reverse; align-items: stretch; margin-inline-start: 0; }
+  .noor-done__quiet { justify-content: center; }
+  .noor-done__foot .noor-btn { inline-size: 100%; justify-content: center; }
+}
+
+/* ---- Outcome card: more breathing room, tooltip kept inside the card ---- */
+.noor-done__top { gap: 8px; padding: 28px 28px 8px; }
+.noor-done__sub { margin-block-start: 2px; }
+
+.noor-done__list { padding: 28px 24px 8px; }
+.noor-done__label { margin-block-end: 22px; }
+.noor-done__list ul { gap: 14px; }
+.noor-done__list li { position: relative; gap: 16px; padding: 18px 20px; }
+.noor-done__copy { gap: 6px; }
+.noor-done__item { gap: 8px; }
+.noor-done__foot { padding: 28px 24px 24px; }
+
+/* Anchor to the row, not the icon, so the bubble can never run off the card edge. */
+.noor-tip { position: static; }
+.noor-tip__pop {
+  inset-inline: 20px;
+  inset-block-end: calc(100% - 6px);
+  inline-size: auto;
+  max-inline-size: none;
+}
+
+/* Checklist heading removed (kept as the list's accessible name); tighter gap under the intro copy. */
+.noor-done__list { padding-block-start: 16px; }
+
+/* ================= Waiting for UAE PASS approval ================= */
+.noor-signing__steps { margin-block-start: 14px; }
+.noor-signing__steps { margin-block-start: 14px; }
+.noor-signing__bar {
+  block-size: 6px;
+  margin-block: 12px 14px;
+  overflow: hidden;
+  background: var(--noor-chip);
+  border-radius: 999px;
+}
+
+.noor-signing__bar span {
+  display: block;
+  block-size: 100%;
+  background: var(--noor-gold);
+  border-radius: inherit;
+  transition: inline-size 300ms linear;
+}
+
+.noor-signing__steps { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
+
+.noor-signing__steps li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--noor-muted);
+  transition: color var(--dur-2) var(--ease-out);
+}
+
+.noor-signing__steps li.is-active { color: var(--noor-ink); font-weight: 600; }
+.noor-signing__steps li.is-done { color: var(--noor-ink); }
+
+.noor-signing__state {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  inline-size: 22px;
+  block-size: 22px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px var(--noor-line-strong);
+}
+
+.noor-signing__steps .is-done .noor-signing__state { color: var(--c-white); background: var(--noor-success); box-shadow: none; }
+.noor-signing__steps .is-active .noor-signing__state { box-shadow: none; }
+.noor-signing__note { animation: none; opacity: 1; }
+
+/* ================= Upload box ================= */
+.noor-up__drop {
+  position: relative;
+  gap: 10px;
+  margin: 8px 16px 16px;
+  padding: 28px 20px 24px;
+  cursor: pointer;
+  background:
+    radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--noor-gold) 9%, transparent), transparent 70%),
+    var(--noor-surface);
+  border: 1.5px dashed color-mix(in srgb, var(--noor-gold) 45%, var(--noor-line-strong));
+  border-radius: 16px;
+  transition: border-color var(--dur-2) var(--ease-out), background-color var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out);
+}
+
+.noor-up__drop:hover { border-color: var(--noor-gold); }
+
+.noor-up__drop.is-drag {
+  border-style: solid;
+  border-color: var(--noor-gold);
+  background: var(--noor-chip);
+  transform: scale(1.01);
+}
+
+.noor-up__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 64px;
+  block-size: 64px;
+  color: var(--noor-gold);
+  background: var(--c-white);
+  border-radius: 20px;
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--noor-gold) 10%, transparent), 0 6px 16px color-mix(in srgb, var(--noor-gold) 14%, transparent);
+  transition: transform var(--dur-3) var(--ease-spring);
+}
+
+.noor-up__drop:hover .noor-up__badge, .noor-up__drop.is-drag .noor-up__badge { transform: translateY(-3px); }
+
+.noor-up__headline { margin: 4px 0 0; font-size: 15.5px; font-weight: 600; color: var(--noor-ink); }
+.noor-up__or { margin-block-end: 6px; font-size: 13.5px; color: var(--noor-muted); }
+.noor-up__drop .noor-btn { min-block-size: 44px; padding-inline: 22px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .noor-up__drop, .noor-up__badge { transition: none; }
+  .noor-up__drop.is-drag, .noor-up__drop:hover .noor-up__badge { transform: none; }
+}
+
+/* More air under the sign-in title and above the notification line */
+.noor-signing .noor-card__title { margin-block-end: 6px; }
+.noor-signing__steps { margin-block-start: 22px; gap: 14px; }
+.noor-sub__next .noor-sub__notify { margin-block-start: 26px; }

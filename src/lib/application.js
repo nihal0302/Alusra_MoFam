@@ -5,11 +5,14 @@ export const ORDER = ['emirate', 'emergencyName', 'emergencyPhone', 'photo', 're
 
 export const fill = (str, vars) => str.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? '');
 
-// UAE mobile numbers: 05X XXX XXXX, optionally with +971 / 00971 / 971 in front.
+// Mobile numbers must carry their country code (+ or 00 in front), 8-15 digits in all. UAE numbers
+// (+971 5X XXX XXXX) are spaced for reading; other countries are kept as +<digits>.
 export function normalisePhone(raw) {
-  const digits = raw.replace(/[^\d+]/g, '');
-  const m = digits.match(/^(?:\+?971|00971|0)?(5\d)(\d{7})$/);
-  return m ? `+971 ${m[1]} ${m[2].slice(0, 3)} ${m[2].slice(3)}` : null;
+  let digits = raw.replace(/[^\d+]/g, '');
+  if (digits.startsWith('00')) digits = '+' + digits.slice(2);
+  if (!/^\+[1-9]\d{7,14}$/.test(digits)) return null;
+  const uae = digits.match(/^\+971(5\d)(\d{7})$/);
+  return uae ? '+971 ' + uae[1] + ' ' + uae[2].slice(0, 3) + ' ' + uae[2].slice(3) : digits;
 }
 
 export const validName = (raw) => /\p{L}{2}/u.test(raw) && raw.trim().length <= 80;
@@ -20,6 +23,16 @@ export function matchEmirate(text, options) {
 }
 
 export const formatSize = (bytes) => (bytes >= 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`);
+
+export function buildSigningIn(app) {
+  const w = app.signIn.wait;
+  return {
+    id: 'app:signing',
+    tool: null,
+    text: [{ lead: w.lead, primary: w.primary }],
+    cards: [{ type: 'signing', title: w.title, steps: w.steps, ms: w.ms, done: w.done, note: w.note, spoken: `${w.title}. ${w.steps.join(', ')}.` }],
+  };
+}
 
 export function buildSignIn(app) {
   const s = app.signIn;
@@ -36,17 +49,17 @@ export function buildPrompt(app, step, { changing = false } = {}) {
   const st = app.steps[step];
   const cards = [];
   if (st.kind === 'choice') cards.push({ type: 'choices', label: st.label, options: st.options, field: step, spoken: `Choices: ${st.options.join(', ')}.` });
-  if (st.kind === 'file') cards.push({ type: 'upload', field: step, ...st.upload, maxMb: app.upload.maxMb, drop: app.upload.drop, errors: app.upload.errors, spoken: `${st.upload.title}. ${st.upload.hint}.` });
+  if (st.kind === 'file') cards.push({ type: 'upload', field: step, ...st.upload, maxMb: app.upload.maxMb, drop: app.upload.drop, dropActive: app.upload.dropActive, errors: app.upload.errors, spoken: `${st.upload.title}. ${st.upload.hint}.` });
   return {
     id: `app:${step}`,
     tool: null,
-    text: [{ lead: changing ? 'Of course, let’s update that.' : st.lead, primary: st.text }],
+    text: [{ lead: changing ? 'Understood. Let’s update that.' : st.lead, primary: st.text }],
     cards,
   };
 }
 
 export function buildNudge(text) {
-  return { id: 'app:nudge', tool: null, text: [{ lead: 'Thanks, I want to get this right.', primary: text }], cards: [] };
+  return { id: 'app:nudge', tool: null, text: [{ lead: 'Please check your entry.', primary: text }], cards: [] };
 }
 
 export function buildReview(app, data) {
@@ -113,4 +126,4 @@ export function buildSubmitted(app, reference) {
   };
 }
 
-export const newReference = () => `PoC-${String(Math.floor(Math.random() * 9000) + 1000)}`;
+export const newReference = () => `POD-${String(Math.floor(Math.random() * 9000) + 1000)}`;

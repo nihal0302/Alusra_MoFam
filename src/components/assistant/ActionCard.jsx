@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { Icon } from '../Icon.jsx';
+import { ChatIcon } from './ChatIcon.jsx';
 import { UaePassButton } from './UaePassButton.jsx';
 import { usePrefersReducedMotion } from '../../lib/usePrefersReducedMotion.js';
 import { formatSize } from '../../lib/application.js';
+import { SuccessCheck } from './SuccessCheck.jsx';
 
 const ARC_R = 15;
 const ARC_LEN = 2 * Math.PI * ARC_R;
@@ -22,6 +23,68 @@ function Arc({ step, total }) {
   );
 }
 
+// The simulated UAE PASS approval: a progress bar over the whole wait, with the current step highlighted.
+function SigningCard({ card, style }) {
+  const [elapsed, setElapsed] = useState(0);
+  useEffect(() => {
+    const t0 = Date.now();
+    const id = setInterval(() => setElapsed(Math.min(card.ms, Date.now() - t0)), 250);
+    return () => clearInterval(id);
+  }, [card.ms]);
+  const per = card.ms / card.steps.length;
+  const active = Math.min(card.steps.length - 1, Math.floor(elapsed / per));
+  const finished = elapsed >= card.ms;
+  return (
+    <section className="noor-card noor-signing" style={style} aria-label={card.title}>
+      <div className="noor-card__body">
+        <h3 className="noor-card__title">{card.title}</h3>
+        <ul className="noor-signing__steps">
+          {card.steps.map((s, i) => {
+            const state = finished || i < active ? 'done' : i === active ? 'active' : 'todo';
+            return (
+              <li key={s} className={`is-${state}`} aria-current={state === 'active' ? 'step' : undefined}>
+                <span className="noor-signing__state" aria-hidden="true">
+                  {state === 'done' ? <ChatIcon name="check" size={12} /> : state === 'active' ? <span className="noor-spinner" /> : null}
+                </span>
+                {s}
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+      <p className="noor-fetch__note noor-signing__note">
+        <ChatIcon name="shield" size={14} />
+        {finished ? card.done : card.note}
+      </p>
+    </section>
+  );
+}
+
+// Small "i" that reveals extra detail on hover, keyboard focus or tap; Escape or a second tap closes it.
+function InfoTip({ text, label }) {
+  const [open, setOpen] = useState(false);
+  const id = useRef(`noor-tip-${Math.random().toString(36).slice(2, 8)}`).current;
+  return (
+    <span className={`noor-tip${open ? ' is-open' : ''}`} onMouseLeave={() => setOpen(false)}>
+      <button
+        type="button"
+        className="noor-tip__btn"
+        aria-label={label}
+        aria-describedby={id}
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+        onBlur={() => setOpen(false)}
+        onKeyDown={(e) => e.key === 'Escape' && setOpen(false)}
+      >
+        <ChatIcon name="info" size={16} />
+      </button>
+      <span className="noor-tip__pop" role="tooltip" id={id}>
+        {text}
+      </span>
+    </span>
+  );
+}
+
 function LinkButton({ link }) {
   const external = link.href.startsWith('http');
   return (
@@ -31,7 +94,7 @@ function LinkButton({ link }) {
       {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
     >
       {link.label}
-      {external && <Icon name="arrowUpRight" size={14} />}
+      {external && <ChatIcon name="arrowUpRight" size={14} />}
       {external && <span className="visually-hidden"> (opens in a new tab)</span>}
     </a>
   );
@@ -43,7 +106,7 @@ function Ticks({ items, delay }) {
       {items.map((t) => (
         <li key={t} style={{ '--tick-delay': `${delay}ms` }}>
           <span className="noor-ticks__mark" aria-hidden="true">
-            <Icon name="check" size={11} />
+            <ChatIcon name="check" size={11} />
           </span>
           <span>{t}</span>
         </li>
@@ -83,19 +146,20 @@ function UploadCard({ card, style, onAction, chosen }) {
       {uploaded ? (
         <div className="noor-up__done">
           <span className="noor-up__thumb" aria-hidden="true">
-            {uploaded.type.startsWith('image/') ? <img src={uploaded.url} alt="" /> : <Icon name="file" size={22} />}
+            {uploaded.type.startsWith('image/') ? <img src={uploaded.url} alt="" /> : <ChatIcon name="file" size={22} />}
           </span>
           <span className="noor-up__meta">
             <span className="noor-up__name">{uploaded.name}</span>
             <span className="noor-up__size">{formatSize(uploaded.size)} · Uploaded</span>
           </span>
           <span className="noor-up__ok" aria-hidden="true">
-            <Icon name="check" size={12} />
+            <ChatIcon name="check" size={12} />
           </span>
         </div>
       ) : (
         <div
           className={`noor-up__drop${drag ? ' is-drag' : ''}`}
+          onClick={(e) => e.target === e.currentTarget && !locked && inputRef.current?.click()}
           onDragOver={(e) => {
             e.preventDefault();
             setDrag(true);
@@ -118,11 +182,15 @@ function UploadCard({ card, style, onAction, chosen }) {
               e.target.value = '';
             }}
           />
+          <span className="noor-up__badge" aria-hidden="true">
+            <ChatIcon name={card.icon ?? 'upload'} size={28} weight={1.5} />
+          </span>
+          <p className="noor-up__headline">{drag ? card.dropActive : card.dropTitle}</p>
+          <span className="noor-up__or">{card.drop}</span>
           <button type="button" className="noor-btn" disabled={locked} onClick={() => inputRef.current?.click()}>
-            <Icon name="upload" size={16} />
+            <ChatIcon name="upload" size={16} />
             {card.button}
           </button>
-          <span className="noor-up__or">{card.drop}</span>
           {error && (
             <p className="noor-up__error" role="alert">
               {error}
@@ -165,18 +233,14 @@ function SubmittedCard({ card, style }) {
   return (
     <section className="noor-card noor-sub" style={style} aria-label={card.title}>
       <div className="noor-sub__top">
-        <span className="noor-done__badge" aria-hidden="true">
-          <span>
-            <Icon name="check" size={26} />
-          </span>
-        </span>
+        <SuccessCheck className="noor-done__check" />
         <h3 className="noor-done__title">{card.title}</h3>
         <p className="noor-sub__label">{card.refLabel}</p>
         <p className="noor-sub__ref" aria-label={card.reference}>
-          PoC-{String(n).padStart(4, '0')}
+          POD-{String(n).padStart(4, '0')}
         </p>
         <button type="button" className="noor-btn noor-btn--outline" onClick={copy}>
-          <Icon name={copied ? 'check' : 'copy'} size={14} />
+          <ChatIcon name={copied ? 'check' : 'copy'} size={14} />
           {copied ? card.copied : card.copy}
         </button>
         <span className="visually-hidden" role="status">
@@ -193,7 +257,7 @@ function SubmittedCard({ card, style }) {
               style={{ '--tick-delay': `${700 + i * 90}ms` }}
             >
               <span className="noor-steps__mark" aria-hidden="true">
-                {s.state === 'done' && <Icon name="check" size={11} />}
+                {s.state === 'done' && <ChatIcon name="check" size={12} />}
               </span>
               <span className="noor-steps__label">{s.label}</span>
               <span className="noor-steps__state">{s.state === 'done' ? 'Done' : 'Pending'}</span>
@@ -206,7 +270,7 @@ function SubmittedCard({ card, style }) {
   );
 }
 
-// Cards under a Noor bubble. `chosen` is set once the user has acted on a card, which locks it.
+// Cards under a Mira bubble. `chosen` is set once the user has acted on a card, which locks it.
 // Non-POD services are guidance + link out only; nothing here submits anything without a confirm.
 export function ActionCard({ card, index = 0, onAction, chosen }) {
   const style = { '--card-delay': `${index * 80}ms` };
@@ -261,14 +325,14 @@ export function ActionCard({ card, index = 0, onAction, chosen }) {
                 onClick={() => onAction?.('answer', { qid: card.qid, value: o.value, label: o.answer ?? o.label })}
               >
                 <span className="noor-optcard__icon" aria-hidden="true">
-                  <Icon name={o.icon} size={22} />
+                  <ChatIcon name={o.icon} size={22} />
                 </span>
                 <span className="noor-optcard__text">
                   <span className="noor-optcard__title">{o.label}</span>
                   <span className="noor-optcard__hint">{o.hint}</span>
                 </span>
                 <span className="noor-optcard__check" aria-hidden="true">
-                  <Icon name="check" size={11} />
+                  <ChatIcon name="check" size={11} />
                 </span>
               </button>
             );
@@ -316,34 +380,51 @@ export function ActionCard({ card, index = 0, onAction, chosen }) {
     );
   }
 
-  // Outcome screen: spacious, centred, with the primary action first and full width.
+  // Outcome screen: compact header, checklist, then one tidy action row.
   if (card.type === 'result') {
     const primary = card.actions.find((a) => a.variant === 'primary');
-    const others = card.actions.filter((a) => a.variant !== 'primary');
+    const quiet = card.actions.filter((a) => a.variant === 'text');
+    const outlined = card.actions.filter((a) => a.variant === 'outline');
+    const act = (a, cls) => (
+      <button
+        key={a.event}
+        type="button"
+        className={`noor-btn ${cls}`}
+        disabled={locked}
+        onClick={() => onAction?.(a.event, a)}
+      >
+        {a.label}
+      </button>
+    );
     return (
       <section className={`noor-card noor-done is-${card.tone}`} style={style} aria-label={card.title}>
         <div className="noor-done__top">
           <span className="noor-done__halo" aria-hidden="true" />
-          <span className="noor-done__badge" aria-hidden="true">
-            <span>
-              <Icon name={card.tone === 'success' ? 'check' : 'info'} size={26} />
+          {card.tone === 'success' ? (
+            <SuccessCheck className="noor-done__check" />
+          ) : (
+            <span className="noor-done__badge" aria-hidden="true">
+              <span>
+                <ChatIcon name="info" size={26} />
+              </span>
             </span>
-          </span>
+          )}
           <h3 className="noor-done__title">{card.title}</h3>
           <p className="noor-done__sub">{card.subtitle}</p>
         </div>
         <div className="noor-done__list">
-          <p className="noor-done__label">{card.listLabel}</p>
-          <ul>
+          <ul aria-label={card.listLabel}>
             {card.items.map((it, i) => (
               <li key={it.title} style={{ '--i': i }}>
                 <span className="noor-done__icon" aria-hidden="true">
-                  <Icon name={it.icon} size={22} />
+                  <ChatIcon name={it.icon} size={22} />
                 </span>
                 <span className="noor-done__copy">
-                  <span className="noor-done__item">{it.title}</span>
+                  <span className="noor-done__item">
+                    {it.title}
+                    {it.meta && <InfoTip text={it.meta} label={card.metaLabel} />}
+                  </span>
                   <span className="noor-done__text">{it.text}</span>
-                  {it.meta && <span className="noor-done__meta">{it.meta}</span>}
                 </span>
               </li>
             ))}
@@ -357,30 +438,11 @@ export function ActionCard({ card, index = 0, onAction, chosen }) {
           )}
         </div>
         <div className="noor-done__foot">
-          {primary && (
-            <button
-              type="button"
-              className="noor-btn noor-btn--wide"
-              disabled={locked}
-              onClick={() => onAction?.(primary.event, primary)}
-            >
-              {primary.label}
-            </button>
-          )}
-          <div className="noor-done__alt">
-            {others.map((a) => (
-              <button
-                key={a.event}
-                type="button"
-                className={`noor-btn${a.variant === 'outline' ? ' noor-btn--outline' : ' noor-btn--text'}`}
-                disabled={locked}
-                onClick={() => onAction?.(a.event, a)}
-              >
-                {a.label}
-              </button>
-            ))}
+          <div className="noor-done__quiet">{quiet.map((a) => act(a, 'noor-btn--text'))}</div>
+          <div className="noor-done__main">
+            {outlined.map((a) => act(a, 'noor-btn--outline'))}
+            {primary && act(primary, '')}
           </div>
-          <p className="noor-done__note">{card.note}</p>
         </div>
       </section>
     );
@@ -406,6 +468,8 @@ export function ActionCard({ card, index = 0, onAction, chosen }) {
   }
 
   // Details arriving from UAE PASS, one row at a time.
+  if (card.type === 'signing') return <SigningCard card={card} style={style} />;
+
   if (card.type === 'fetch') {
     const total = card.rows.length * FETCH_STEP_MS;
     return (
@@ -418,7 +482,7 @@ export function ActionCard({ card, index = 0, onAction, chosen }) {
                 <span className="noor-fetch__state" aria-hidden="true">
                   <span className="noor-spinner" />
                   <span className="noor-fetch__tick">
-                    <Icon name="check" size={11} />
+                    <ChatIcon name="check" size={11} />
                   </span>
                 </span>
                 <span className="noor-fetch__label">{r.label}</span>
@@ -428,7 +492,7 @@ export function ActionCard({ card, index = 0, onAction, chosen }) {
           </ul>
         </div>
         <p className="noor-fetch__note" style={{ '--d': `${total + 300}ms` }}>
-          <Icon name="shield" size={14} />
+          <ChatIcon name="shield" size={14} />
           {card.note}
         </p>
       </section>
@@ -473,13 +537,13 @@ export function ActionCard({ card, index = 0, onAction, chosen }) {
                   <dt>{r.label}</dt>
                   <dd>
                     <span className="noor-arev__value">{r.value}</span>
-                    {r.source === 'uaepass' && (
-                      <span className="noor-arev__tag">
-                        <Icon name="shield" size={12} />
-                        {card.fromUaePass}
-                      </span>
-                    )}
                   </dd>
+                  {r.source === 'uaepass' && (
+                    <span className="noor-arev__tag">
+                      <ChatIcon name="shield" size={12} />
+                      {card.fromUaePass}
+                    </span>
+                  )}
                   {r.field && (
                     <button
                       type="button"
@@ -580,7 +644,7 @@ export function ActionCard({ card, index = 0, onAction, chosen }) {
                 style={{ '--tick-delay': `${index * 80 + 200 + i * 80}ms` }}
               >
                 <span className="noor-steps__mark" aria-hidden="true">
-                  {s.state === 'done' && <Icon name="check" size={11} />}
+                  {s.state === 'done' && <ChatIcon name="check" size={12} />}
                 </span>
                 <span className="noor-steps__label">{s.label}</span>
                 <span className="noor-steps__state">{s.state === 'done' ? 'Done' : 'Pending'}</span>

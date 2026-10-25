@@ -676,7 +676,8 @@
   transition: border-color var(--dur-1) var(--ease-out);
 }
 
-.noor-input:focus-within {
+/* The ring belongs to typing: it shows only while the text field itself is focused, not when the mic or attach button is tapped. */
+.noor-input:has(.noor-input__field:focus) {
   border-color: var(--noor-gold);
   box-shadow: 0 0 0 2px var(--noor-gold);
 }
@@ -934,10 +935,10 @@
 }
 
 /* Ticks draw themselves (stroke-dashoffset). */
-.noor-steps__mark svg polyline,
-.noor-chip-tool__icon svg polyline {
-  stroke-dasharray: 300;
-  stroke-dashoffset: 300;
+.noor-steps__mark svg path,
+.noor-chip-tool__icon svg path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
   animation: noor-draw var(--dur-4) var(--ease-out) calc(var(--tick-delay, 0ms) + 120ms) forwards;
 }
 
@@ -1008,6 +1009,7 @@
   inline-size: 100%;
   max-inline-size: 820px;
   margin-inline: auto;
+  position: relative; /* offsetParent for messages, so scroll targets use layout offsets */
 }
 
 .noor-footer > * {
@@ -1092,8 +1094,8 @@
     animation: none;
   }
 
-  .noor-steps__mark svg polyline,
-  .noor-chip-tool__icon svg polyline {
+  .noor-steps__mark svg path,
+  .noor-chip-tool__icon svg path {
     animation: none;
     stroke-dashoffset: 0;
   }
@@ -1127,7 +1129,7 @@
   inline-size: 280px;
   block-size: 280px;
   border-radius: 50%;
-  filter: blur(36px);
+  filter: blur(42px);
   background: radial-gradient(circle, color-mix(in srgb, var(--noor-gold) 38%, transparent), transparent 68%);
   opacity: 0.38;
   animation: noor-drift-a 15s ease-in-out infinite alternate;
@@ -1242,9 +1244,9 @@
   border-radius: 50%;
 }
 
-.noor-ticks__mark svg polyline {
-  stroke-dasharray: 300;
-  stroke-dashoffset: 300;
+.noor-ticks__mark svg path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
   animation: noor-draw var(--dur-4) var(--ease-out) calc(var(--tick-delay, 0ms) + 120ms) forwards;
 }
 
@@ -1289,6 +1291,186 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .noor-ticks__mark svg polyline { animation: none; stroke-dashoffset: 0; }
+  .noor-ticks__mark svg path { animation: none; stroke-dashoffset: 0; }
   .noor-suggest__btn:hover { transform: none; }
+}
+
+/* ================= Entry options: larger, lighter icons ================= */
+.noor-topic__icon {
+  inline-size: 40px;
+  block-size: 40px;
+  border-radius: 12px;
+}
+
+/* ================= Attachments in the message box ================= */
+.noor-attach {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: var(--noor-chip);
+  border-radius: 14px;
+}
+
+.noor-attach__thumb {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 40px;
+  block-size: 40px;
+  overflow: hidden;
+  color: var(--noor-gold);
+  background: var(--c-white);
+  border-radius: 10px;
+}
+
+.noor-attach__thumb img { inline-size: 100%; block-size: 100%; object-fit: cover; }
+.noor-attach__meta { flex: 1; display: flex; flex-direction: column; min-inline-size: 0; }
+.noor-attach__name { overflow: hidden; font-size: 14px; font-weight: 600; color: var(--noor-ink); text-overflow: ellipsis; white-space: nowrap; }
+.noor-attach__size { font-size: 12.5px; color: var(--noor-muted); }
+
+.noor-attach__remove {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 44px;
+  block-size: 44px;
+  margin-block: -6px;
+  color: var(--noor-muted);
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.noor-attach__remove:hover { color: var(--noor-ink); background: var(--c-white); }
+.noor-attach__error { margin: 0; font-size: 13px; font-weight: 600; color: var(--noor-pending); }
+.noor-attach-btn { color: var(--noor-muted); }
+.noor-attach-btn:hover:not([aria-disabled='true']) { color: var(--noor-gold); }
+
+/* ================= Listening ================= */
+/* Quiet input while listening: hairline border, no heavy focus ring. */
+.noor-input.is-listening,
+.noor-input.is-listening:focus-within {
+  border-color: color-mix(in srgb, var(--noor-gold) 40%, var(--noor-line-strong));
+  box-shadow: none;
+  background: color-mix(in srgb, var(--c-white) 72%, transparent);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+
+.noor-input__listening { flex: none; font-size: 13.5px; font-weight: 500; letter-spacing: 0.01em; color: var(--noor-muted); }
+
+/* Small, solid stop control */
+.noor-input.is-listening .noor-send {
+  inline-size: 36px;
+  block-size: 36px;
+  border-radius: 50%;
+  box-shadow: none;
+}
+
+.noor-stop { inline-size: 11px; block-size: 11px; background: var(--c-white); border-radius: 3px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .noor-wave i { animation: none; transform: scaleY(0.5); }
+}
+
+.noor-input__hint { flex: 1; min-inline-size: 0; margin-inline: 14px 8px; overflow: hidden; font-size: 13px; color: var(--noor-muted); text-overflow: ellipsis; white-space: nowrap; }
+
+/* ================= Voice mode: light, soft, audio-reactive colour ================= */
+.noor-glow {
+  --level: 0.2;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+  /* a light veil, so anything behind softens and the colour stays the focus */
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--c-white) 94%, transparent), color-mix(in srgb, var(--c-white) 82%, transparent));
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  animation: noor-glow-in 700ms var(--ease-out) both;
+}
+
+.noor-glow i {
+  position: absolute;
+  inset-block-end: -26%;
+  border-radius: 50%;
+  filter: blur(42px);
+  transform-origin: 50% 100%;
+  /* very quiet at rest (about 28%), and about 25 points stronger at full voice; --w tones a colour down */
+  scale: calc(1 + var(--level) * 0.4);
+  opacity: calc((0.28 + var(--level) * 0.28) * var(--w, 1));
+  will-change: translate, scale, opacity;
+}
+
+/* a wide gold mass, a warm ember edge, a mint accent, and a pale core */
+.noor-glow i:nth-child(1) {
+  inline-size: 92%; block-size: 70%; inset-inline-start: -22%;
+  background: radial-gradient(closest-side, var(--noor-glow-gold), transparent);
+  animation: noor-glow-a 13s ease-in-out infinite alternate;
+}
+
+.noor-glow i:nth-child(2) {
+  inline-size: 86%; block-size: 64%; inset-inline-end: -22%;
+  --w: 0.55;
+  background: radial-gradient(closest-side, var(--noor-glow-ember), transparent);
+  animation: noor-glow-b 17s ease-in-out infinite alternate;
+}
+
+.noor-glow i:nth-child(3) {
+  inline-size: 52%; block-size: 42%; inset-inline-start: -2%; inset-block-end: -22%;
+  --w: 0.5;
+  background: radial-gradient(closest-side, var(--noor-glow-green), transparent);
+  animation: noor-glow-c 15s ease-in-out infinite alternate;
+}
+
+.noor-glow i:nth-child(4) {
+  inline-size: 52%; block-size: 38%; inset-inline-start: 24%; inset-block-end: -14%;
+  background: radial-gradient(closest-side, var(--noor-glow-core), transparent);
+  animation: noor-glow-d 11s ease-in-out infinite alternate;
+}
+
+@keyframes noor-glow-a { from { translate: 0 0; } to { translate: 26% -6%; } }
+@keyframes noor-glow-b { from { translate: 0 0; } to { translate: -30% -4%; } }
+@keyframes noor-glow-c { from { translate: 0 0; } to { translate: 70% -8%; } }
+@keyframes noor-glow-d { from { translate: -18% 0; } to { translate: 22% -10%; } }
+@keyframes noor-glow-in { from { opacity: 0; } }
+
+/* Panel chrome stays above the veil */
+.noor-panel:has(> .noor-glow) .noor-header,
+.noor-panel:has(> .noor-glow) .noor-strip { position: relative; z-index: 3; }
+
+.noor-glow ~ .noor-footer { position: relative; z-index: 2; background: transparent; border-block-start-color: transparent; }
+
+.noor-panel:has(> .noor-glow) .noor-welcome > :not(.noor-welcome__dots):not(.noor-welcome__aurora) { z-index: 2; }
+.noor-panel:has(> .noor-glow) .noor-welcome__dots,
+.noor-panel:has(> .noor-glow) .noor-welcome__aurora { visibility: hidden; }
+
+/* Input: glassmorphic while listening. Translucent white with a light sheen, strong blur and saturation
+   so the colour behind shows softly through, a bright top edge, and a gentle tinted shadow. */
+.noor-input.is-listening,
+.noor-input.is-listening:focus-within {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--c-white) 62%, transparent),
+    color-mix(in srgb, var(--c-white) 26%, transparent)
+  );
+  border: 1px solid color-mix(in srgb, var(--c-white) 70%, transparent);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--c-white) 90%, transparent),
+    inset 0 -1px 0 color-mix(in srgb, var(--noor-gold) 10%, transparent),
+    0 10px 30px color-mix(in srgb, var(--noor-gold) 16%, transparent);
+  -webkit-backdrop-filter: blur(22px) saturate(1.6);
+  backdrop-filter: blur(22px) saturate(1.6);
+}
+
+.noor-input.is-listening .noor-input__listening { color: var(--noor-ink); }
+.noor-input.is-listening .noor-input__hint { color: var(--noor-muted); }
+
+@media (prefers-reduced-motion: reduce) {
+  .noor-glow, .noor-glow i { animation: none; }
+  .noor-glow i { scale: 1.1; }
 }

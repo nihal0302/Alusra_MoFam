@@ -80,7 +80,7 @@ export function evaluate(copy, answers) {
       subtitle: u.subtitle,
       listLabel: res.listLabel.unsure,
       items: unsure.map((q) => u.confirm[q]),
-      summary: { lead: 'No problem, a quick check will settle it.' },
+      summary: { lead: 'A few details still need to be confirmed.' },
     };
   }
 
@@ -92,7 +92,7 @@ export function evaluate(copy, answers) {
     subtitle: fill(e.subtitle, who),
     listLabel: res.listLabel.eligible,
     items: who === 'child' ? [...e.items, e.childItem] : e.items,
-    summary: { lead: 'Good news, you can go ahead.' },
+    summary: { lead: 'Eligibility check complete.' },
   };
 }
 
@@ -169,7 +169,7 @@ export function buildResult(copy, answers) {
           subtitle: result.subtitle,
           listLabel: result.listLabel,
           items: result.items,
-          note: res.note,
+          metaLabel: res.metaLabel,
           actions,
           links: result.kind === 'eligible' ? [] : res.links,
         },

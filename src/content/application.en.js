@@ -5,10 +5,25 @@
 
 export const application = {
   signIn: {
+    // Simulated wait while the person approves in the UAE PASS app (the real hand-off is not built).
+    wait: {
+      ms: 30000,
+      lead: 'Opening UAE PASS.',
+      primary: 'Please approve the sign-in in your UAE PASS app. This can take a little while, so please keep this window open.',
+      title: 'Signing in with UAE PASS',
+      steps: [
+        'Opening UAE PASS',
+        'Waiting for your approval in the app',
+        'Confirming your identity',
+        'Getting your details ready',
+      ],
+      done: 'Signed in',
+      note: 'Nothing is shared until you approve.',
+    },
     working: 'Opening UAE PASS…',
     done: 'Signed in with UAE PASS',
     lead: 'Welcome, {first}.',
-    primary: 'I’m fetching your details from UAE PASS, so you don’t have to type them.',
+    primary: 'Retrieving your details from UAE PASS, so you do not need to enter them manually.',
     // Sample data standing in for what UAE PASS shares (full name, Emirates ID, mobile and email,
     // nationality, date of birth). Gender is shown in the Figma form and is assumed to come with it.
     profile: {
@@ -30,7 +45,7 @@ export const application = {
     emirate: {
       kind: 'choice',
       label: 'Emirate',
-      lead: 'Thanks, that’s saved you a lot of typing.',
+      lead: 'Your details have been retrieved.',
       text: 'Which emirate do you live in?',
       placeholder: 'Type or pick your emirate',
       voiceSample: 'Dubai',
@@ -39,7 +54,7 @@ export const application = {
     emergencyName: {
       kind: 'text',
       label: 'Emergency contact name',
-      lead: 'Great, thank you.',
+      lead: 'Emirate recorded.',
       text: 'Who should we contact in an emergency? Please type their full name.',
       placeholder: 'Their full name',
       voiceSample: 'Fatima Al Ketbi',
@@ -48,42 +63,43 @@ export const application = {
     emergencyPhone: {
       kind: 'text',
       label: 'Emergency contact number',
-      lead: 'Thanks, that’s helpful.',
-      text: 'And their mobile number?',
-      placeholder: 'For example 050 123 4567',
-      voiceSample: '050 765 4321',
-      error: 'That doesn’t look like a UAE mobile number. Try something like 050 123 4567.',
+      lead: 'Contact name recorded.',
+      text: 'And their mobile number? Please include the country code.',
+      placeholder: 'For example +971 50 123 4567',
+      voiceSample: '+971 50 765 4321',
+      error: 'I need the number with its country code, like +971 50 123 4567. Could you type it again?',
     },
     photo: {
       kind: 'file',
       field: 'photo',
       label: 'Personal photograph',
-      lead: 'Almost there, just two documents left.',
+      lead: 'Two documents are required to complete your application.',
       text: 'Please upload your personal photograph: a passport-size photo with a white background.',
-      placeholder: 'Choose your photo above',
+      placeholder: 'Choose your photo above, or attach it here',
       voiceSample: 'How do I upload it?',
-      upload: { title: 'Personal photograph', hint: 'JPG or PNG · up to 10 MB', accept: 'image/jpeg,image/png', types: ['image/jpeg', 'image/png'], typeNames: 'a JPG or PNG', button: 'Choose photo' },
+      upload: { icon: 'camera', dropTitle: 'Drag and drop your photograph here', title: 'Personal photograph', hint: 'JPG or PNG · up to 10 MB', accept: 'image/jpeg,image/png', types: ['image/jpeg', 'image/png'], typeNames: 'a JPG or PNG', button: 'Choose photo' },
     },
     report: {
       kind: 'file',
       field: 'report',
       label: 'Medical or psychological report',
-      lead: 'Lovely, that photo is perfect.',
+      lead: 'Photograph received.',
       text: 'Now your medical or psychological report, issued by an accredited official authority.',
-      placeholder: 'Choose your report above',
+      placeholder: 'Choose your report above, or attach it here',
       voiceSample: 'How do I upload it?',
-      upload: { title: 'Medical or psychological report', hint: 'PDF or JPG · up to 10 MB', accept: 'application/pdf,image/jpeg', types: ['application/pdf', 'image/jpeg'], typeNames: 'a PDF or JPG', button: 'Choose report' },
+      upload: { icon: 'file', dropTitle: 'Drag and drop your report here', title: 'Medical or psychological report', hint: 'PDF or JPG · up to 10 MB', accept: 'application/pdf,image/jpeg', types: ['application/pdf', 'image/jpeg'], typeNames: 'a PDF or JPG', button: 'Choose report' },
     },
   },
   upload: {
     maxMb: 10,
-    drop: 'or drop it here',
+    drop: 'or choose a file from your device',
+    dropActive: 'Release to upload',
     errors: { type: 'That file type isn’t accepted. Please choose {types}.', size: 'That file is larger than 10 MB. Please choose a smaller one.' },
     nudge: 'Please use the button above to choose your file. It stays on your device until you submit.',
   },
 
   review: {
-    lead: 'Thank you, I have everything I need.',
+    lead: 'All required information has been collected.',
     text: 'Please check your application before you submit it.',
     title: 'Review your application',
     groups: { details: 'Applicant details', contact: 'Contact information', docs: 'Documents' },
@@ -113,9 +129,9 @@ export const application = {
   submit: {
     working: 'Sending your application to the Ministry…',
     done: 'Received by the Ministry’s platform',
-    lead: 'Well done, {first}.',
+    lead: 'Thank you.',
     primary: 'Your application has been submitted.',
-    secondary: 'I’ll keep an eye on it. You can ask me for its status at any time.',
+    secondary: 'You can ask me for its status at any time.',
     card: {
       title: 'Application submitted',
       refLabel: 'Your application number',

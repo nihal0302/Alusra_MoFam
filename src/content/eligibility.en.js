@@ -12,12 +12,12 @@ const SERVICE_PAGE = 'https://www.alusra.gov.ae/en/services/determination-card/'
 
 export const eligibility = {
   hint: 'Choose one, or type or speak in your own words.',
-  change: { lead: 'Of course, let’s update that.' },
+  change: { lead: 'Understood. Let’s update that.' },
   steps: ['Eligibility', 'Documents', 'Application'],
   stepsLabel: 'Application steps',
   question: 'Question {step} of {total}',
   say: {
-    placeholder: 'Or tell Noor in your own words',
+    placeholder: 'Or tell Mira in your own words',
     send: 'Send answer',
     mic: 'Answer by voice',
     stop: 'Stop listening',
@@ -29,29 +29,29 @@ export const eligibility = {
   questions: {
     who: {
       label: 'Applying for',
-      lead: 'Great, let’s begin.',
+      lead: 'Let’s begin.',
       text: 'Who is the card for?',
       voiceSample: 'It’s for my son',
       options: [
-        { value: 'self', icon: 'user', label: 'Myself', hint: 'I’m the applicant', answer: 'Myself', match: ['myself', 'for me', 'my own', 'me'] },
-        { value: 'child', icon: 'users', label: 'My child', hint: 'Under 18, I’m their guardian', answer: 'My child (under 18)', match: ['child', 'son', 'daughter', 'kid', 'under 18', 'boy', 'girl'] },
+        { value: 'self', icon: 'phUser', label: 'Myself', hint: 'I’m the applicant', answer: 'Myself', match: ['myself', 'for me', 'my own', 'me'] },
+        { value: 'child', icon: 'phUsers', label: 'My child', hint: 'Under 18, I’m their guardian', answer: 'My child (under 18)', match: ['child', 'son', 'daughter', 'kid', 'under 18', 'boy', 'girl'] },
       ],
     },
     status: {
       label: 'Citizen or resident',
-      lead: 'Thanks, that helps.',
+      lead: 'Thank you.',
       text: '{Are} an Emirati citizen or a legal resident of the UAE?',
       voiceSample: 'We’re Emirati citizens',
       options: [
         { value: 'citizen', icon: 'flag', label: 'Emirati citizen', hint: 'UAE national', answer: 'Emirati citizen', match: ['emirati', 'citizen', 'national'] },
-        { value: 'resident', icon: 'home', label: 'Legal UAE resident', hint: 'Valid residency', answer: 'Legal UAE resident', match: ['resident', 'residence', 'visa', 'expat'] },
+        { value: 'resident', icon: 'homeDoor', label: 'Legal UAE resident', hint: 'Valid residency', answer: 'Legal UAE resident', match: ['resident', 'residence', 'visa', 'expat'] },
         { value: 'neither', icon: 'xCircle', label: 'Neither', hint: 'Not a citizen or resident', answer: 'Neither', match: ['neither', 'none', 'visitor', 'tourist', 'no'] },
         { value: 'unsure', icon: 'question', label: 'I’m not sure', hint: 'Help me find out', answer: 'Not sure', match: ['not sure', 'don\'t know', 'dont know', 'do not know', 'unsure', 'no idea', 'not certain'] },
       ],
     },
     report: {
       label: 'Medical or psychological report',
-      lead: 'Got it, thank you.',
+      lead: 'Thank you.',
       text: '{Do} have a medical or psychological report confirming the disability?',
       voiceSample: 'Yes, we have a report',
       options: [
@@ -62,11 +62,11 @@ export const eligibility = {
     },
     accredited: {
       label: 'Report from an accredited authority',
-      lead: 'Nearly there.',
+      lead: 'One last question.',
       text: 'Is the report from an accredited official authority, such as a government hospital?',
       voiceSample: 'Yes, from a government hospital',
       options: [
-        { value: 'yes', icon: 'building', label: 'Yes', hint: 'For example, a government hospital', answer: 'Yes', match: ['yes', 'yeah', 'yep', 'government', 'hospital', 'accredited'] },
+        { value: 'yes', icon: 'hospital', label: 'Yes', hint: 'For example, a government hospital', answer: 'Yes', match: ['yes', 'yeah', 'yep', 'government', 'hospital', 'accredited'] },
         { value: 'no', icon: 'xCircle', label: 'No', hint: 'From another source', answer: 'No', match: ['no', 'nope', 'private clinic', 'not accredited', 'not from'] },
         { value: 'unsure', icon: 'question', label: 'I’m not sure', hint: 'Help me find out', answer: 'Not sure', match: ['not sure', 'don\'t know', 'dont know', 'do not know', 'unsure', 'no idea', 'not certain'] },
       ],
@@ -74,7 +74,7 @@ export const eligibility = {
   },
 
   review: {
-    lead: 'Thanks, that’s everything I need.',
+    lead: 'Thank you. That completes the check.',
     title: 'Check your answers',
     text: 'Please review your answers before I give you the result.',
     changeLabel: 'Change',
@@ -84,7 +84,7 @@ export const eligibility = {
 
   results: {
     intro: 'Here’s what I found.',
-    note: 'Nothing is submitted',
+    metaLabel: 'Which report do I need?',
     listLabel: { eligible: 'Your preparation checklist', notEligible: 'What you can do', unsure: 'What to confirm' },
     eligible: {
       title: 'You can start preparing your card application',
@@ -103,7 +103,7 @@ export const eligibility = {
     },
     notEligible: {
       title: 'Not eligible yet',
-      lead: 'Thanks for checking first, it saves you time.',
+      lead: 'Thank you for checking before applying.',
       reasons: {
         status: 'The card is for Emirati citizens and legal UAE residents, so {you} can’t apply right now.',
         report: 'A medical or psychological report confirming the disability is needed to apply.',

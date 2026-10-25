@@ -5,6 +5,7 @@ import {
   buildPrompt,
   buildReview,
   buildSignIn,
+  buildSigningIn,
   buildSubmitted,
   matchEmirate,
   newReference,
@@ -17,11 +18,12 @@ import {
 // `api` is the small set of chat actions the assistant gives us.
 export function useApplication(app, api) {
   const ref = useRef({ data: {}, awaiting: null, returnToReview: false });
+  const signing = useRef(null); // timer while the simulated UAE PASS approval is pending
   const [awaitingInfo, setAwaitingInfo] = useState(null);
 
   const setAwait = (a) => {
     ref.current.awaiting = a;
-    setAwaitingInfo(a ? { kind: a.kind, placeholder: app.steps[a.step].placeholder } : null);
+    setAwaitingInfo(a ? { kind: a.kind, step: a.step, msgId: a.msgId, placeholder: app.steps[a.step].placeholder } : null);
   };
 
   const review = () => {
@@ -55,6 +57,8 @@ export function useApplication(app, api) {
   };
 
   const reset = () => {
+    clearTimeout(signing.current);
+    signing.current = null;
     Object.values(ref.current.data).forEach((v) => v?.url && URL.revokeObjectURL(v.url));
     ref.current = { data: {}, awaiting: null, returnToReview: false };
     setAwaitingInfo(null);
@@ -66,8 +70,13 @@ export function useApplication(app, api) {
       case 'uaepass':
         api.lock(msgId, 'signedIn');
         api.pushUser(payload.label);
-        api.setStage('docs');
-        api.pushNoor(buildSignIn(app));
+        api.pushNoor(buildSigningIn(app));
+        // Simulated approval: after the wait, the details arrive exactly as before.
+        signing.current = setTimeout(() => {
+          signing.current = null;
+          api.setStage('docs');
+          api.pushNoor(buildSignIn(app));
+        }, app.signIn.wait.ms);
         return true;
       case 'choice':
         api.lock(msgId, payload.value);
@@ -103,6 +112,7 @@ export function useApplication(app, api) {
 
   // Typed or spoken text while a question is open. Returns true when it was consumed.
   const handleText = (text, { known }) => {
+    if (signing.current) return true; // waiting for UAE PASS: ignore typing rather than derail the sign-in
     const aw = ref.current.awaiting;
     if (!aw) return false;
     const step = app.steps[aw.step];

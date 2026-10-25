@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Icon } from '../Icon.jsx';
+import { ChatIcon } from './ChatIcon.jsx';
+import { VoiceGlow } from './VoiceGlow.jsx';
 import { ImageSlot } from '../ImageSlot.jsx';
 import { NoorAvatar } from './NoorAvatar.jsx';
 import { NoorMessage } from './NoorMessage.jsx';
@@ -7,6 +8,7 @@ import { resolveScenario } from '../../lib/noor.js';
 import { buildQuestion, buildResult, buildReview, nextStep, parseAnswer, purge } from '../../lib/eligibility.js';
 import { useApplication } from './useApplication.js';
 import { usePrefersReducedMotion } from '../../lib/usePrefersReducedMotion.js';
+import { buildNudge, formatSize } from '../../lib/application.js';
 import './Assistant.css';
 import './EligibilityFlow.css';
 
@@ -34,7 +36,7 @@ function stepState(stage, i) {
 }
 
 export function Assistant({ content }) {
-  const { persona, ui, topics, voice, scenarios, fallback, afterCheck, eligibility, application } = content;
+  const { persona, ui, topics, voice, scenarios, fallback, afterCheck, eligibility, application, attachmentReply } = content;
   const reduced = usePrefersReducedMotion();
   const [open, setOpen] = useState(false);
   const [closing, setClosing] = useState(false);
@@ -49,6 +51,12 @@ export function Assistant({ content }) {
   const [stage, setStage] = useState(null); // stepper: null | check | checkDone | docs | review | complete
   const [awaiting, setAwaiting] = useState(false); // a question is waiting for an answer
 
+  const [attachment, setAttachment] = useState(null); // a file chosen for the next message
+  const [attachError, setAttachError] = useState('');
+  const attachRef = useRef(null);
+  const appRef = useRef(null); // latest application state, for callbacks that outlive a render
+  const fileRef = useRef(null);
+
   const launcherRef = useRef(null);
   const inputRef = useRef(null);
   const logRef = useRef(null);
@@ -59,6 +67,29 @@ export function Assistant({ content }) {
   const pinned = useRef(true); // stay at the bottom unless the reader scrolled up
   // Eligibility flow state: answers so far, and which question card is waiting for an answer.
   const flowRef = useRef({ answers: {}, awaiting: null });
+  const expandedRef = useRef(false);
+  expandedRef.current = expanded;
+
+  const setAttach = (value) => {
+    if (attachRef.current?.url && attachRef.current !== value) URL.revokeObjectURL(attachRef.current.url);
+    attachRef.current = value;
+    setAttachment(value);
+  };
+
+  const pickAttachment = (file) => {
+    if (!file) return;
+    if (!ui.attach.types.includes(file.type)) {
+      setAttachError(ui.attach.errors.type);
+      return;
+    }
+    if (file.size > ui.attach.maxMb * 1024 * 1024) {
+      setAttachError(ui.attach.errors.size);
+      return;
+    }
+    setAttachError('');
+    setAttach({ file, name: file.name, size: file.size, type: file.type, url: URL.createObjectURL(file) });
+    focusInput();
+  };
 
   const started = messages.length > 0;
   const later = (fn, ms) => {
@@ -126,6 +157,7 @@ export function Assistant({ content }) {
 
   // The application itself (UAE PASS, questions, uploads, review, submit) lives in its own hook.
   const app = useApplication(application, { pushUser, pushNoor, lock, setStage });
+  appRef.current = app;
 
   // ---- Eligibility flow (in the conversation) ---------------------------------------------
   const askNext = (answers) => {
@@ -139,14 +171,20 @@ export function Assistant({ content }) {
     setWaiting({ msgId, qid: step });
   };
 
-  const startEligibility = () => {
-    flowRef.current = { answers: {}, awaiting: null };
-    setStage('check');
-    // Starting the application opens the roomier layout (the button is hidden on phones, which are full screen already).
-    if (window.innerWidth > 520 && !expanded) {
+  // Starting the application opens the roomier layout (the button is hidden on phones, which are full screen already).
+  // Called the moment the reader asks to start, so the panel grows before Mira begins to reply.
+  const expandForCheck = () => {
+    if (window.innerWidth > 520 && !expandedRef.current) {
+      expandedRef.current = true;
       setExpanded(true);
       setAnnouncement(ui.announce.expanded);
     }
+  };
+
+  const startEligibility = () => {
+    flowRef.current = { answers: {}, awaiting: null };
+    setStage('check');
+    expandForCheck();
     askNext({});
   };
 
@@ -230,13 +268,41 @@ export function Assistant({ content }) {
   const send = useCallback(
     (raw) => {
       const text = raw.trim();
-      if (!text || busy || leaving) return;
+      const att = attachRef.current;
+      if ((!text && !att) || busy || leaving) return;
       setDraft('');
       const waiting = flowRef.current.awaiting;
       // A typed or spoken answer to the open question counts the same as tapping an option.
       const option = waiting ? parseAnswer(eligibility.questions[waiting.qid], text) : null;
       const scenario = resolveScenario(text, scenarios, fallback);
+      if (scenario.then === 'startEligibility') expandForCheck();
       begin(() => {
+        const open = appRef.current?.awaiting;
+        if (att && open?.kind === 'file') {
+          // A document is being asked for: a file sent from the message box counts as that upload.
+          const up = application.steps[open.step].upload;
+          const bad = !up.types.includes(att.type)
+            ? application.upload.errors.type.replace('{types}', up.typeNames)
+            : att.size > application.upload.maxMb * 1024 * 1024
+              ? application.upload.errors.size
+              : '';
+          setAttach(null);
+          if (bad) {
+            pushUser(att.name);
+            pushNoor(buildNudge(bad));
+          } else {
+            appRef.current.handle('upload', { field: open.step, file: att.file }, open.msgId);
+          }
+          return;
+        }
+        if (att) {
+          // A file sent in the main chat: show it, then say plainly what can and cannot be done with it.
+          pushUser(text ? `${att.name} — ${text}` : att.name, att.type.startsWith('image/') ? att.url : undefined);
+          attachRef.current = null; // the bubble keeps the preview URL alive
+          setAttachment(null);
+          pushNoor(attachmentReply);
+          return;
+        }
         if (app.handleText(text, { known: scenario !== fallback })) return;
         if (option) {
           answer(waiting.msgId, waiting.qid, option.value, text);
@@ -253,6 +319,20 @@ export function Assistant({ content }) {
 
   const onStage = (st, scenario, msgId) => {
     setThinking(st === 'thinking' || st === 'tool');
+    const hasResult = scenario.cards?.some((card) => card.type === 'result' || card.type === 'submitted');
+    // A tall outcome card should open at its heading: stop following the bottom for this reply…
+    if (hasResult && st === 'thinking') pinned.current = false;
+    // …and once the card is there, bring the top of the message into view.
+    if (hasResult && st === 'done') {
+      pinned.current = false; // also covers reduced motion, which skips the thinking stage
+      later(() => {
+        const log = logRef.current;
+        const el = log?.querySelector(`[data-msg="${msgId}"]`);
+        if (!log || !el) return;
+        // Layout offsets, not on-screen rects: the message is still sliding in, and a rect would include that.
+        log.scrollTop = el.offsetTop - 12;
+      }, 80);
+    }
     if (st === 'thinking') setAnnouncement(ui.announce.thinking);
     if (st === 'done') {
       setBusy(false);
@@ -273,13 +353,15 @@ export function Assistant({ content }) {
   const stopListening = () => {
     setListening(false);
     const waiting = flowRef.current.awaiting;
-    send(app.voiceSample ?? (waiting ? eligibility.questions[waiting.qid].voiceSample : voice.transcript));
+    // The transcript lands in the message box; the person decides whether to send it.
+    const said = app.voiceSample ?? (waiting ? eligibility.questions[waiting.qid].voiceSample : voice.transcript);
+    setDraft((d) => (d.trim() ? `${d.trim()} ${said}` : said));
+    focusInput();
   };
 
   const startListening = () => {
     if (busy || listening || leaving) return;
-    setListening(true);
-    later(stopListening, voice.listeningMs);
+    setListening(true); // runs until the person presses stop
   };
 
   const restart = () => {
@@ -294,6 +376,8 @@ export function Assistant({ content }) {
     setBusy(false);
     setThinking(false);
     setDraft('');
+    setAttach(null);
+    setAttachError('');
     setAnnouncement('');
     focusInput();
   };
@@ -320,7 +404,7 @@ export function Assistant({ content }) {
   const avatarState = listening ? 'listening' : thinking ? 'thinking' : 'idle';
   const pose = started ? persona.poses.selection : persona.poses.greeting;
   const blocked = busy || leaving;
-  const placeholder = app.awaiting?.placeholder ?? (awaiting ? ui.input.answer : started ? ui.input.conversation : ui.input.welcome);
+  const placeholder = attachment ? ui.attach.placeholder : app.awaiting?.placeholder ?? (awaiting ? ui.input.answer : started ? ui.input.conversation : ui.input.welcome);
 
   return (
     <div className="noor">
@@ -371,19 +455,19 @@ export function Assistant({ content }) {
                 aria-expanded={expanded}
                 onClick={toggleExpanded}
               >
-                <Icon name={expanded ? 'collapse' : 'expand'} size={16} />
+                <ChatIcon name={expanded ? 'collapse' : 'expand'} size={16} />
               </button>
               {started ? (
                 <button type="button" className="noor-icon-btn" aria-label={ui.actions.restart} onClick={restart}>
-                  <Icon name="refresh" size={16} />
+                  <ChatIcon name="refresh" size={16} />
                 </button>
               ) : (
                 <button type="button" className="noor-icon-btn" aria-label={ui.actions.minimize} onClick={close}>
-                  <Icon name="minus" size={16} />
+                  <ChatIcon name="minus" size={16} />
                 </button>
               )}
               <button type="button" className="noor-icon-btn" aria-label={ui.actions.close} onClick={close}>
-                <Icon name="close" size={16} />
+                <ChatIcon name="close" size={16} />
               </button>
             </header>
 
@@ -395,7 +479,7 @@ export function Assistant({ content }) {
                     return (
                       <li key={label} className={`is-${state}`} aria-current={state === 'active' ? 'step' : undefined}>
                         <span className="noor-stepper__n">
-                          {state === 'done' ? <Icon name="check" size={12} /> : i + 1}
+                          {state === 'done' ? <ChatIcon name="check" size={12} /> : i + 1}
                         </span>
                         <span className="noor-stepper__label">{label}</span>
                         {state === 'done' && <span className="visually-hidden"> (complete)</span>}
@@ -422,6 +506,7 @@ export function Assistant({ content }) {
                     ) : (
                       <NoorMessage
                         key={m.id}
+                        msgId={m.id}
                         scenario={m.scenario}
                         avatar={persona.avatar}
                         labels={ui.announce}
@@ -448,8 +533,10 @@ export function Assistant({ content }) {
               </div>
             )}
 
+            {listening && <VoiceGlow />}
+
             <footer className="noor-footer">
-              {!started && (
+              {!started && !listening && (
                 <div className={`noor-topics${leaving ? ' is-leaving' : ''}`}>
                   {topics.map((t, i) => (
                     <button
@@ -461,7 +548,7 @@ export function Assistant({ content }) {
                       onClick={() => send(t.message)}
                     >
                       <span className="noor-topic__icon" aria-hidden="true">
-                        <Icon name={t.icon} size={14} />
+                        <ChatIcon name={t.icon} size={22} weight={1.5} />
                       </span>
                       {t.label}
                     </button>
@@ -469,6 +556,25 @@ export function Assistant({ content }) {
                 </div>
               )}
 
+              {attachment && (
+                <div className="noor-attach">
+                  <span className="noor-attach__thumb" aria-hidden="true">
+                    {attachment.type.startsWith('image/') ? <img src={attachment.url} alt="" /> : <ChatIcon name="file" size={20} weight={1.5} />}
+                  </span>
+                  <span className="noor-attach__meta">
+                    <span className="noor-attach__name">{attachment.name}</span>
+                    <span className="noor-attach__size">{formatSize(attachment.size)}</span>
+                  </span>
+                  <button type="button" className="noor-attach__remove" aria-label={`${ui.attach.remove}: ${attachment.name}`} onClick={() => setAttach(null)}>
+                    <ChatIcon name="close" size={14} />
+                  </button>
+                </div>
+              )}
+              {attachError && (
+                <p className="noor-attach__error" role="alert">
+                  {attachError}
+                </p>
+              )}
               <form
                 className={`noor-input${listening ? ' is-listening' : ''}`}
                 onSubmit={(e) => {
@@ -478,14 +584,12 @@ export function Assistant({ content }) {
               >
                 {listening ? (
                   <>
-                    <span className="noor-wave" aria-hidden="true">
-                      <i /><i /><i /><i /><i /><i /><i />
-                    </span>
                     <span className="noor-input__listening" role="status">
                       {ui.listening}
                     </span>
+                    <span className="noor-input__hint" aria-hidden="true">{ui.listeningHint}</span>
                     <button type="button" className="noor-send" aria-label={ui.actions.stop} onClick={stopListening}>
-                      <Icon name="stop" size={14} />
+                      <span className="noor-stop" aria-hidden="true" />
                     </button>
                   </>
                 ) : (
@@ -502,6 +606,30 @@ export function Assistant({ content }) {
                       aria-label={placeholder}
                       autoComplete="off"
                     />
+                    {(
+                      <>
+                        <input
+                          ref={fileRef}
+                          className="visually-hidden"
+                          type="file"
+                          accept={ui.attach.accept}
+                          tabIndex={-1}
+                          onChange={(e) => {
+                            pickAttachment(e.target.files?.[0]);
+                            e.target.value = '';
+                          }}
+                        />
+                        <button
+                          type="button"
+                          className="noor-mic noor-attach-btn"
+                          aria-label={ui.attach.label}
+                          aria-disabled={blocked || undefined}
+                          onClick={() => !blocked && fileRef.current?.click()}
+                        >
+                          <ChatIcon name="attach" size={20} weight={1.6} />
+                        </button>
+                      </>
+                    )}
                     <button
                       type="button"
                       className="noor-mic"
@@ -509,15 +637,15 @@ export function Assistant({ content }) {
                       aria-disabled={blocked || undefined}
                       onClick={startListening}
                     >
-                      <Icon name="mic" size={20} />
+                      <ChatIcon name="mic" size={20} />
                     </button>
                     <button
                       type="submit"
                       className="noor-send"
                       aria-label={ui.actions.send}
-                      aria-disabled={blocked || !draft.trim() || undefined}
+                      aria-disabled={blocked || (!draft.trim() && !attachment) || undefined}
                     >
-                      <Icon name="arrowRight" size={18} />
+                      <ChatIcon name="arrowRight" size={18} />
                     </button>
                   </>
                 )}

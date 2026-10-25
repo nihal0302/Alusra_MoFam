@@ -1,4 +1,4 @@
-// Canned "brain" for Noor. Same shape a real service would return (a scenario object),
+// Canned "brain" for Mira. Same shape a real service would return (a scenario object),
 // so swapping in a backend means replacing this function with an async call.
 const escape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 

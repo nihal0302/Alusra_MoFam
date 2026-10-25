@@ -1,16 +1,16 @@
-import { assetUrl } from '../../lib/assets.js';
+import { UaePassLogo } from './UaePassLogo.jsx';
 
-// UAE PASS button, following the UAE PASS Buttons Guidelines (2023):
-//  - one of the sanctioned styles: black, for white or light backgrounds (never on dark ones)
-//  - title in the approved wording, first word capitalised, e.g. "Sign in with UAE PASS"
-//  - logo and title vertically centred, logo height matching the button text
-//  - at least 140 x 30 pt with a margin of at least 1/10 of the height around it
-// The fingerprint logo is a file in src/assets/uaepass/; swap in the official artwork as supplied.
+// "Sign in with UAE PASS", built from the official black button artwork
+// (UAEPASS_Sign_in_Btn_Default_Black_*.svg) and the UAE PASS Buttons Guidelines v2:
+//  - one sanctioned style only, none invented: black, for white or light backgrounds
+//  - title in the approved wording, first word capitalised ("Sign in with UAE PASS"), black or white only
+//  - logo in its official two-colour form (white + green and red on black), vertically centred with the title
+//  - 300 x 44 pt artwork, radius 12; states: active, pressed, keyboard focus (green ring), disabled
+// The title is live text (the artwork's SF Pro text is not embedded), so it follows the page language.
 export function UaePassButton({ label, onClick, disabled }) {
-  const logo = assetUrl('uae-pass-logo.svg');
   return (
     <button type="button" className="uaepass-btn" onClick={onClick} disabled={disabled}>
-      {logo && <img className="uaepass-btn__logo" src={logo} alt="" width="24" height="24" />}
+      <UaePassLogo className="uaepass-btn__logo" />
       <span className="uaepass-btn__title">{label}</span>
     </button>
   );
