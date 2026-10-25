@@ -215,7 +215,7 @@ export function Assistant({ content }) {
   // Starting the application opens the roomier layout (the button is hidden on phones, which are full screen already).
   // Called the moment the reader asks to start, so the panel grows before Mira begins to reply.
   const expandForCheck = () => {
-    if (window.innerWidth > 520 && !expandedRef.current) {
+    if (window.innerWidth > 416 && !expandedRef.current) {
       expandedRef.current = true;
       setExpanded(true);
       setAnnouncement(ui.announce.expanded);

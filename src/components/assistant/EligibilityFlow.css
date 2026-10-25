@@ -1038,3 +1038,7 @@
 /* The outcome card has the same plain white fill as every other card: no tinted top and no glow behind the animation. */
 .noor-done__top { background: none; }
 .noor-done__halo { display: none; }
+
+/* Outlined buttons: the website's CTA green (this file loads after Assistant.css, where the filled ones are set). */
+.noor-btn--outline { color: var(--noor-cta); box-shadow: inset 0 0 0 1.5px var(--noor-cta); }
+.noor-btn--outline:hover:not(:disabled) { background: color-mix(in srgb, var(--noor-cta) 7%, var(--c-white)); }

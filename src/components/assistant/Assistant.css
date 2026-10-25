@@ -792,7 +792,7 @@
 }
 
 /* ---------- Small screens: full-width panel, no side illustration ---------- */
-@media (max-width: 520px) {
+@media (max-width: 416px) {
   .noor-launcher {
     inset-block-end: 16px;
     inset-inline-end: 16px;
@@ -819,7 +819,7 @@
 }
 
 /* The illustration hangs 200px off the panel; hide it where it would leave the viewport. */
-@media (max-width: 760px) {
+@media (max-width: 608px) {
   .noor-pose {
     display: none;
   }
@@ -1039,7 +1039,7 @@
   line-height: 38px;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 720px) {
   .noor-shell.is-expanded .noor-pose {
     display: none; /* full screen: no room beside the panel */
   }
@@ -1056,7 +1056,7 @@
 }
 
 /* Already full screen on phones, so expanding means nothing there. */
-@media (max-width: 520px) {
+@media (max-width: 416px) {
   .noor-expand {
     display: none;
   }
@@ -1585,7 +1585,7 @@
 }
 
 /* Expanded: the dot field is about 25% larger (455px to 570px), so it covers more of the wider panel. */
-@media (min-width: 521px) {
+@media (min-width: 417px) {
   .noor-shell.is-expanded .noor-welcome__dots {
     inline-size: 570px;
     block-size: 570px;
@@ -1838,7 +1838,7 @@
 }
 
 /* Short windows, stacked cards: keep just the title so the welcome area above still has room. */
-@media (max-height: 860px) {
+@media (max-height: 688px) {
   @container (max-width: 599px) {
     .noor-shell .noor-topics .noor-topic { min-block-size: 64px; padding-block: 8px; }
     .noor-topic__desc { display: none; }
@@ -1957,7 +1957,7 @@
   .noor-topic__go { inline-size: 24px; block-size: 24px; inset-block-end: 12px; inset-inline-end: 12px; }
 }
 
-@media (max-height: 860px) {
+@media (max-height: 688px) {
   @container (max-width: 599px) {
     .noor-shell .noor-topics .noor-topic { min-block-size: 58px; padding-block: 6px; }
     .noor-topic__art { inline-size: 42px; block-size: 42px; }
@@ -1999,3 +1999,42 @@
 .noor-art__ring { stroke-width: 4.4; }
 .noor-art__handle { stroke-width: 5; }
 .noor-art__lens { display: none; }
+
+/* ================= Scale: the chat looks the way the page does at 80% browser zoom, at 100% ================= */
+/* The launcher and the panel (and everything inside them) are shown at 0.8. Sizes that depend on the window are
+   written as if the window were 1.25 times larger, and the offsets from the edges are left as they are, so the result
+   matches 80% browser zoom: the panel fills the same share of the screen, with the same gaps and padding.
+   Phones keep the full-size, full-screen panel. To change the density, change this one number. */
+.noor { --noor-zoom: 0.8; }
+
+@media (min-width: 417px) {
+  .noor-launcher,
+  .noor-shell {
+    zoom: var(--noor-zoom);
+  }
+
+  .noor-shell {
+    inline-size: min(420px, calc(100vw / var(--noor-zoom) - 32px));
+    block-size: min(811px, calc(100dvh / var(--noor-zoom) - 48px));
+  }
+
+  .noor-shell.is-expanded {
+    inline-size: calc(50vw / var(--noor-zoom) - 16px);
+    block-size: calc(100dvh / var(--noor-zoom) - 32px);
+  }
+}
+
+@media (min-width: 417px) and (max-width: 720px) {
+  .noor-shell.is-expanded {
+    inset: 0;
+    inline-size: calc(100vw / var(--noor-zoom));
+    block-size: calc(100dvh / var(--noor-zoom));
+  }
+}
+
+/* ================= Main buttons use the website's CTA green ================= */
+.noor-btn:not(.noor-btn--outline):not(.noor-btn--text) { background: var(--noor-cta); }
+.noor-btn:not(.noor-btn--outline):not(.noor-btn--text):hover:not(:disabled) { background: var(--noor-cta-hover); }
+
+.noor-send { background: var(--noor-cta); }
+.noor-send:hover:not([aria-disabled='true']) { background: var(--noor-cta-hover); }

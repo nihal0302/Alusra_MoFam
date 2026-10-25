@@ -59,7 +59,9 @@
   --noor-ink: #241d10;
   --noor-muted: #625c52;
   --noor-placeholder: #8c8477;
-  --noor-gold: #7c5e24;          /* primary action (dark gold) */
+  --noor-gold: #7c5e24;          /* accent (dark gold): icons, links, focus */
+  --noor-cta: var(--c-green);            /* primary buttons: the website's own CTA green */
+  --noor-cta-hover: var(--c-green-hover); /* its hover, from the website */
   --noor-chip: #faf6ec;
   --noor-surface: #fcf9f2;
   --noor-line: #f0eadc;
