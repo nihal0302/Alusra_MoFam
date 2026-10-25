@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ChatIcon } from './ChatIcon.jsx';
 import { VoiceGlow } from './VoiceGlow.jsx';
+import { TopicArt } from './TopicArt.jsx';
 import { ImageSlot } from '../ImageSlot.jsx';
 import { NoorAvatar } from './NoorAvatar.jsx';
 import { NoorMessage } from './NoorMessage.jsx';
@@ -610,14 +611,21 @@ export function Assistant({ content }) {
                       key={t.id}
                       type="button"
                       className="noor-topic"
+                      data-topic={t.id}
                       style={{ '--i': i }}
                       aria-disabled={blocked || undefined}
                       onClick={() => send(t.message)}
                     >
-                      <span className="noor-topic__icon" aria-hidden="true">
-                        <ChatIcon name={t.icon} size={22} weight={1.5} />
+                      <span className="noor-topic__art" aria-hidden="true">
+                        <TopicArt id={t.id} />
                       </span>
-                      <span className="noor-topic__label">{t.label}</span>
+                      <span className="noor-topic__text">
+                        <span className="noor-topic__label">{t.label}</span>
+                        <span className="noor-topic__desc">{t.description}</span>
+                      </span>
+                      <span className="noor-topic__go" aria-hidden="true">
+                        <ChatIcon name="arrowUpRight" size={14} weight={1.8} />
+                      </span>
                     </button>
                   ))}
                 </div>

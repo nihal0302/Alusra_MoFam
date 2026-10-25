@@ -1717,3 +1717,133 @@
 }
 
 .noor-steps__item.is-current .noor-steps__label { font-weight: 600; }
+
+/* ================= Entry options: tinted gradient cards with glossy tile art ================= */
+.noor-topics { container-type: inline-size; }
+
+.noor-shell .noor-topics .noor-topic {
+  --tint: var(--noor-glow-gold);
+  --art-from: color-mix(in srgb, var(--noor-glow-gold) 85%, var(--c-white));
+  --art-to: var(--noor-gold);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 4px 10px;
+  min-block-size: 84px;
+  padding: 14px 14px 14px 16px;
+  text-align: start;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--tint) 34%, var(--c-white)) 0%, color-mix(in srgb, var(--tint) 9%, var(--c-white)) 100%);
+  border-radius: 16px;
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--c-white) 75%, transparent),
+    0 6px 16px -10px color-mix(in srgb, var(--tint) 70%, transparent);
+}
+
+.noor-shell .noor-topics .noor-topic[data-topic='ask'] {
+  --tint: var(--noor-glow-ember);
+  --art-from: color-mix(in srgb, var(--noor-glow-ember) 85%, var(--c-white));
+  --art-to: color-mix(in oklab, var(--noor-glow-ember) 55%, var(--noor-gold));
+}
+
+.noor-shell .noor-topics .noor-topic[data-topic='status'] {
+  --tint: var(--noor-glow-green);
+  --art-from: color-mix(in oklab, var(--noor-glow-green) 70%, var(--noor-success));
+  --art-to: var(--noor-success);
+}
+
+.noor-topic__text { display: flex; flex-direction: column; gap: 2px; min-inline-size: 0; }
+.noor-topic__label { font-size: 16px; font-weight: 600; line-height: 1.25; color: var(--noor-ink); }
+.noor-topic__desc {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-size: 14px;
+  line-height: 1.35;
+  color: var(--noor-muted);
+}
+
+.noor-topic__art {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  display: block;
+  inline-size: 60px;
+  block-size: 60px;
+  filter: drop-shadow(0 6px 8px color-mix(in srgb, var(--art-to) 38%, transparent));
+  transition: transform var(--dur-3) var(--ease-spring);
+}
+
+.noor-art { display: block; inline-size: 100%; block-size: 100%; overflow: visible; }
+.noor-art__from { stop-color: var(--art-from); }
+.noor-art__to { stop-color: var(--art-to); }
+.noor-art__sheen { fill: var(--c-white); opacity: 0.3; }
+.noor-art__glyph { fill: var(--c-white); }
+.noor-art__fold { fill: var(--c-white); opacity: 0.55; }
+.noor-art__cut, .noor-art__dot { fill: var(--art-to); }
+.noor-art__stroke { fill: none; stroke: var(--art-to); stroke-width: 2.8; stroke-linecap: round; }
+.noor-art__ring { fill: none; stroke: var(--c-white); stroke-width: 5; }
+.noor-art__lens { fill: var(--c-white); opacity: 0.22; }
+.noor-art__handle { fill: none; stroke: var(--c-white); stroke-width: 6; stroke-linecap: round; }
+
+.noor-topic__go {
+  display: none;
+  place-items: center;
+  inline-size: 28px;
+  block-size: 28px;
+  border-radius: 50%;
+  color: var(--noor-ink);
+  background: color-mix(in srgb, var(--c-white) 85%, transparent);
+  box-shadow: 0 2px 6px -2px color-mix(in srgb, var(--noor-gold) 40%, transparent);
+  transition: transform var(--dur-2) var(--ease-out), background-color var(--dur-2) var(--ease-out), color var(--dur-2) var(--ease-out);
+}
+
+.noor-shell .noor-topics .noor-topic:hover:not([aria-disabled='true']) .noor-topic__art,
+.noor-shell .noor-topics .noor-topic:focus-visible:not([aria-disabled='true']) .noor-topic__art { transform: rotate(6deg) scale(1.08); }
+
+.noor-shell .noor-topics .noor-topic:hover:not([aria-disabled='true']) .noor-topic__go,
+.noor-shell .noor-topics .noor-topic:focus-visible:not([aria-disabled='true']) .noor-topic__go { transform: translate(1px, -1px); background: var(--noor-gold); color: var(--c-white); }
+
+/* Wide enough: three cards in a row, art sits in the top corner, text below, arrow at the bottom corner. */
+@container (min-width: 600px) {
+  .noor-shell .noor-topics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+  .noor-shell .noor-topics .noor-topic {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto 1fr;
+    align-items: end;
+    min-block-size: 150px;
+    padding: 16px;
+    gap: 14px 10px;
+  }
+
+  .noor-topic__art {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: start;
+    justify-self: end;
+    inline-size: 68px;
+    block-size: 68px;
+    margin: -6px -4px 0 0;
+  }
+
+  .noor-topic__text { grid-column: 1 / -1; grid-row: 2; padding-inline-end: 34px; }
+  .noor-topic__go { display: grid; position: absolute; inset-block-end: 14px; inset-inline-end: 14px; }
+  .noor-topic__desc { -webkit-line-clamp: 3; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .noor-topic__art, .noor-topic__go { transition: none; }
+  .noor-shell .noor-topics .noor-topic:hover .noor-topic__art { transform: none; }
+}
+
+/* Short windows, stacked cards: keep just the title so the welcome area above still has room. */
+@media (max-height: 860px) {
+  @container (max-width: 599px) {
+    .noor-shell .noor-topics .noor-topic { min-block-size: 64px; padding-block: 8px; }
+    .noor-topic__desc { display: none; }
+    .noor-topic__art { grid-row: 1; inline-size: 48px; block-size: 48px; }
+  }
+}

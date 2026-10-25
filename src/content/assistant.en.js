@@ -48,9 +48,9 @@ export const ui = {
 };
 
 export const topics = [
-  { id: 'apply', label: 'Start POD application', icon: 'fileAdd', message: 'Start POD application' },
-  { id: 'ask', label: 'Ask a question', icon: 'messageQuestion', message: 'Ask a question' },
-  { id: 'status', label: 'Check application status', icon: 'search', message: 'Check application status' },
+  { id: 'apply', label: 'Start POD application', description: 'Check your eligibility, then apply for the People of Determination card step by step.', icon: 'fileAdd', message: 'Start POD application' },
+  { id: 'ask', label: 'Ask a question', description: 'Get answers on Ministry services, fees, documents and how to apply.', icon: 'messageQuestion', message: 'Ask a question' },
+  { id: 'status', label: 'Check application status', description: 'Enter your application ID to see where your application stands.', icon: 'search', message: 'Check application status' },
 ];
 
 // Voice is simulated: the mic shows a listening state, then "hears" this utterance.
