@@ -64,7 +64,7 @@ const REQUIRED_DOCS = [
   'Passport-size photo with a white background',
 ];
 
-const eligibilityCard = {
+export const eligibilityCard = {
   type: 'eligibility',
   title: 'Check if you’re eligible',
   description: 'A few quick questions · I’ll tell you exactly what to prepare',
@@ -225,15 +225,15 @@ export const scenarios = [
     tool: null,
     text: [
       {
-        lead: 'Of course. You can ask me about the POD card.',
-        primary: 'You can type or speak in your own words, or try one of these.',
+        lead: 'Of course. I’m glad to help.',
+        primary: 'You can ask me about the Ministry’s services, fees, documents and how to apply. Type or speak in your own words, or try one of these.',
       },
     ],
     cards: [
       {
         type: 'suggestions',
         title: 'Things people often ask',
-        items: ['Who can apply?', 'What documents will I need?', 'Can I apply for my child?'],
+        items: ['What services do you offer?', 'What documents are needed for the POD card?', 'How much is the marriage grant?', 'What are your working hours?'],
       },
     ],
   },
@@ -296,11 +296,12 @@ export const fallback = {
   text: [
     {
       lead: 'Thank you for asking.',
-      primary: 'I can help with the People of Determination card, and point you to other Ministry services. I can’t answer that one yet.',
-      secondary: 'A person can help with anything else.',
+      primary: 'I could not find that in the Ministry’s published information, so I would rather not guess.',
+      secondary: 'You can rephrase your question, try one of these, or reach the team directly.',
     },
   ],
   cards: [
+    { type: 'suggestions', title: 'You could try', items: ['What services do you offer?', 'What documents are needed for the POD card?', 'How can I contact the Ministry?'] },
     {
       type: 'link',
       title: 'Talk to the Ministry',

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ChatIcon } from './ChatIcon.jsx';
 import { VoiceGlow } from './VoiceGlow.jsx';
 import { ImageSlot } from '../ImageSlot.jsx';
@@ -10,6 +10,7 @@ import { useApplication } from './useApplication.js';
 import { usePrefersReducedMotion } from '../../lib/usePrefersReducedMotion.js';
 import { buildNudge, formatSize } from '../../lib/application.js';
 import { buildStatusReply, parseApplicationId } from '../../lib/status.js';
+import { createKnowledge } from '../../lib/knowledge.js';
 import './Assistant.css';
 import './EligibilityFlow.css';
 
@@ -44,7 +45,11 @@ function stepState(stage, i) {
 }
 
 export function Assistant({ content }) {
-  const { persona, ui, topics, voice, scenarios, fallback, afterCheck, eligibility, application, attachmentReply, statusCheck } = content;
+  const { persona, ui, topics, voice, scenarios, fallback, afterCheck, eligibility, application, attachmentReply, statusCheck, eligibilityCard, knowledge } = content;
+  // Search over the Ministry's published information (see src/lib/knowledge.js). The service we were just discussing is
+  // remembered so a follow-up like "and the fees?" knows what it is about.
+  const kb = useMemo(() => createKnowledge({ ...knowledge, extras: { eligibilityCard } }), [knowledge, eligibilityCard]);
+  const kbService = useRef(null);
   const reduced = usePrefersReducedMotion();
   const [open, setOpen] = useState(false);
   const [closing, setClosing] = useState(false);
@@ -275,6 +280,24 @@ export function Assistant({ content }) {
     }, LEAVE_MS);
   };
 
+  // Which reply a typed or spoken message gets. A service named in the question is answered from the knowledge base;
+  // the scripted flows (start the check, track an application) keep their own phrases; other general questions use the
+  // knowledge base; anything else falls back to the scripted answers, then to "I could not find that".
+  const replyFor = (text) => {
+    const scripted = resolveScenario(text, scenarios, fallback);
+    const hit = kb.answer(text, { service: kbService.current });
+    let scenario = scripted;
+    if (hit && (hit.kind === 'smalltalk' || (hit.kind === 'service' && hit.strength >= 2))) scenario = hit.scenario;
+    else if (['apply', 'track', 'ask'].includes(scripted.id)) scenario = scripted;
+    else if (hit && hit.strength >= 2) scenario = hit.scenario;
+    else if (scripted === fallback && hit) scenario = hit.scenario;
+    if (hit && scenario === hit.scenario) {
+      if (hit.kind === 'service') kbService.current = hit.serviceId;
+      else if (hit.kind !== 'clarify') kbService.current = null;
+    } else kbService.current = null;
+    return scenario;
+  };
+
   const send = useCallback(
     (raw) => {
       const text = raw.trim();
@@ -284,7 +307,7 @@ export function Assistant({ content }) {
       const waiting = flowRef.current.awaiting;
       // A typed or spoken answer to the open question counts the same as tapping an option.
       const option = waiting ? parseAnswer(eligibility.questions[waiting.qid], text) : null;
-      const scenario = resolveScenario(text, scenarios, fallback);
+      const scenario = replyFor(text);
       if (scenario.then === 'startEligibility') expandForCheck();
       begin(() => {
         const open = appRef.current?.awaiting;
@@ -400,6 +423,7 @@ export function Assistant({ content }) {
     timers.current.forEach(clearTimeout);
     flowRef.current = { answers: {}, awaiting: null };
     statusRef.current = false;
+    kbService.current = null;
     setStatusAwait(false);
     followed.current = new Set();
     app.reset();

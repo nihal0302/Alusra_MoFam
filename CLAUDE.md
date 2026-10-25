@@ -17,3 +17,4 @@ See `docs/STATUS.md` for what is exact vs approximate.
 - Widget in `src/components/assistant/`; all copy, persona and scripted scenarios in `src/content/assistant.en.js`; matching in `src/lib/noor.js` (replace with a service call later).
 - Noor tokens (`--noor-*`) live in `tokens.css` with Figma/design-system values (Archivo + gold, decisions D1/D2); motion tokens `--dur-1…5`, `--ease-*` in `motion.css`.
 - Non-POD services are guidance + link out only — never an "Apply" button. Eligibility/UAE PASS/application steps are not built; "Start check" replies with an honest stub.
+- Knowledge: Mira answers general questions from the Ministry's published pages. `npm run knowledge` refreshes `src/content/knowledge/site.json` from alusra.gov.ae/en; copy and matching live in `src/content/knowledge.en.js` and `src/lib/knowledge.js`; `npm run knowledge:test` checks sample questions. No model, no network.

@@ -12,8 +12,11 @@ import { Assistant } from './components/assistant/Assistant.jsx';
 import * as assistantCopy from './content/assistant.en.js';
 import { eligibility } from './content/eligibility.en.js';
 import { application } from './content/application.en.js';
+import site from './content/knowledge/site.json';
+import { knowledgeCopy, resolutionEntries, serviceMeta, topics as knowledgeTopics } from './content/knowledge.en.js';
 
-const assistant = { ...assistantCopy, eligibility, application };
+const knowledge = { services: site.services, serviceMeta, topics: knowledgeTopics, extraTopics: resolutionEntries, copy: knowledgeCopy };
+const assistant = { ...assistantCopy, eligibility, application, knowledge };
 
 export function App() {
   return (
