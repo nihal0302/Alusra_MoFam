@@ -1042,3 +1042,7 @@
 /* Outlined buttons: the website's CTA green (this file loads after Assistant.css, where the filled ones are set). */
 .noor-btn--outline { color: var(--noor-cta); box-shadow: inset 0 0 0 1.5px var(--noor-cta); }
 .noor-btn--outline:hover:not(:disabled) { background: color-mix(in srgb, var(--noor-cta) 7%, var(--c-white)); }
+
+/* The two upload boxes keep the chat's gold for their button (photo and report). */
+.noor-up__drop .noor-btn:not(.noor-btn--outline):not(.noor-btn--text) { background: var(--noor-gold); }
+.noor-up__drop .noor-btn:not(.noor-btn--outline):not(.noor-btn--text):hover:not(:disabled) { background: var(--noor-gold); }
