@@ -83,7 +83,6 @@
 :root {
   --noor-glow-gold: oklch(0.8 0.17 82); /* APPROX: saturated gold, for the voice glow only */
   --noor-glow-ember: oklch(0.74 0.17 55); /* APPROX: warm ember orange */
-  --noor-glow-blue: oklch(0.8 0.1 262); /* APPROX: soft periwinkle, a light cousin of the registration banner indigo */
   --noor-glow-green: oklch(0.89 0.07 135); /* APPROX: very light sage, an accent only */
   --noor-glow-core: oklch(0.93 0.09 92); /* APPROX: pale warm core */
   --uaepass-black: #000000;

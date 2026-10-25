@@ -1743,9 +1743,7 @@
 }
 
 .noor-shell .noor-topics .noor-topic[data-topic='ask'] {
-  --tint: var(--noor-glow-blue);
-  --art-from: color-mix(in srgb, var(--noor-glow-blue) 85%, var(--c-white));
-  --art-to: color-mix(in oklab, var(--noor-glow-blue) 40%, var(--c-indigo));
+  --tint: var(--c-indigo);
 }
 
 .noor-shell .noor-topics .noor-topic[data-topic='status'] {
@@ -1883,3 +1881,37 @@
 
 .noor-shell .noor-topics .noor-topic:hover:not([aria-disabled='true']) .noor-topic__art,
 .noor-shell .noor-topics .noor-topic:focus-visible:not([aria-disabled='true']) .noor-topic__art { transform: rotate(3deg) scale(1.04); }
+
+/* Colours taken from the website itself: the banner indigo (--c-indigo) and the button green (--c-green).
+   Same hex, lighter shades by opacity: the card is a faint wash of the colour, the tile uses it at full strength. */
+.noor-shell .noor-topics .noor-topic {
+  --wash-a: 34%;
+  --wash-b: 9%;
+  --wash-hover-a: 44%;
+  --wash-hover-b: 15%;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--tint) var(--wash-a), var(--c-white)) 0%, color-mix(in srgb, var(--tint) var(--wash-b), var(--c-white)) 100%);
+}
+
+.noor-shell .noor-topics .noor-topic::before {
+  background: linear-gradient(120deg, color-mix(in srgb, var(--tint) var(--wash-hover-a), var(--c-white)), color-mix(in srgb, var(--tint) var(--wash-hover-b), var(--c-white)));
+}
+
+.noor-shell .noor-topics .noor-topic[data-topic='ask'] {
+  --tint: var(--c-indigo);
+  --wash-a: 17%;
+  --wash-b: 4%;
+  --wash-hover-a: 24%;
+  --wash-hover-b: 8%;
+  --art-from: color-mix(in srgb, var(--c-indigo) 60%, var(--c-white));
+  --art-to: var(--c-indigo);
+}
+
+.noor-shell .noor-topics .noor-topic[data-topic='status'] {
+  --tint: var(--c-green);
+  --wash-a: 17%;
+  --wash-b: 4%;
+  --wash-hover-a: 24%;
+  --wash-hover-b: 8%;
+  --art-from: color-mix(in srgb, var(--c-green) 60%, var(--c-white));
+  --art-to: var(--c-green);
+}
