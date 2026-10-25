@@ -45,7 +45,7 @@ export function buildSignIn(app) {
   };
 }
 
-export function buildPrompt(app, step, { changing = false } = {}) {
+export function buildPrompt(app, step, { changing = false, hasOther = false } = {}) {
   const st = app.steps[step];
   const cards = [];
   if (st.kind === 'choice') cards.push({ type: 'choices', label: st.label, options: st.options, field: step, spoken: `Choices: ${st.options.join(', ')}.` });
@@ -53,7 +53,7 @@ export function buildPrompt(app, step, { changing = false } = {}) {
   return {
     id: `app:${step}`,
     tool: null,
-    text: [{ lead: changing ? 'Certainly. Let’s update that.' : st.lead, primary: st.text }],
+    text: [{ lead: changing ? 'Certainly. Let’s update that.' : hasOther && st.leadOne ? st.leadOne : st.lead, primary: st.text }],
     cards,
   };
 }

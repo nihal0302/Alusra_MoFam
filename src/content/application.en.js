@@ -7,7 +7,7 @@ export const application = {
   signIn: {
     // Simulated wait while the person approves in the UAE PASS app (the real hand-off is not built).
     wait: {
-      ms: 30000,
+      ms: 15000,
       lead: 'Thank you. Opening UAE PASS now.',
       primary: 'Please approve the sign-in in your UAE PASS app. This can take a little while, so please keep this window open.',
       title: 'Signing in with UAE PASS',
@@ -74,6 +74,7 @@ export const application = {
       field: 'photo',
       label: 'Personal photograph',
       lead: 'Good progress. Two documents are needed to complete your application.',
+      leadOne: 'Good progress. One more document is needed to complete your application.', // when the report is already in
       text: 'Please upload your personal photograph: a passport-size photo with a white background.',
       placeholder: 'Upload your photograph above, or attach it here…',
       voiceSample: 'How do I upload it?',

@@ -9,7 +9,8 @@ import site from './knowledge/site.json' with { type: 'json' };
 const ORIGIN = site.origin;
 const REGISTER_URL = 'https://portal-eservices.alusra.gov.ae/s/64f519d6-838f-419b-aa76-17880b6e0c3d';
 
-export const knowledgeSource = { origin: ORIGIN, scrapedAt: site.scrapedAt };
+export const knowledgeSource = { origin: site.origin, scrapedAt: site.scrapedAt };
+export const knowledgeServices = site.services;
 
 export const knowledgeCopy = {
   tool: { working: 'Searching Ministry information…', done: 'Source · alusra.gov.ae' },

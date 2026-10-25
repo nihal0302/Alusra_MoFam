@@ -85,13 +85,4 @@
   --noor-glow-ember: oklch(0.74 0.17 55); /* APPROX: warm ember orange */
   --noor-glow-green: oklch(0.89 0.07 135); /* APPROX: very light sage, an accent only */
   --noor-glow-core: oklch(0.93 0.09 92); /* APPROX: pale warm core */
-  --uaepass-black: #000000;
-  --uaepass-pressed: #383838; /* pressed fill, from the supplied button artwork */
-  --uaepass-edge: #231f20; /* pressed / disabled edge */
-  --uaepass-green: #00ac75; /* logo accent */
-  --uaepass-red: #e82227; /* logo accent */
-  --uaepass-focus: rgb(0 172 117 / 0.3); /* focus ring */
-  --uaepass-shadow: rgb(0 0 0 / 0.12);
-  --uaepass-white: #ffffff;
-  --radius-uaepass: 12px; /* from the supplied button artwork */
 }

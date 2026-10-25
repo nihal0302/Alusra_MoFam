@@ -31,8 +31,13 @@ export const ui = {
     accept: 'application/pdf,image/jpeg,image/png',
     types: ['application/pdf', 'image/jpeg', 'image/png'],
     maxMb: 10,
-    placeholder: 'Add a note to your file (optional)…',
-    errors: { type: 'Please attach a PDF, JPG or PNG file.', size: 'That file is larger than 10 MB. Please choose a smaller one.' },
+    maxFiles: 2,
+    placeholder: 'Tell me about your situation (optional)…',
+    errors: {
+      type: 'Please attach a PDF, JPG or PNG file.',
+      size: 'That file is larger than 10 MB. Please choose a smaller one.',
+      count: 'You can attach up to two files at a time.',
+    },
   },
   announce: { thinking: 'Mira is typing', expanded: 'Chat expanded', collapsed: 'Chat returned to compact size', youSaid: 'You said: ', noorSaid: 'Mira said: ' },
   actions: {
@@ -48,9 +53,9 @@ export const ui = {
 };
 
 export const topics = [
-  { id: 'apply', label: 'Start POD application', description: 'Check your eligibility, then apply for the People of Determination card step by step.', icon: 'fileAdd', message: 'Start POD application' },
-  { id: 'ask', label: 'Ask a question', description: 'Get answers on Ministry services, fees, documents and how to apply.', icon: 'messageQuestion', message: 'Ask a question' },
-  { id: 'status', label: 'Check application status', description: 'Enter your application ID to see where your application stands.', icon: 'search', message: 'Check application status' },
+  { id: 'apply', label: 'Start POD application', description: 'Check eligibility, then apply for the card.', icon: 'fileAdd', message: 'Start POD application' },
+  { id: 'ask', label: 'Ask a question', description: 'Answers on services, fees and documents.', icon: 'messageQuestion', message: 'Ask a question' },
+  { id: 'status', label: 'Check application status', description: 'See where your application stands.', icon: 'search', message: 'Check application status' },
 ];
 
 // Voice is simulated: the mic shows a listening state, then "hears" this utterance.
@@ -276,20 +281,6 @@ export const statusCheck = {
 };
 
 // Off-topic or unrecognised: redirect gracefully and offer a person.
-// Reply when someone sends a file in the main chat. The file stays on the device; nothing reads it yet.
-export const attachmentReply = {
-  id: 'attachment',
-  tool: null,
-  text: [
-    {
-      lead: 'Thank you, your file has been received.',
-      primary: 'I cannot read or review documents in this chat yet. The file stays on your device and has not been submitted.',
-      secondary: 'You can still ask your question in words, and I will answer from the service information.',
-    },
-  ],
-  cards: [],
-};
-
 export const fallback = {
   id: 'fallback',
   tool: null,

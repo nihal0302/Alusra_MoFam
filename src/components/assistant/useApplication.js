@@ -33,7 +33,9 @@ export function useApplication(app, api) {
   };
 
   const ask = (step, opts) => {
-    const msgId = api.pushNoor(buildPrompt(app, step, opts));
+    // The photograph is asked first; if the report is already in (sent earlier in the chat), say only one is left.
+    const hasOther = step === 'photo' && Boolean(ref.current.data.report);
+    const msgId = api.pushNoor(buildPrompt(app, step, { ...opts, hasOther }));
     setAwait({ step, msgId, kind: app.steps[step].kind });
   };
 
@@ -54,6 +56,16 @@ export function useApplication(app, api) {
 
   const store = (field, value) => {
     ref.current.data = { ...ref.current.data, [field]: value };
+  };
+
+  // Documents sent earlier in the chat (with the eligibility details) are used here, so they are not asked for again.
+  const prefill = (docs) => {
+    const { photo, report } = docs;
+    ref.current.data = {
+      ...ref.current.data,
+      ...(photo ? { photo: { name: photo.name, size: photo.size, type: photo.type, url: photo.url } } : {}),
+      ...(report ? { report: { name: report.name, size: report.size, type: report.type, url: report.url } } : {}),
+    };
   };
 
   const reset = () => {
@@ -147,5 +159,5 @@ export function useApplication(app, api) {
     return true;
   };
 
-  return { handle, handleText, reset, next, awaiting: awaitingInfo, voiceSample: ref.current.awaiting ? app.steps[ref.current.awaiting.step].voiceSample : null };
+  return { handle, handleText, reset, prefill, next, awaiting: awaitingInfo, voiceSample: ref.current.awaiting ? app.steps[ref.current.awaiting.step].voiceSample : null };
 }

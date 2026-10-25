@@ -21,7 +21,11 @@ export function NoorMessage({ msgId, scenario, avatar, onStage, onAction, labels
   const onStageRef = useRef(onStage);
   onStageRef.current = onStage;
 
-  const blocks = scenario.text;
+  // A reply reads as two kinds of text: a bold opener and body copy. Any smaller third line is joined onto the body copy.
+  const blocks = useMemo(
+    () => scenario.text.map((b) => (b.secondary ? { lead: b.lead, primary: b.primary ? `${b.primary} ${b.secondary}` : b.secondary } : b)),
+    [scenario],
+  );
   const words = useMemo(
     () => blocks.map((b) => PARTS.map((k) => (b[k] ? b[k].split(' ') : []))),
     [blocks],

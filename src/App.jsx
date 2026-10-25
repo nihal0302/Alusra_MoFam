@@ -12,11 +12,11 @@ import { Assistant } from './components/assistant/Assistant.jsx';
 import * as assistantCopy from './content/assistant.en.js';
 import { eligibility } from './content/eligibility.en.js';
 import { application } from './content/application.en.js';
-import site from './content/knowledge/site.json';
-import { knowledgeCopy, resolutionEntries, serviceMeta, topics as knowledgeTopics } from './content/knowledge.en.js';
+import { intake } from './content/intake.en.js';
+import { knowledgeCopy, knowledgeServices, resolutionEntries, serviceMeta, topics as knowledgeTopics } from './content/knowledge.en.js';
 
-const knowledge = { services: site.services, serviceMeta, topics: knowledgeTopics, extraTopics: resolutionEntries, copy: knowledgeCopy };
-const assistant = { ...assistantCopy, eligibility, application, knowledge };
+const knowledge = { services: knowledgeServices, serviceMeta, topics: knowledgeTopics, extraTopics: resolutionEntries, copy: knowledgeCopy };
+const assistant = { ...assistantCopy, eligibility, application, intake, knowledge };
 
 export function App() {
   return (

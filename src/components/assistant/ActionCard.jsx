@@ -344,6 +344,50 @@ export function ActionCard({ card, index = 0, onAction, chosen }) {
     );
   }
 
+  // What Mira understood from a message with details and files: each detail, with Change where she found one,
+  // then the documents received. Anything missing says so, and is asked for next.
+  if (card.type === 'intake') {
+    return (
+      <section className="noor-card" style={style} aria-label={card.title}>
+        <div className="noor-card__body">
+          <h3 className="noor-card__title">{card.title}</h3>
+          <p className="noor-rev__group">{card.detailsLabel}</p>
+          <dl className="noor-rev">
+            {card.rows.map((r) => (
+              <div className={`noor-rev__row${r.value ? '' : ' is-missing'}`} key={r.qid}>
+                <dt>{r.label}</dt>
+                <dd>{r.value ?? card.missing}</dd>
+                {r.value && (
+                  <button
+                    type="button"
+                    className="noor-link-btn"
+                    disabled={locked}
+                    aria-label={`${card.changeLabel}: ${r.label}, currently ${r.value}`}
+                    onClick={() => onAction?.('change', { qid: r.qid, label: r.label })}
+                  >
+                    {card.changeLabel}
+                  </button>
+                )}
+              </div>
+            ))}
+          </dl>
+          <p className="noor-rev__group">{card.docsLabel}</p>
+          <dl className="noor-rev">
+            {card.docs.map((d) => (
+              <div className={`noor-rev__row${d.value ? '' : ' is-missing'}`} key={d.id}>
+                <dt>{d.label}</dt>
+                <dd>{d.value ?? card.notAttached}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+        <div className="noor-card__foot">
+          <span className="noor-card__note">{card.note}</span>
+        </div>
+      </section>
+    );
+  }
+
   if (card.type === 'review') {
     return (
       <section className="noor-card" style={style} aria-label={card.title}>

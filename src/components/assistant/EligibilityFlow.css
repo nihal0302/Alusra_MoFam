@@ -437,63 +437,64 @@
 
 .noor-done__note { text-align: center; font-size: 13px; color: var(--noor-muted); }
 
-/* ================= UAE PASS button (guidelines: black style, light background) ================= */
+/* ================= UAE PASS button: the supplied artwork, one image per state ================= */
 .noor-pass__cta { padding: 4px 16px 18px; }
 
 .uaepass-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
+  position: relative;
+  display: block;
   inline-size: 100%;
-  max-inline-size: 300px;
-  block-size: 44px;
-  margin: 4px auto;
-  padding: 0 16px;
-  font-family: 'SF Pro Text', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
-  font-size: 19px;
-  font-weight: 600;
-  line-height: 1;
-  color: var(--uaepass-white);
-  background: var(--uaepass-black);
+  max-inline-size: 310px; /* the artwork is 310 x 54, including its shadow */
+  aspect-ratio: 310 / 54;
+  margin: 0 auto;
+  padding: 0;
+  background: none;
   border: 0;
-  border-radius: var(--radius-uaepass);
-  box-shadow: 0 2px 2px var(--uaepass-shadow), 0 0 2px var(--uaepass-shadow);
+  border-radius: 14px;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform var(--dur-1) var(--ease-out);
 }
 
-.uaepass-btn__logo { flex: none; inline-size: 25px; block-size: 25px; }
-.uaepass-btn__title { white-space: nowrap; }
+.uaepass-btn:focus-visible { outline: 0; }
 
-/* Logo colours: official black-button form is white with green and red accents. */
-.uaepass-logo__ink { fill: var(--uaepass-white); }
-.uaepass-logo__green { fill: var(--uaepass-green); }
-.uaepass-logo__red { fill: var(--uaepass-red); }
-
-/* Pressed: lighter fill with a 1px dark edge, as in the supplied artwork. */
-.uaepass-btn:active:not(:disabled) {
-  background: var(--uaepass-pressed);
-  box-shadow: inset 0 0 0 1px var(--uaepass-edge);
+.uaepass-btn__art {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  opacity: 0;
+  pointer-events: none;
+  user-select: none;
+  transition: opacity var(--dur-1) var(--ease-out);
 }
 
-/* Focus: green ring around the button. */
-.uaepass-btn:focus-visible { outline: 0; box-shadow: 0 0 0 3px var(--uaepass-focus); }
+/* Rest: active artwork. */
+.uaepass-btn__art--active { opacity: 1; }
 
-/* Disabled: white button, 40% edge, everything inside at 40%. */
-.uaepass-btn:disabled {
-  color: var(--uaepass-black);
-  background: var(--uaepass-white);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--uaepass-edge) 40%, transparent);
-  cursor: not-allowed;
-}
-.uaepass-btn:disabled .uaepass-btn__logo,
-.uaepass-btn:disabled .uaepass-btn__title { opacity: 0.4; }
-.uaepass-btn:disabled .uaepass-logo__ink,
-.uaepass-btn:disabled .uaepass-logo__green,
-.uaepass-btn:disabled .uaepass-logo__red { fill: var(--uaepass-black); }
+/* Hover: a small lift, and the pressed artwork (the lighter black) fades in part of the way. */
+.uaepass-btn:hover:not(:disabled):not(:active) { transform: translateY(-1px); }
+.uaepass-btn:hover:not(:disabled):not(:active) .uaepass-btn__art--pressed { opacity: 0.45; }
 
-@media (forced-colors: active) {
-  .uaepass-btn { border: 1px solid ButtonText; }
+/* Keyboard focus: the artwork with its green ring. */
+.uaepass-btn:focus-visible:not(:disabled):not(:active) .uaepass-btn__art--focus { opacity: 1; }
+.uaepass-btn:focus-visible:not(:disabled):not(:active) .uaepass-btn__art--active { opacity: 0; }
+.uaepass-btn:focus-visible:not(:disabled):not(:active) .uaepass-btn__art--pressed { opacity: 0; }
+
+/* Pressed: the pressed artwork. */
+.uaepass-btn:active:not(:disabled) .uaepass-btn__art--pressed { opacity: 1; transition: none; }
+.uaepass-btn:active:not(:disabled) .uaepass-btn__art--active { opacity: 0; transition: none; }
+
+/* Disabled: the disabled artwork only. */
+.uaepass-btn:disabled { cursor: not-allowed; }
+.uaepass-btn:disabled .uaepass-btn__art--disabled { opacity: 1; }
+.uaepass-btn:disabled .uaepass-btn__art--active,
+.uaepass-btn:disabled .uaepass-btn__art--pressed,
+.uaepass-btn:disabled .uaepass-btn__art--focus { opacity: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .uaepass-btn, .uaepass-btn__art { transition: none; }
+  .uaepass-btn:hover:not(:disabled):not(:active) { transform: none; }
 }
 
 /* ================= Details arriving from UAE PASS ================= */
@@ -729,7 +730,6 @@
   .noor-done__halo { animation: none; }
   .noor-fetch__state .noor-spinner { animation: none; opacity: 0; }
   .noor-fetch__tick svg path { animation: none; stroke-dashoffset: 0; }
-  .uaepass-btn:hover:not(:disabled) { transform: none; }
 }
 
 /* ================= Outcome card, compact (supersedes the roomier block above) ================= */
@@ -963,3 +963,78 @@
 /* ================= Outcome actions: same footer as the success card ================= */
 /* Text action left; secondary + primary together on the right. Links are ordinary buttons. */
 .noor-done__main a.noor-btn { text-decoration: none; white-space: nowrap; }
+
+/* ================= "What I understood" card (details and files sent in one message) ================= */
+.noor-rev__group {
+  margin: 14px 0 2px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--noor-ink);
+}
+
+.noor-rev__group:first-of-type { margin-block-start: 8px; }
+
+.noor-rev__row.is-missing dd {
+  font-weight: 500;
+  color: var(--noor-muted);
+}
+
+/* ================= Outcome card, compact: animation beside the heading, tighter checklist ================= */
+.noor-done__top {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  align-items: center;
+  column-gap: 12px;
+  row-gap: 2px;
+  padding: 12px 16px 4px;
+  text-align: start;
+}
+
+.noor-done__check {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  inline-size: 76px;
+  block-size: 76px;
+  margin: 0;
+}
+
+.noor-done__title {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: end;
+  font-size: 17px;
+  line-height: 1.25;
+  text-wrap: pretty;
+}
+
+.noor-done__sub {
+  grid-column: 2;
+  grid-row: 2;
+  align-self: start;
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  text-wrap: pretty;
+}
+
+.noor-done__halo {
+  inline-size: 100px;
+  block-size: 100px;
+  inset-inline-start: 54px;
+  inset-block-start: 50%;
+  translate: -50% -50%;
+}
+
+.noor-done__list { padding: 8px 16px 4px; }
+.noor-done__list ul { gap: 6px; }
+.noor-done__list li { gap: 12px; padding: 9px 12px; }
+.noor-done__icon { inline-size: 32px; block-size: 32px; }
+.noor-done__copy { gap: 1px; }
+.noor-done__item { font-size: 14px; }
+.noor-done__text { font-size: 13px; line-height: 18px; }
+.noor-done__foot { padding: 12px 16px 14px; }
+.noor-done__foot .noor-btn { min-block-size: 40px; }
+
+/* The outcome card has the same plain white fill as every other card: no tinted top and no glow behind the animation. */
+.noor-done__top { background: none; }
+.noor-done__halo { display: none; }

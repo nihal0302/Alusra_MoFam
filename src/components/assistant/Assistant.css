@@ -1915,3 +1915,87 @@
   --art-from: color-mix(in srgb, var(--c-green) 60%, var(--c-white));
   --art-to: var(--c-green);
 }
+
+/* The tiles sit straight; on hover they only grow slightly. */
+.noor-shell .noor-topics .noor-topic:hover:not([aria-disabled='true']) .noor-topic__art,
+.noor-shell .noor-topics .noor-topic:focus-visible:not([aria-disabled='true']) .noor-topic__art { transform: scale(1.04); }
+
+/* ================= Backdrop: a veil between the page and the open chat ================= */
+/* It only dims and softens the page so the chat stands out; the page underneath stays usable. */
+.noor-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  pointer-events: none;
+  background: color-mix(in srgb, var(--noor-ink) 34%, transparent);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  animation: noor-scrim-in var(--dur-4) var(--ease-out) both;
+}
+
+.noor-scrim.is-closing {
+  animation: noor-scrim-out var(--dur-3) var(--ease-in) forwards;
+}
+
+@keyframes noor-scrim-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes noor-scrim-out { from { opacity: 1; } to { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .noor-scrim, .noor-scrim.is-closing { animation: none; }
+}
+
+/* Smaller cards: a smaller tile and tighter spacing, so each card is shorter. */
+.noor-shell .noor-topics .noor-topic { min-block-size: 72px; padding: 12px 14px; }
+.noor-topic__art { inline-size: 48px; block-size: 48px; }
+.noor-topic__label { font-size: 15px; }
+
+@container (min-width: 600px) {
+  .noor-shell .noor-topics .noor-topic { min-block-size: 0; padding: 12px 14px 14px; gap: 6px 8px; }
+  .noor-topic__art { inline-size: 46px; block-size: 46px; margin: -2px -2px 0 0; }
+  .noor-topic__text { padding-inline-end: 30px; }
+  .noor-topic__desc { -webkit-line-clamp: 2; }
+  .noor-topic__go { inline-size: 24px; block-size: 24px; inset-block-end: 12px; inset-inline-end: 12px; }
+}
+
+@media (max-height: 860px) {
+  @container (max-width: 599px) {
+    .noor-shell .noor-topics .noor-topic { min-block-size: 58px; padding-block: 6px; }
+    .noor-topic__art { inline-size: 42px; block-size: 42px; }
+  }
+}
+
+/* ================= Message box that grows with the message ================= */
+.noor-input {
+  block-size: auto;
+  min-block-size: 56px;
+  align-items: flex-end;
+  padding-block: 6px;
+}
+
+.noor-input__field {
+  display: block;
+  box-sizing: border-box;
+  block-size: 44px;
+  min-block-size: 44px;
+  max-block-size: 154px; /* six lines, then it scrolls */
+  padding-block: 11px;
+  font-family: inherit;
+  line-height: 22px;
+  resize: none;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+  scrollbar-width: thin;
+}
+
+/* A message with line breaks is shown as written. */
+.noor-bubble--user { white-space: pre-wrap; }
+
+/* Same resting height as before (56px with its border), and room for eight lines in the narrow chat. */
+.noor-input { padding-block: 5px; }
+.noor-input__field { max-block-size: 198px; }
+
+/* One weight for the three glyphs: solid white shapes, details cut out, strokes of a similar thickness. */
+.noor-art__stroke { stroke-width: 2.6; }
+.noor-art__ring { stroke-width: 4.4; }
+.noor-art__handle { stroke-width: 5; }
+.noor-art__lens { display: none; }

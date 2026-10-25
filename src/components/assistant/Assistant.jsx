@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ChatIcon } from './ChatIcon.jsx';
 import { VoiceGlow } from './VoiceGlow.jsx';
 import { TopicArt } from './TopicArt.jsx';
@@ -12,6 +12,7 @@ import { usePrefersReducedMotion } from '../../lib/usePrefersReducedMotion.js';
 import { buildNudge, formatSize } from '../../lib/application.js';
 import { buildStatusReply, parseApplicationId } from '../../lib/status.js';
 import { createKnowledge } from '../../lib/knowledge.js';
+import { buildIntake, countFacts, extractFacts, markReceived, placeFiles } from '../../lib/intake.js';
 import './Assistant.css';
 import './EligibilityFlow.css';
 
@@ -46,7 +47,7 @@ function stepState(stage, i) {
 }
 
 export function Assistant({ content }) {
-  const { persona, ui, topics, voice, scenarios, fallback, afterCheck, eligibility, application, attachmentReply, statusCheck, eligibilityCard, knowledge } = content;
+  const { persona, ui, topics, voice, scenarios, fallback, afterCheck, eligibility, application, intake, statusCheck, eligibilityCard, knowledge } = content;
   // Search over the Ministry's published information (see src/lib/knowledge.js). The service we were just discussing is
   // remembered so a follow-up like "and the fees?" knows what it is about.
   const kb = useMemo(() => createKnowledge({ ...knowledge, extras: { eligibilityCard } }), [knowledge, eligibilityCard]);
@@ -67,9 +68,11 @@ export function Assistant({ content }) {
   const [statusAwait, setStatusAwait] = useState(false); // Mira has asked for an application ID
   const statusRef = useRef(false);
 
-  const [attachment, setAttachment] = useState(null); // a file chosen for the next message
+  const [attachments, setAttachments] = useState([]); // up to two files chosen for the next message
   const [attachError, setAttachError] = useState('');
-  const attachRef = useRef(null);
+  const attachRef = useRef([]);
+  const docsRef = useRef({}); // the photograph and report received so far from files sent in the chat
+  const resultShown = useRef(null); // the answers an eligibility result was last shown for
   const appRef = useRef(null); // latest application state, for callbacks that outlive a render
   const fileRef = useRef(null);
 
@@ -86,25 +89,39 @@ export function Assistant({ content }) {
   const expandedRef = useRef(false);
   expandedRef.current = expanded;
 
-  const setAttach = (value) => {
-    if (attachRef.current?.url && attachRef.current !== value) URL.revokeObjectURL(attachRef.current.url);
-    attachRef.current = value;
-    setAttachment(value);
+  const setAttach = (list) => {
+    attachRef.current.forEach((a) => {
+      if (a.url && !list.includes(a)) URL.revokeObjectURL(a.url);
+    });
+    attachRef.current = list;
+    setAttachments(list);
   };
 
-  const pickAttachment = (file) => {
-    if (!file) return;
-    if (!ui.attach.types.includes(file.type)) {
-      setAttachError(ui.attach.errors.type);
-      return;
+  const pickAttachments = (fileList) => {
+    const files = Array.from(fileList ?? []);
+    if (!files.length) return;
+    const added = [];
+    let error = '';
+    for (const file of files) {
+      if (!ui.attach.types.includes(file.type)) {
+        error = ui.attach.errors.type;
+        continue;
+      }
+      if (file.size > ui.attach.maxMb * 1024 * 1024) {
+        error = ui.attach.errors.size;
+        continue;
+      }
+      if (attachRef.current.length + added.length >= ui.attach.maxFiles) {
+        error = ui.attach.errors.count;
+        break;
+      }
+      added.push({ file, name: file.name, size: file.size, type: file.type, url: URL.createObjectURL(file) });
     }
-    if (file.size > ui.attach.maxMb * 1024 * 1024) {
-      setAttachError(ui.attach.errors.size);
-      return;
+    setAttachError(error);
+    if (added.length) {
+      setAttach([...attachRef.current, ...added]);
+      focusInput();
     }
-    setAttachError('');
-    setAttach({ file, name: file.name, size: file.size, type: file.type, url: URL.createObjectURL(file) });
-    focusInput();
   };
 
   const started = messages.length > 0;
@@ -113,6 +130,14 @@ export function Assistant({ content }) {
     timers.current.push(id);
   };
   const focusInput = () => later(() => inputRef.current?.focus(), 30);
+
+  // The message box grows with what is typed, so the whole message stays in view (up to six lines, then it scrolls).
+  useLayoutEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  }, [draft, listening, expanded, open, attachments.length]);
 
   // Focus moves in on open and returns to the launcher on close.
   useEffect(() => {
@@ -204,6 +229,42 @@ export function Assistant({ content }) {
     askNext({});
   };
 
+  // Details and files sent in one message: read what is there, say what was understood, then either give the result
+  // or ask only for what is missing. Answers and documents build up across messages until the check is complete.
+  const runIntake = (text, files, facts) => {
+    expandForCheck();
+    const placed = placeFiles(docsRef.current, files);
+    docsRef.current = placed.docs;
+    const merged = { ...facts };
+    // Sending a report file means there is a report, unless the message or an earlier answer already said so.
+    if (placed.docs.report && merged.report === undefined && flowRef.current.answers.report === undefined) merged.report = 'yes';
+    const answers = purge({ ...flowRef.current.answers, ...merged });
+    flowRef.current.answers = answers;
+    const open = flowRef.current.awaiting;
+    if (open) lock(open.msgId, 'skipped'); // the question card is replaced by this message
+    setWaiting(null);
+    setStage('check');
+    const firstImage = files.find((f) => f.type.startsWith('image/'));
+    pushUser([text, files.map((f) => f.name).join(', ')].filter(Boolean).join(' — '), firstImage?.url);
+    attachRef.current = []; // the bubble and the documents keep the preview URLs alive
+    setAttachments([]);
+    const built = buildIntake({
+      eligibility,
+      copy: intake,
+      answers,
+      docs: placed.docs,
+      notes: placed.notes,
+      hadText: Boolean(text),
+      fileCount: files.length,
+      resultShownFor: resultShown.current,
+    });
+    if (built.resultFor) {
+      resultShown.current = built.resultFor;
+      setStage(built.kind === 'eligible' ? 'checkDone' : 'check');
+    }
+    pushNoor(built.scenario);
+  };
+
   const answer = (msgId, qid, value, shown) => {
     lock(msgId, value);
     const answers = purge({ ...flowRef.current.answers, [qid]: value });
@@ -240,6 +301,9 @@ export function Assistant({ content }) {
         pushUser(payload.label);
         setWaiting(null);
         const { kind, scenario } = buildResult(eligibility, flowRef.current.answers);
+        // Files sent earlier in the chat show as received on the checklist, and a later file will not repeat this result.
+        if (Object.keys(docsRef.current).length) scenario.cards[0] = markReceived(scenario.cards[0], docsRef.current, intake);
+        resultShown.current = JSON.stringify(flowRef.current.answers);
         setStage(kind === 'eligible' ? 'checkDone' : 'check');
         pushNoor(scenario);
         break;
@@ -258,6 +322,7 @@ export function Assistant({ content }) {
       case 'apply':
         lock(msgId, 'apply');
         pushUser(payload.label);
+        app.prefill(docsRef.current); // files sent earlier are not asked for again
         pushNoor(afterCheck.apply);
         break;
       case 'ask':
@@ -302,8 +367,8 @@ export function Assistant({ content }) {
   const send = useCallback(
     (raw) => {
       const text = raw.trim();
-      const att = attachRef.current;
-      if ((!text && !att) || busy || leaving) return;
+      const files = attachRef.current;
+      if ((!text && !files.length) || busy || leaving) return;
       setDraft('');
       const waiting = flowRef.current.awaiting;
       // A typed or spoken answer to the open question counts the same as tapping an option.
@@ -312,15 +377,16 @@ export function Assistant({ content }) {
       if (scenario.then === 'startEligibility') expandForCheck();
       begin(() => {
         const open = appRef.current?.awaiting;
-        if (att && open?.kind === 'file') {
+        if (files.length && open?.kind === 'file') {
           // A document is being asked for: a file sent from the message box counts as that upload.
+          const att = files[0];
           const up = application.steps[open.step].upload;
           const bad = !up.types.includes(att.type)
             ? application.upload.errors.type.replace('{types}', up.typeNames)
             : att.size > application.upload.maxMb * 1024 * 1024
               ? application.upload.errors.size
               : '';
-          setAttach(null);
+          setAttach([]);
           if (bad) {
             pushUser(att.name);
             pushNoor(buildNudge(bad));
@@ -329,12 +395,10 @@ export function Assistant({ content }) {
           }
           return;
         }
-        if (att) {
-          // A file sent in the main chat: show it, then say plainly what can and cannot be done with it.
-          pushUser(text ? `${att.name} — ${text}` : att.name, att.type.startsWith('image/') ? att.url : undefined);
-          attachRef.current = null; // the bubble keeps the preview URL alive
-          setAttachment(null);
-          pushNoor(attachmentReply);
+        // Files, or a message that already tells Mira two or more of the answers: read it all at once.
+        const facts = extractFacts(text);
+        if (files.length || (countFacts(facts) >= 2 && !open && !statusRef.current)) {
+          runIntake(text, files, facts);
           return;
         }
         if (statusRef.current) {
@@ -397,6 +461,10 @@ export function Assistant({ content }) {
         followed.current.add(msgId);
         later(startEligibility, reduced ? 0 : FOLLOW_MS);
       }
+      if (scenario.then === 'continueIntake' && !followed.current.has(msgId)) {
+        followed.current.add(msgId);
+        later(() => askNext(flowRef.current.answers), reduced ? 0 : FOLLOW_MS);
+      }
       if (scenario.then === 'afterSignIn' && !followed.current.has(msgId)) {
         followed.current.add(msgId);
         // Let the details finish arriving before the first question.
@@ -423,6 +491,8 @@ export function Assistant({ content }) {
   const restart = () => {
     timers.current.forEach(clearTimeout);
     flowRef.current = { answers: {}, awaiting: null };
+    docsRef.current = {};
+    resultShown.current = null;
     statusRef.current = false;
     kbService.current = null;
     setStatusAwait(false);
@@ -435,7 +505,7 @@ export function Assistant({ content }) {
     setBusy(false);
     setThinking(false);
     setDraft('');
-    setAttach(null);
+    setAttach([]);
     setAttachError('');
     setAnnouncement('');
     focusInput();
@@ -479,7 +549,7 @@ export function Assistant({ content }) {
   );
   const pose = started ? persona.poses.selection : persona.poses.greeting;
   const blocked = busy || leaving;
-  const placeholder = attachment ? ui.attach.placeholder : app.awaiting?.placeholder ?? (statusAwait ? statusCheck.placeholder : awaiting ? ui.input.answer : started ? ui.input.conversation : ui.input.welcome);
+  const placeholder = attachments.length ? ui.attach.placeholder : app.awaiting?.placeholder ?? (statusAwait ? statusCheck.placeholder : awaiting ? ui.input.answer : started ? ui.input.conversation : ui.input.welcome);
 
   return (
     <div className="noor">
@@ -499,6 +569,8 @@ export function Assistant({ content }) {
           <span className="noor-launcher__sub">{ui.launcher.subtitle}</span>
         </span>
       </button>
+
+      {open && <div className={`noor-scrim${closing ? ' is-closing' : ''}`} aria-hidden="true" />}
 
       {open && (
         <div className={`noor-shell${expanded ? ' is-expanded' : ''}${closing ? ' is-closing' : ''}`}>
@@ -631,8 +703,8 @@ export function Assistant({ content }) {
                 </div>
               )}
 
-              {attachment && (
-                <div className="noor-attach">
+              {attachments.map((attachment) => (
+                <div className="noor-attach" key={attachment.url}>
                   <span className="noor-attach__thumb" aria-hidden="true">
                     {attachment.type.startsWith('image/') ? <img src={attachment.url} alt="" /> : <ChatIcon name="file" size={20} weight={1.5} />}
                   </span>
@@ -640,11 +712,16 @@ export function Assistant({ content }) {
                     <span className="noor-attach__name">{attachment.name}</span>
                     <span className="noor-attach__size">{formatSize(attachment.size)}</span>
                   </span>
-                  <button type="button" className="noor-attach__remove" aria-label={`${ui.attach.remove}: ${attachment.name}`} onClick={() => setAttach(null)}>
+                  <button
+                    type="button"
+                    className="noor-attach__remove"
+                    aria-label={`${ui.attach.remove}: ${attachment.name}`}
+                    onClick={() => setAttach(attachRef.current.filter((a) => a !== attachment))}
+                  >
                     <ChatIcon name="close" size={14} />
                   </button>
                 </div>
-              )}
+              ))}
               {attachError && (
                 <p className="noor-attach__error" role="alert">
                   {attachError}
@@ -673,14 +750,21 @@ export function Assistant({ content }) {
                   </>
                 ) : (
                   <>
-                    <input
+                    <textarea
                       ref={inputRef}
                       className="noor-input__field"
-                      type="text"
+                      rows={1}
                       dir="auto"
                       enterKeyHint="send"
                       value={draft}
                       onChange={(e) => setDraft(e.target.value)}
+                      onKeyDown={(e) => {
+                        // Enter sends; Shift+Enter starts a new line.
+                        if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+                          e.preventDefault();
+                          e.currentTarget.form?.requestSubmit();
+                        }
+                      }}
                       placeholder={placeholder}
                       aria-label={placeholder}
                       autoComplete="off"
@@ -692,9 +776,10 @@ export function Assistant({ content }) {
                           className="visually-hidden"
                           type="file"
                           accept={ui.attach.accept}
+                          multiple
                           tabIndex={-1}
                           onChange={(e) => {
-                            pickAttachment(e.target.files?.[0]);
+                            pickAttachments(e.target.files);
                             e.target.value = '';
                           }}
                         />
@@ -722,7 +807,7 @@ export function Assistant({ content }) {
                       type="submit"
                       className="noor-send"
                       aria-label={ui.actions.send}
-                      aria-disabled={blocked || (!draft.trim() && !attachment) || undefined}
+                      aria-disabled={blocked || (!draft.trim() && !attachments.length) || undefined}
                     >
                       <ChatIcon name="arrowRight" size={18} />
                     </button>
