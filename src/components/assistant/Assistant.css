@@ -677,11 +677,7 @@
   transition: border-color var(--dur-1) var(--ease-out);
 }
 
-/* The ring belongs to typing: it shows only while the text field itself is focused, not when the mic or attach button is tapped. */
-.noor-input:has(.noor-input__field:focus) {
-  border-color: var(--noor-gold);
-  box-shadow: 0 0 0 2px var(--noor-gold);
-}
+/* No thick ring or colour change when the message box is selected: it stays as it is, and the text cursor shows where you are typing. */
 
 .noor-input__field {
   flex: 1;
