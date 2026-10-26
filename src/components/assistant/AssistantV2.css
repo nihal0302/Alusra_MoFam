@@ -15,7 +15,7 @@
   --radius-noor-card: 12px;
   --radius-noor-chip: 10px;
   --radius-noor-button: 10px;
-  --radius-noor-input: 12px;
+  --radius-noor-input: 20px; /* the message box: the same rounded edge on the starting screen and inside the conversation */
   --shadow-noor-panel: 0 10px 28px rgba(33, 33, 27, 0.16);
   --shadow-noor-launcher: 0 4px 14px rgba(33, 33, 27, 0.16);
 }
@@ -34,87 +34,105 @@
 .noor--v2 .noor-icon-btn { inline-size: 36px; block-size: 36px; background: transparent; border: 0; border-radius: 50%; }
 .noor--v2 .noor-icon-btn:hover { background: var(--noor-chip); }
 
-/* ---------- Starting screen: a greeting that reads left to right, with the services right under it ---------- */
+/* ---------- Starting screen: the avatar above a large greeting, with the services right under it ---------- */
 .noor--v2 .noor-welcome--v2 {
   align-items: stretch;
   justify-content: safe center;
-  padding: 24px 20px;
+  padding: 24px 24px 12px;
   text-align: start;
-  background: var(--c-white);
+  background: transparent;
   overflow-y: auto;
 }
 
 .noor--v2 .noor-welcome__body {
-  display: grid;
-  grid-template-columns: 56px minmax(0, 1fr);
-  column-gap: 16px;
-  row-gap: 2px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   inline-size: 100%;
   max-inline-size: 560px;
   margin-inline: auto;
 }
 
-.noor--v2 .noor-welcome__body .noor-welcome__hero { grid-row: 1 / 3; inline-size: 56px; block-size: 56px; }
-.noor--v2 .noor-welcome__body .noor-welcome__hero .noor-avatar { box-shadow: 0 0 0 1px var(--noor-line-strong); }
+/* The avatar sits inside a frosted-glass circle: see-through white, brighter at the top, a bright edge with an inner highlight, a
+   blur of what is behind it, and a soft shadow underneath. */
+.noor--v2 .noor-welcome__body .noor-welcome__hero {
+  inline-size: 92px;
+  block-size: 92px;
+  margin-block-end: 22px;
+  border-radius: 50%;
+  background: linear-gradient(150deg, color-mix(in srgb, var(--c-white) 70%, transparent), color-mix(in srgb, var(--c-white) 18%, transparent));
+  border: 1px solid color-mix(in srgb, var(--c-white) 85%, transparent);
+  box-shadow:
+    0 12px 30px color-mix(in srgb, var(--noor-ink) 10%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--c-white) 95%, transparent),
+    inset 0 -10px 18px color-mix(in srgb, var(--noor-glow-gold) 14%, transparent);
+  -webkit-backdrop-filter: blur(14px) saturate(1.5);
+  backdrop-filter: blur(14px) saturate(1.5);
+}
+.noor--v2 .noor-welcome__body .noor-welcome__hero .noor-avatar { box-shadow: 0 4px 12px color-mix(in srgb, var(--noor-ink) 14%, transparent); }
 .noor--v2 .noor-welcome__body .noor-welcome__avatar { animation: none; }
-.noor--v2 .noor-welcome__body .noor-welcome__title { align-self: end; font-size: 24px; line-height: 30px; font-weight: 600; letter-spacing: 0; }
-.noor--v2 .noor-welcome__body .noor-welcome__sub { align-self: start; font-size: 14px; line-height: 20px; }
+.noor--v2 .noor-welcome__body .noor-welcome__title { font-size: 32px; line-height: 40px; font-weight: 600; letter-spacing: -0.01em; }
+.noor--v2 .noor-welcome__accent { color: var(--noor-gold); }
+.noor--v2 .noor-welcome__body .noor-welcome__sub { margin-block-start: 8px; font-size: 15px; line-height: 22px; }
 
-
-/* ---------- The message box is the main thing on the starting screen; the services are quick-starts under it ---------- */
-.noor--v2 .noor-footer { gap: 10px; padding: 12px 16px 14px; }
-.noor--v2 .noor-glow ~ .noor-footer { background: transparent; }
-
-.noor--v2 .noor-welcome__body > .noor-input,
-.noor--v2 .noor-welcome__body > .noor-attach,
-.noor--v2 .noor-welcome__body > .noor-attach__error { grid-column: 1 / -1; }
-
-.noor--v2 .noor-welcome__body > .noor-input {
-  min-block-size: 62px;
-  align-items: flex-end; /* attach, mic and send stay at the bottom right, however many lines the message takes */
-  margin-block-start: 22px;
-  padding-block: 8px;
-  padding-inline: 20px 8px;
-  border-color: var(--noor-line-strong);
-  border-radius: 18px;
-  box-shadow: 0 2px 10px rgba(33, 33, 27, 0.08);
+/* While the starting screen is showing, one soft gradient fills the area between the header and the message box: warm cream and
+   pale gold from the top corner, sage from the side, and a trace of the banner's indigo at the bottom. The header and the message
+   box stay plain white, with a hairline between each of them and the gradient. */
+.noor--v2 .noor-panel.is-landing .noor-stage {
+  isolation: isolate;
+  background:
+    radial-gradient(95% 55% at 100% 0%, color-mix(in srgb, var(--noor-glow-core) 38%, transparent), transparent 72%),
+    radial-gradient(80% 50% at 0% 58%, color-mix(in srgb, var(--noor-glow-green) 50%, transparent), transparent 72%),
+    radial-gradient(95% 55% at 100% 100%, color-mix(in srgb, var(--c-indigo) 8%, transparent), transparent 72%),
+    var(--c-white);
 }
 
-/* One line is exactly as tall as the buttons (44px), so the space above and below them is equal. */
-.noor--v2 .noor-welcome__body > .noor-input .noor-input__field { box-sizing: border-box; min-block-size: 44px; padding-block: 10px; font-size: 16px; line-height: 24px; }
-.noor--v2 .noor-welcome__body > .noor-input:focus-within { border-color: color-mix(in srgb, var(--noor-gold) 55%, var(--noor-line-strong)); }
+
+/* The message box is the same on every screen (see ".noor--v2 .noor-input" below): white, with the same outline, edge and shadow. */
+
+/* ---------- The services are small quick-starts under the greeting; the message box stays at the bottom ---------- */
+.noor--v2 .noor-footer { gap: 10px; padding: 12px 16px 14px; }
+.noor--v2 .noor-glow ~ .noor-footer { background: transparent; }
 
 .noor--v2 .noor-quick {
   grid-column: 1 / -1;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-block-start: 20px;
+  margin-block-start: 22px;
 }
 
-.noor--v2 .noor-quick__label { font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--noor-muted); }
-.noor--v2 .noor-quick__row { display: flex; flex-wrap: wrap; gap: 8px; }
+.noor--v2 .noor-quick__row { display: flex; flex-wrap: wrap; gap: 10px; }
 
 .noor--v2 .noor-quick__btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-block-size: 40px;
-  padding: 0 14px;
+  min-block-size: 48px;
+  padding: 0 18px;
   font: inherit;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
   color: var(--noor-ink);
-  background: transparent;
-  border: 1px solid var(--noor-line-strong);
-  border-radius: 999px;
+  /* frosted glass: a see-through white that is lighter at the top, a bright edge, a strong blur of what is behind, and a soft shadow */
+  background: linear-gradient(180deg, color-mix(in srgb, var(--c-white) 62%, transparent), color-mix(in srgb, var(--c-white) 28%, transparent));
+  border: 1px solid color-mix(in srgb, var(--c-white) 80%, transparent);
+  border-radius: 16px;
+  box-shadow:
+    0 8px 22px color-mix(in srgb, var(--noor-ink) 8%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--c-white) 90%, transparent);
+  -webkit-backdrop-filter: blur(16px) saturate(1.5);
+  backdrop-filter: blur(16px) saturate(1.5);
   cursor: pointer;
-  transition: background-color var(--dur-1) var(--ease-out), border-color var(--dur-1) var(--ease-out);
+  transition: background-color var(--dur-1) var(--ease-out), border-color var(--dur-1) var(--ease-out), box-shadow var(--dur-1) var(--ease-out);
 }
 
 .noor--v2 .noor-quick__btn svg { color: var(--noor-gold); }
 .noor--v2 .noor-quick__btn:hover:not([aria-disabled='true']),
-.noor--v2 .noor-quick__btn:focus-visible { background: var(--noor-chip); border-color: color-mix(in srgb, var(--noor-gold) 45%, var(--noor-line-strong)); }
+.noor--v2 .noor-quick__btn:focus-visible {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--c-white) 82%, transparent), color-mix(in srgb, var(--c-white) 50%, transparent));
+  border-color: color-mix(in srgb, var(--noor-gold) 35%, var(--c-white));
+}
 .noor--v2 .noor-quick__btn[aria-disabled='true'] { opacity: 0.5; cursor: default; }
 .noor--v2 .noor-quick.is-muted { opacity: 0.4; }
 .noor--v2 .noor-quick.is-leaving { opacity: 0; transition: opacity var(--dur-2) var(--ease-out); }
@@ -126,7 +144,13 @@
 .noor--v2 .noor-card { border-color: var(--noor-line-strong); border-radius: 12px; }
 .noor--v2 .noor-card:hover { box-shadow: none; }
 
-.noor--v2 .noor-input:not(.is-listening) { border-color: var(--noor-line-strong); }
+.noor--v2 .noor-input:not(.is-listening) {
+  border-color: var(--noor-line-strong);
+  box-shadow: 0 6px 22px color-mix(in srgb, var(--noor-ink) 8%, transparent);
+}
+
+/* The send button follows the box's corner (20px edge, 6px in from it, so 14px). */
+.noor--v2 .noor-send { border-radius: 14px; }
 
 /* Upload box: a plain dashed area, with no gradient wash or glowing icon tile. */
 .noor--v2 .noor-up__drop { background: var(--c-white); border: 1px dashed var(--noor-line-strong); border-radius: 12px; }
@@ -137,6 +161,7 @@
 
 /* Expanded: more room, so the three quick-starts sit on one line. */
 .noor--v2 .noor-shell.is-expanded .noor-welcome__body { max-inline-size: 640px; }
+.noor--v2 .noor-shell.is-expanded .noor-welcome__body .noor-welcome__title { font-size: 38px; line-height: 46px; }
 .noor--v2 .noor-shell.is-expanded .noor-quick__row { flex-wrap: nowrap; }
 .noor--v2 .noor-shell.is-expanded .noor-quick__btn { white-space: nowrap; }
 
@@ -214,3 +239,89 @@
 .noor-voice-row { animation: noor-msg-in var(--dur-3) var(--ease-out) var(--card-delay, 0ms) both; }
 
 .noor-voice-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+
+/* ---------- The microphone draws the eye, twice ---------- */
+/* On the starting screen a small glowing orb plays inside the mic, once (about four seconds), then the button
+   goes back to normal (see MicOrb.jsx). It stays inside the button, and the icon warms to gold while it plays. */
+.noor--v2 .noor-mic.is-shine {
+  position: relative;
+  isolation: isolate;
+  animation: noor-mic-icon 3.9s cubic-bezier(0.4, 0, 0.2, 1) 0.9s 1;
+}
+
+.noor-mic__orb {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 50%;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+  animation: noor-mic-shine 3.9s cubic-bezier(0.4, 0, 0.2, 1) 0.9s 1;
+}
+
+.noor-mic__orb svg { display: block; inline-size: 100%; block-size: 100%; }
+
+/* the orb fades in, holds, and fades out; the end of this animation is what puts the button back to normal */
+@keyframes noor-mic-shine {
+  0% { opacity: 0; transform: scale(0.82); }
+  20% { opacity: 0.5; transform: scale(1); } /* half strength: the whole orb is 50% more subtle */
+  80% { opacity: 0.5; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.9); }
+}
+
+/* the icon warms to a deep gold while the loops play, and is back to its normal colour once the effect is over */
+@keyframes noor-mic-icon {
+  0%, 100% { color: var(--noor-gold); }
+  25%, 75% { color: color-mix(in srgb, color-mix(in srgb, var(--noor-glow-gold) 72%, var(--noor-ink)) 50%, var(--noor-gold)); } /* half way to the deep gold */
+}
+
+/* ---------- The starting screen's quiet backdrop (see LandingBackdrop.jsx) ---------- */
+/* It sits above the stage's gradient and below everything else in the stage. Everything in it is faint. */
+
+.noor-backdrop { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; container-type: size; }
+.noor-backdrop svg { display: block; inline-size: 100%; block-size: 100%; }
+
+/* A light frosted veil over the whole backdrop (and the gradient under it), so the lines, dots and sweeps read as soft. */
+.noor-backdrop__veil {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--c-white) 12%, transparent);
+  -webkit-backdrop-filter: blur(1.8px);
+  backdrop-filter: blur(1.8px);
+}
+
+/* A very soft warm glow behind the globe (the same centre as the globe). */
+.nb-globe-field {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle 52cqmin at 70% 34%,
+    color-mix(in srgb, var(--noor-glow-gold) 11%, transparent) 0%,
+    color-mix(in srgb, var(--noor-glow-gold) 6%, transparent) 55%,
+    transparent 100%
+  );
+}
+
+/* The dotted globe: very subtle grey dots, above the frosted veil so they stay crisp. */
+.nb-globe { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; color: var(--noor-muted); opacity: 0.3; pointer-events: none; }
+
+.nb-dot { fill: color-mix(in srgb, var(--noor-glow-gold) 60%, transparent); }
+.nb-line { fill: none; stroke-width: 1.2; stroke: color-mix(in srgb, var(--noor-glow-gold) 6%, transparent); }
+.nb-line--sage { stroke: color-mix(in srgb, var(--c-green) 3%, transparent); }
+/* The sweeps are blurred as a group (see LandingBackdrop.jsx), so they have no outline and no hard edge. */
+.nb-swoosh { fill: url(#nb-sheen); stroke: none; }
+.nb-swoosh--tint { fill: color-mix(in srgb, var(--noor-glow-core) 38%, transparent); }
+
+/* A very slow drift, so the lines and sweeps feel alive without pulling the eye. */
+.nb-drift { animation: noor-backdrop-drift 34s ease-in-out infinite alternate; }
+.nb-sweeps { animation: noor-backdrop-drift 46s ease-in-out infinite alternate-reverse; }
+
+@keyframes noor-backdrop-drift {
+  from { transform: translate(-8px, 4px); }
+  to { transform: translate(8px, -4px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nb-drift, .nb-sweeps { animation: none; }
+}

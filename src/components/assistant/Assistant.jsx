@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ChatIcon } from './ChatIcon.jsx';
 import { VoiceGlow } from './VoiceGlow.jsx';
+import { LandingBackdrop } from './LandingBackdrop.jsx';
+import { MicOrb } from './MicOrb.jsx';
 import { TopicArt } from './TopicArt.jsx';
 import { ImageSlot } from '../ImageSlot.jsx';
 import { NoorAvatar } from './NoorAvatar.jsx';
@@ -14,7 +16,6 @@ import { buildNudge, formatSize } from '../../lib/application.js';
 import { buildStatusReply, parseApplicationId } from '../../lib/status.js';
 import { createKnowledge } from '../../lib/knowledge.js';
 import { trayItems } from '../../lib/actionTray.js';
-import { ButtonsSwitch } from '../PrototypeSwitches.jsx';
 import { LinkButton } from './ActionCard.jsx';
 import { UaePassButton } from './UaePassButton.jsx';
 import { buildIntake, countFacts, extractFacts, markReceived, placeFiles } from '../../lib/intake.js';
@@ -52,7 +53,7 @@ function stepState(stage, i) {
   return i === current ? 'active' : 'todo';
 }
 
-export function Assistant({ content, variant = '1', buttonsInside = true, onButtonsInside, defaultOpen = false, onOpenChange }) {
+export function Assistant({ content, variant = '1', buttonsInside = true, defaultOpen = false, onOpenChange }) {
   const { persona, ui, topics, voice, scenarios, fallback, afterCheck, eligibility, application, intake, statusCheck, eligibilityCard, knowledge } = content;
   // Search over the Ministry's published information (see src/lib/knowledge.js). The service we were just discussing is
   // remembered so a follow-up like "and the fees?" knows what it is about.
@@ -72,6 +73,8 @@ export function Assistant({ content, variant = '1', buttonsInside = true, onButt
   const [stage, setStage] = useState(null); // stepper: null | check | checkDone | docs | review | complete
   const [awaiting, setAwaiting] = useState(false); // a question is waiting for an answer
   const [statusAwait, setStatusAwait] = useState(false); // Mira has asked for an application ID
+  const [micShine, setMicShine] = useState(true); // Variation 2: the mic lights up once when the chat opens, and once each time a question is asked, then rests
+  const [shineRun, setShineRun] = useState(0); // counts the runs, so a new question restarts the effect
   const statusRef = useRef(false);
 
   const [attachments, setAttachments] = useState([]); // up to two files chosen for the next message
@@ -90,6 +93,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, onButt
   const wasOpen = useRef(false);
   const followed = useRef(new Set());
   const pinned = useRef(true); // stay at the bottom unless the reader scrolled up
+  const anchorRef = useRef(null); // a reply with an outcome card: keep ITS top in view while it is written, instead of the bottom
   // Eligibility flow state: answers so far, and which question card is waiting for an answer.
   const flowRef = useRef({ answers: {}, awaiting: null });
   const expandedRef = useRef(false);
@@ -197,9 +201,17 @@ export function Assistant({ content, variant = '1', buttonsInside = true, onButt
       // Our own scroll-to-bottom also fires this event, possibly after the content has grown
       // again; only a scroll position we didn't set counts as the reader moving.
       if (Math.abs(log.scrollTop - lastSet) < 1) return;
+      anchorRef.current = null; // the reader is in charge now
       pinned.current = log.scrollHeight - log.scrollTop - log.clientHeight < 80;
     };
     const toBottom = () => {
+      // A reply with an outcome card is read from its top: keep its top at the top of the chat while it is written and grows.
+      const anchored = anchorRef.current != null ? log.querySelector(`[data-msg="${anchorRef.current}"]`) : null;
+      if (anchored) {
+        log.scrollTop = anchored.offsetTop - 12; // layout offsets, not on-screen rects: the message may still be sliding in
+        lastSet = log.scrollTop;
+        return;
+      }
       if (!pinned.current) return;
       log.scrollTop = log.scrollHeight;
       lastSet = log.scrollTop;
@@ -219,6 +231,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, onButt
 
   const pushUser = (text, thumb) => {
     pinned.current = true; // sending always jumps to the latest
+    anchorRef.current = null;
     setMessages((m) => [...m, { id: nextId++, role: 'user', text, thumb }]);
   };
   const pushNoor = (scenario) => {
@@ -521,8 +534,17 @@ export function Assistant({ content, variant = '1', buttonsInside = true, onButt
   const onStage = (st, scenario, msgId) => {
     setThinking(st === 'thinking' || st === 'tool');
     const hasResult = scenario.cards?.some((card) => card.type === 'result' || card.type === 'submitted');
-    // A tall outcome card should open at its heading: stop following the bottom for this reply…
-    if (hasResult && st === 'thinking') pinned.current = false;
+    // A tall outcome card should open at its heading: stop following the bottom for this reply, and keep the top of the reply in
+    // view from the moment it starts (the reader would otherwise be left looking at their own message while it is written below)…
+    if (hasResult && st === 'thinking') {
+      pinned.current = false;
+      anchorRef.current = msgId;
+      later(() => {
+        const log = logRef.current;
+        const el = log?.querySelector(`[data-msg="${msgId}"]`);
+        if (log && el) log.scrollTop = el.offsetTop - 12;
+      }, 30);
+    }
     // …and once the card is there, bring the top of the message into view.
     if (hasResult && st === 'done') {
       pinned.current = false; // also covers reduced motion, which skips the thinking stage
@@ -545,6 +567,11 @@ export function Assistant({ content, variant = '1', buttonsInside = true, onButt
       if (scenario.then === 'continueIntake' && !followed.current.has(msgId)) {
         followed.current.add(msgId);
         later(() => (conv ? askBatch(flowRef.current.answers) : askNext(flowRef.current.answers)), reduced ? 0 : FOLLOW_MS);
+      }
+      // A question that waits for an answer: the mic lights up once to point to it (Variation 2).
+      if (v2 && (flowRef.current.awaiting?.msgId === msgId || appRef.current?.awaiting?.msgId === msgId)) {
+        setShineRun((n) => n + 1);
+        setMicShine(true);
       }
       if (scenario.then === 'resume' && !followed.current.has(msgId)) {
         followed.current.add(msgId);
@@ -596,6 +623,8 @@ export function Assistant({ content, variant = '1', buttonsInside = true, onButt
     setAttach([]);
     setAttachError('');
     setAnnouncement('');
+    setMicShine(true);
+    anchorRef.current = null;
     focusInput();
   };
 
@@ -755,12 +784,14 @@ export function Assistant({ content, variant = '1', buttonsInside = true, onButt
                     )}
                     <button
                       type="button"
-                      className="noor-mic"
+                      className={`noor-mic${v2 && micShine ? ' is-shine' : ''}`}
                       aria-label={ui.actions.mic}
                       aria-disabled={blocked || undefined}
                       onClick={startListening}
+                      onAnimationEnd={(e) => e.animationName === 'noor-mic-shine' && setMicShine(false)}
                     >
                       <ChatIcon name="mic" size={20} />
+                      {v2 && micShine && !reduced && <MicOrb key={shineRun} />}
                     </button>
                     <button
                       type="submit"
@@ -775,11 +806,10 @@ export function Assistant({ content, variant = '1', buttonsInside = true, onButt
               </form>
     </>
   );
-  // Variation 2: the three services are small quick-starts under the message box, not the main thing on screen.
+  // Variation 2: the three services are small quick-starts under the greeting, not the main thing on screen.
   const quickEl = (
     <div className={`noor-quick${leaving ? ' is-leaving' : ''}${listening ? ' is-muted' : ''}`} inert={listening || undefined}>
-      <p className="noor-quick__label">{welcomeCopy.quickLabel}</p>
-      <div className="noor-quick__row">
+      <div className="noor-quick__row" role="group" aria-label={welcomeCopy.quickLabel}>
         {topics.map((t) => (
           <button
             key={t.id}
@@ -799,12 +829,22 @@ export function Assistant({ content, variant = '1', buttonsInside = true, onButt
   const heroEl = (
     <div className="noor-welcome__hero">
       {!v2view && <span className="noor-welcome__glow" aria-hidden="true" />}
-      <NoorAvatar src={persona.avatar} size={v2view ? 56 : 76} ring={!v2view} state={avatarState} className="noor-welcome__avatar" />
+      <NoorAvatar src={persona.avatar} size={v2view ? 60 : 76} ring={!v2view} state={avatarState} className="noor-welcome__avatar" />
     </div>
   );
+  // One word or two of the greeting carry the accent colour (Variation 2).
+  const titleText = listening ? ui.listening : welcomeCopy.title;
+  const accent = v2view && welcomeCopy.titleAccent && titleText.endsWith(welcomeCopy.titleAccent) ? welcomeCopy.titleAccent : null;
   const titleEl = (
     <h2 className="noor-welcome__title" key={listening ? 'listening' : 'idle'}>
-      {listening ? ui.listening : welcomeCopy.title}
+      {accent ? (
+        <>
+          {titleText.slice(0, -accent.length)}
+          <span className="noor-welcome__accent">{accent}</span>
+        </>
+      ) : (
+        titleText
+      )}
     </h2>
   );
   const subEl = <p className="noor-welcome__sub">{listening ? ui.listeningHint : welcomeCopy.subtitle}</p>;
@@ -817,12 +857,11 @@ export function Assistant({ content, variant = '1', buttonsInside = true, onButt
         </div>
       )}
       {v2view ? (
-        // Variation 2: the greeting reads left to right, the message box sits right under it, then the quick-starts.
+        // Variation 2: the greeting reads left to right, with the quick-starts right under it (the message box stays at the bottom).
         <div className="noor-welcome__body">
           {heroEl}
           {titleEl}
           {subEl}
-          {!started && composer}
           {!started && quickEl}
         </div>
       ) : (
@@ -862,7 +901,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, onButt
             <ImageSlot file={pose} decorative fit="contain" />
           </div>
           <div
-            className="noor-panel"
+            className={`noor-panel${v2 && !started ? ' is-landing' : ''}`}
             role="dialog"
             aria-label={ui.panelLabel}
             onKeyDown={(e) => {
@@ -902,8 +941,6 @@ export function Assistant({ content, variant = '1', buttonsInside = true, onButt
               </button>
             </header>
 
-            <ButtonsSwitch on={buttonsInside} onChange={onButtonsInside} label={ui.proto.buttons} hint={ui.proto.label} />
-
             {stage && (
               <nav className="noor-strip" aria-label={eligibility.stepsLabel}>
                 <ol className="noor-stepper">
@@ -924,6 +961,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, onButt
             )}
 
             <div className="noor-stage">
+              {v2 && !started && <LandingBackdrop />}
             {started ? (
               <div key="log" className="noor-log" ref={logRef} role="log" aria-live="off" aria-label="Conversation">
                 <div className="noor-log__inner" ref={innerRef}>
@@ -995,7 +1033,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, onButt
             <footer className="noor-footer">
               {!started && !v2 && topicsEl}
 
-              {(!v2view || started) && composer}
+              {composer}
               <p className="noor-footer__note">{ui.footer}</p>
             </footer>
           </div>

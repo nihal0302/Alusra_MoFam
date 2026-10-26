@@ -32,11 +32,7 @@ export function trayItems(scenario) {
         items.push({ kind: 'uaepass', label: card.action.label, event: card.action.event, payload: card.action });
         break;
       case 'voice':
-        if (card.label) items.push({ kind: 'button', variant: 'secondary', icon: 'mic', label: card.label, event: 'startVoice', payload: {} });
         if (card.skip) items.push({ kind: 'button', variant: 'quiet', label: card.skip, event: 'skip', payload: { group: card.group, label: card.skip } });
-        break;
-      case 'batch':
-        items.push({ kind: 'button', variant: 'secondary', icon: 'mic', label: card.voice, event: 'startVoice', payload: {} });
         break;
       case 'docs':
         items.push({ kind: 'button', variant: 'secondary', icon: 'attach', label: card.button, event: 'pickFiles', payload: {} });

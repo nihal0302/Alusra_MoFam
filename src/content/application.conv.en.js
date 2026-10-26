@@ -13,7 +13,6 @@
 const emirates = ['Abu Dhabi', 'Dubai', 'Sharjah', 'Ajman', 'Umm Al Quwain', 'Ras Al Khaimah', 'Fujairah'];
 
 export const conv = {
-  voice: 'Answer by voice',
   skip: 'Skip',
 
   // The rows shown under "Your details from UAE PASS" (ids of application.signIn.profile.rows; no date of birth).

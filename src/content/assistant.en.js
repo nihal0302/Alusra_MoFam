@@ -21,12 +21,11 @@ export const ui = {
   panelLabel: 'Chat with Mira, the MoFam virtual assistant',
   welcome: { title: 'How can I help you today?', subtitle: 'Choose a task, or just tell me in your own words.' },
   // Variation 2: a plainer starting screen that points to the microphone.
-  welcomeV2: { title: 'How can I help you?', subtitle: 'Type, or tap the microphone and speak.', quickLabel: 'Quick start' },
+  welcomeV2: { title: 'How can I help you?', titleAccent: 'help you?', subtitle: 'Tap the microphone to speak, or type your question.', quickLabel: 'Quick start' },
   today: 'Today',
   footer: 'Mira gives general guidance about MoFam services.',
-  input: { answer: 'Type or speak your answer…', welcome: 'Describe how I can help you…', welcomeV2: 'Ask your question…', conversation: 'Type your message to Mira…' },
+  input: { answer: 'Type or speak your answer…', welcome: 'Describe how I can help you…', welcomeV2: 'Tap the mic to speak, or type…', conversation: 'Type your message to Mira…' },
   tray: { label: 'Choose a reply' },
-  proto: { label: 'Testing', buttons: 'Buttons in reply' },
   listening: 'Listening…',
   listeningHint: 'Speak naturally, then press stop',
   attach: {

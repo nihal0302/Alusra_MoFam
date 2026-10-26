@@ -38,9 +38,9 @@ export function App() {
         <ContactSection content={home.contact} />
       </main>
       <Footer content={home.footer} />
-      <VariantSwitch value={variant} onChange={setVariant} />
+      <VariantSwitch value={variant} onChange={setVariant} buttonsInside={buttonsInside} onButtonsInside={setButtonsInside} />
       {/* Keyed by design: switching starts a fresh conversation in the new design (and keeps the chat open if it was open). */}
-      <Assistant key={variant} content={assistant} variant={variant} defaultOpen={chatOpen} onOpenChange={setChatOpen} buttonsInside={buttonsInside} onButtonsInside={setButtonsInside} />
+      <Assistant key={variant} content={assistant} variant={variant} defaultOpen={chatOpen} onOpenChange={setChatOpen} buttonsInside={buttonsInside} />
     </>
   );
 }

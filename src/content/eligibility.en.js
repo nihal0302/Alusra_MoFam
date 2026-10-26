@@ -27,7 +27,7 @@ export const eligibility = {
   // Variation 2: the questions are asked together, numbered, and answered in one message (typed or spoken).
   batch: {
     lead: 'Thank you. Let’s begin.',
-    primary: 'Please answer the questions below in one message. You can type your answers, or tap the microphone and simply say them.',
+    primary: 'Please answer the questions below in one message. Tap the microphone and simply say your answers, or type them.',
     title: 'Please tell me',
     numbers: { who: 1, status: 2, report: 3, accredited: 4 },
     items: {
@@ -39,10 +39,9 @@ export const eligibility = {
     // Pieces of one sentence, joined to show how a reply could read (only for the questions being asked).
     examples: { who: 'it is for myself', status: 'I am an Emirati citizen', report: 'I have a medical report', accredited: 'it is from a government hospital' },
     exampleLabel: 'For example:',
-    voice: 'Answer by voice',
     moreLead: 'Thank you.',
-    more: 'I still need {what} to finish the check. Please answer in one message, or tap the microphone.',
-    placeholder: 'Type your answers, or tap the microphone and say them…',
+    more: 'I still need {what} to finish the check. Please answer in one message: tap the microphone to say it, or type it.',
+    placeholder: 'Tap the microphone to say your answers, or type them…',
     voiceSample: 'It’s for myself, I’m an Emirati citizen, I have a medical report and it’s from a government hospital.',
     nudgeLead: 'I didn’t catch that.',
     nudge: 'Please answer the questions above in order.',

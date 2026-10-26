@@ -595,14 +595,6 @@ export function ActionCard({ card, index = 0, onAction, chosen, tray = false }) 
             <strong>{card.exampleLabel}</strong> {card.example}
           </p>
         </div>
-        {!tray && (
-          <div className="noor-card__foot noor-card__foot--links">
-            <button type="button" className="noor-btn noor-btn--outline" disabled={locked} onClick={() => onAction?.('startVoice', {})}>
-              <ChatIcon name="mic" size={16} />
-              {card.voice}
-            </button>
-          </div>
-        )}
       </section>
     );
   }

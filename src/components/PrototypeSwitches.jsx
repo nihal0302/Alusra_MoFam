@@ -1,24 +1,25 @@
 import './PrototypeSwitches.css';
 
-// Testing controls, not part of the product: they let the team compare the chatbot designs and the two places the
-// buttons can sit. Both go away in the final build.
-
-// On the page: which chatbot design is shown.
-export function VariantSwitch({ value, onChange }) {
+// Testing controls, not part of the product: they let the team compare the two chatbot designs and the two places the
+// buttons can sit. They live outside the chatbot, in two small boxes stacked at the bottom-left of the page, and go away
+// in the final build.
+//   Buttons in reply: Yes = the buttons are inside the reply; No = they sit in a strip above the message box.
+//   Chatbot design: which design is shown.
+function Segmented({ label, value, options, onChange }) {
   return (
-    <div className="proto-bar" role="group" aria-label="Chatbot design (testing)">
-      <span className="proto-bar__label">Chatbot design</span>
-      <div className="proto-seg" role="radiogroup" aria-label="Chatbot design">
-        {['1', '2'].map((v) => (
+    <div className="proto-bar" role="group" aria-label={label}>
+      <span className="proto-bar__label">{label}</span>
+      <div className="proto-seg" role="radiogroup" aria-label={label}>
+        {options.map(([v, text]) => (
           <button
-            key={v}
+            key={String(v)}
             type="button"
             role="radio"
             aria-checked={value === v}
             className={`proto-seg__btn${value === v ? ' is-on' : ''}`}
             onClick={() => onChange(v)}
           >
-            Variation {v}
+            {text}
           </button>
         ))}
       </div>
@@ -26,17 +27,27 @@ export function VariantSwitch({ value, onChange }) {
   );
 }
 
-// In the chatbot: buttons inside the reply (on) or outside it, above the message box (off).
-export function ButtonsSwitch({ on, onChange, label, hint }) {
+export function VariantSwitch({ value, onChange, buttonsInside, onButtonsInside }) {
   return (
-    <div className="proto-chat">
-      <span className="proto-chat__hint">{hint}</span>
-      <label className="proto-switch">
-        <span className="proto-switch__label">{label}</span>
-        <button type="button" role="switch" aria-checked={on} className={`proto-switch__track${on ? ' is-on' : ''}`} onClick={() => onChange(!on)}>
-          <span className="proto-switch__thumb" />
-        </button>
-      </label>
+    <div className="proto-stack" aria-label="Testing controls">
+      <Segmented
+        label="Buttons in reply"
+        value={buttonsInside}
+        options={[
+          [true, 'Yes'],
+          [false, 'No'],
+        ]}
+        onChange={onButtonsInside}
+      />
+      <Segmented
+        label="Chatbot design"
+        value={value}
+        options={[
+          ['1', 'Variation 1'],
+          ['2', 'Variation 2'],
+        ]}
+        onChange={onChange}
+      />
     </div>
   );
 }

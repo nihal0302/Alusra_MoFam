@@ -348,9 +348,10 @@ const ack = (app, data, noted, docs) => {
   return list ? fill(app.conv.ackLead, { list }) : app.conv.plainLead;
 };
 
-// Buttons that go with a question: answer by voice, and skip an optional one.
-const BUTTONS = { cardholder: { voice: true }, delivery: { voice: true }, extras: { voice: true, skip: true }, employment: { skip: true }, workplace: { voice: true, skip: true }, education: { voice: true, skip: true }, support: { skip: true } };
-const buttonCard = (app, id) => (BUTTONS[id] ? { type: 'voice', label: BUTTONS[id].voice ? app.conv.voice : null, skip: BUTTONS[id].skip ? app.conv.skip : null, group: id } : null);
+// The optional questions have a Skip button. (There is no "answer by voice" button here: the microphone in the message box is
+// what the person is pointed to, and it lights up when a question is asked.)
+const SKIPPABLE = ['extras', 'employment', 'workplace', 'education', 'support'];
+const buttonCard = (app, id) => (SKIPPABLE.includes(id) ? { type: 'voice', label: null, skip: app.conv.skip, group: id } : null);
 
 const disabilityCard = (app) => ({ type: 'choices', label: 'Disability type', options: app.conv.options.disability.map((o) => o.value), field: 'disability', spoken: 'Disability types.' });
 
@@ -597,7 +598,6 @@ export function buildBatch(eligibility, qids, first) {
         items,
         exampleLabel: b.exampleLabel,
         example: batchExample(eligibility, qids),
-        voice: b.voice,
         spoken: `${b.title}. ${items.map((i) => `${i.n}. ${i.text}`).join(' ')}`,
       },
     ],
