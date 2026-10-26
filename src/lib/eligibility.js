@@ -3,7 +3,7 @@
 
 const SUBJECTS = {
   self: { Are: 'Are you', Do: 'Do you', Your: 'Your', you: 'you' },
-  child: { Are: 'Is your child', Do: 'Does your child', Your: 'Your child’s', you: 'your child' },
+  other: { Are: 'Is the person', Do: 'Does the person', Your: 'Their', you: 'they' },
 };
 
 export const fill = (str, who, extra = {}) => {
@@ -91,7 +91,7 @@ export function evaluate(copy, answers) {
     title: e.title,
     subtitle: fill(e.subtitle, who),
     listLabel: res.listLabel.eligible,
-    items: who === 'child' ? [...e.items, e.childItem] : e.items,
+    items: who === 'other' ? [...e.items, e.otherItem] : e.items,
     summary: { lead: 'Good news. The check is complete.' },
   };
 }

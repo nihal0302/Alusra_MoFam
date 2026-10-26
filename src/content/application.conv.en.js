@@ -16,17 +16,17 @@ export const conv = {
   skip: 'Skip',
 
   // The rows shown under "Your details from UAE PASS" (ids of application.signIn.profile.rows; no date of birth).
-  // When someone applies on behalf of a child they are only the applicant: the form uses just their name, mobile and email.
-  // The child's Emirates ID and date of birth are not in their UAE PASS, so they are asked for.
+  // When someone applies on behalf of someone else they are only the applicant: the form uses just their name, mobile and email.
+  // The other person's Emirates ID and date of birth are not in their UAE PASS, so they are asked for.
   profileRows: {
     self: ['name', 'eid', 'nationality', 'gender', 'mobile', 'email'],
-    child: ['name', 'mobile', 'email'],
+    other: ['name', 'mobile', 'email'],
   },
   signIn: {
     title: 'Your details from UAE PASS',
     primary: {
       self: 'I’ve filled in your details from UAE PASS (name, Emirates ID, nationality, mobile and email), so you do not need to enter them again.',
-      child: 'I’ve filled in your details as the applicant from UAE PASS (name, mobile and email), so you do not need to enter them again.',
+      other: 'I’ve filled in your details as the applicant from UAE PASS (name, mobile and email), so you do not need to enter them again.',
     },
   },
 
@@ -38,11 +38,11 @@ export const conv = {
       secondary: 'Your name, Emirates ID, nationality, mobile and email are filled in for you.',
       description: 'UAE PASS shares your name, Emirates ID, nationality, mobile and email. You’ll review everything before anything is submitted.',
     },
-    child: {
+    other: {
       lead: 'Thank you. To continue, please sign in.',
       primary: 'You’ll sign in as the applicant, so I’ll use UAE PASS for your own details.',
-      secondary: 'Your name, mobile and email are filled in for you. Your child’s Emirates ID and date of birth are not part of your UAE PASS, so I’ll ask you for those next.',
-      description: 'UAE PASS shares your name, mobile and email. Your child’s details are not shared, so you’ll enter them yourself. You’ll review everything before anything is submitted.',
+      secondary: 'Your name, mobile and email are filled in for you. Their Emirates ID and date of birth are not part of your UAE PASS, so I’ll ask you for those next.',
+      description: 'UAE PASS shares your name, mobile and email. Their details are not shared, so you’ll enter them yourself. You’ll review everything before anything is submitted.',
     },
   },
 
@@ -56,7 +56,7 @@ export const conv = {
 
   // What was just taken, in a sentence. {v} is the value.
   noted: {
-    cardholderEid: '{v} as your child’s Emirates ID',
+    cardholderEid: '{v} as their Emirates ID',
     cardholderDob: '{v} as their date of birth',
     emirate: '{v} as the delivery emirate',
     address: '“{v}” as the delivery address',
@@ -75,14 +75,14 @@ export const conv = {
     shadowTeacher: 'shadow teacher: {v}',
   },
 
-  // The questions, in the order they are asked. {your}, {Your}, {you} and {they} become "your child" wording for a child.
+  // The questions, in the order they are asked. {your}, {Your}, {you} and {they} become "their" wording when the card is for someone else.
   groups: {
     cardholder: {
-      ask: 'Because the card is for your child, I need their Emirates ID number (15 digits). Their date of birth helps too, if you have it.',
-      example: '784-2012-1234567-1, born 15 May 2012',
-      placeholder: 'e.g. 784-2012-1234567-1, born 15 May 2012',
-      voiceSample: 'Their Emirates ID is 784-2012-1234567-1 and they were born on 15 May 2012',
-      need: { cardholderEid: 'your child’s 15-digit Emirates ID number' },
+      ask: 'Because the card is for someone else, I need their Emirates ID number (15 digits). Their date of birth helps too, if you have it.',
+      example: '784-1985-1234567-1, born 15 May 1985',
+      placeholder: 'e.g. 784-1985-1234567-1, born 15 May 1985',
+      voiceSample: 'Their Emirates ID is 784-1985-1234567-1 and they were born on 15 May 1985',
+      need: { cardholderEid: 'their 15-digit Emirates ID number' },
     },
     delivery: {
       ask: 'Next, the delivery. Please tell me the emirate and the delivery address and location for the card. I’ll use {mobile} as the delivery contact number.',
@@ -100,9 +100,9 @@ export const conv = {
     extras: {
       optional: true,
       ask: 'A few optional details. You can add an alternative mobile number, {your} Emirates ID expiry date, and any additional reports (attach them with the paperclip). Reply “skip” to leave them out.',
-      askChild: 'A few optional details. You can add an alternative mobile number and any additional reports (attach them with the paperclip). Reply “skip” to leave them out.',
+      askOther: 'A few optional details. You can add an alternative mobile number and any additional reports (attach them with the paperclip). Reply “skip” to leave them out.',
       example: '050 111 2222, expires 20 March 2030',
-      exampleChild: '050 111 2222',
+      exampleOther: '050 111 2222',
       placeholder: 'Add details, attach reports, or reply “skip”…',
       voiceSample: 'My alternative number is 050 111 2222 and my Emirates ID expires on 20 March 2030',
     },
@@ -139,7 +139,7 @@ export const conv = {
 
   // Asking for one field again (from Change, or "change my …").
   edit: {
-    cardholderEid: 'What is your child’s Emirates ID number (15 digits)?',
+    cardholderEid: 'What is their Emirates ID number (15 digits)?',
     cardholderDob: 'What is their date of birth?',
     emirate: 'Which emirate should the card be delivered to?',
     address: 'What is the delivery address and location?',
@@ -189,7 +189,7 @@ export const conv = {
   review: {
     lead: 'Thank you, that is everything I need.',
     summarySelf: 'Here is your application. You are applying for yourself, as {name}. The card will be delivered to {where}, and I’ll use {phone} as the delivery contact. Your disability type is {disability}, and your photograph and report are attached.',
-    summaryChild: 'Here is your application. You are applying on behalf of your child (Emirates ID {eid}), and you are the applicant, {name}. The card will be delivered to {where}, and I’ll use {phone} as the delivery contact. Their disability type is {disability}, and the photograph and report are attached.',
+    summaryOther: 'Here is your application. You are applying on behalf of someone else (Emirates ID {eid}), and you are the applicant, {name}. The card will be delivered to {where}, and I’ll use {phone} as the delivery contact. Their disability type is {disability}, and the photograph and report are attached.',
     extras: 'I’ve also added {list}.',
     ask: 'Shall I submit it? Reply “yes”, or tell me what to change.',
     askAgain: 'Shall I submit it now? Reply “yes”, or tell me what else to change.',
@@ -202,7 +202,7 @@ export const conv = {
     holdLead: 'No problem.',
     hold: 'What would you like to change?',
     changed: {
-      cardholderEid: 'your child’s Emirates ID to {v}',
+      cardholderEid: 'their Emirates ID to {v}',
       cardholderDob: 'their date of birth to {v}',
       emirate: 'the emirate to {v}',
       address: 'the delivery address',
@@ -251,7 +251,7 @@ export const conv = {
       shadowTeacher: 'Shadow teacher',
     },
     forSelf: 'Myself',
-    forChild: 'My child (under 18)',
+    forOther: 'Someone else',
   },
 
   // After an answer to a question asked mid-application, Mira brings the person back.

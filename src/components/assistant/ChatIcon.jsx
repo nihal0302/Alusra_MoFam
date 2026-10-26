@@ -86,13 +86,21 @@ const ICONS = {
   heart: FavouriteIcon,
 };
 
-// The earlier (Phosphor, 256 grid) person icons, kept for the "Myself" / "My child" options.
+// The earlier (Phosphor, 256 grid) person icons, kept for the "Myself" / "Someone else" options.
 const S = { fill: 'none', stroke: 'currentColor', strokeLinecap: 'round', strokeLinejoin: 'round', strokeWidth: 16 };
 const LEGACY = {
   phUser: (
     <>
       <circle cx="128" cy="96" r="40" {...S} />
       <path d="M32,216c0-48,43-72,96-72s96,24,96,72" {...S} />
+    </>
+  ),
+  phUserPlus: (
+    <>
+      <circle cx="104" cy="88" r="40" {...S} />
+      <path d="M24,216c0-48,40-72,80-72c18,0,34,4,48,12" {...S} />
+      <path d="M200,144v64" {...S} />
+      <path d="M168,176h64" {...S} />
     </>
   ),
   phUsers: (

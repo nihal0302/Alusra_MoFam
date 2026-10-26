@@ -2,7 +2,7 @@
 //   1. Must be an Emirati citizen or a legal resident in the UAE.
 //   2. Must have medical or psychological reports confirming the disability from an accredited
 //      official authority, such as a government hospital.
-// plus the journey map rule "Under 18 → apply through a guardian".
+// plus the journey map rule "applying for someone else → apply on their behalf".
 // Layout follows the Figma eligibility dialog (header stepper, question bubble, option cards,
 // Back / Continue footer) and its success screen.
 // Tokens in {braces} are filled for the person the card is for (see src/lib/eligibility.js).
@@ -31,7 +31,7 @@ export const eligibility = {
     title: 'Please tell me',
     numbers: { who: 1, status: 2, report: 3, accredited: 4 },
     items: {
-      who: 'Who is the card for: yourself, or your child (under 18)?',
+      who: 'Who is the card for: yourself, or someone else?',
       status: 'Is the applicant an Emirati citizen or a legal UAE resident?',
       report: 'Is there a medical or psychological report confirming the disability?',
       accredited: 'If so, was it issued by an accredited official authority, such as a government hospital?',
@@ -57,7 +57,7 @@ export const eligibility = {
       voiceSample: 'It’s for my son',
       options: [
         { value: 'self', icon: 'phUser', label: 'Myself', hint: 'I’m the applicant', answer: 'Myself', match: ['myself', 'for me', 'my own', 'me'] },
-        { value: 'child', icon: 'phUsers', label: 'My child', hint: 'Under 18, I’m their guardian', answer: 'My child (under 18)', match: ['child', 'son', 'daughter', 'kid', 'under 18', 'boy', 'girl'] },
+        { value: 'other', icon: 'phUserPlus', label: 'Someone else', hint: 'I’m applying on their behalf', answer: 'Someone else', match: ['someone else', 'somebody else', 'another person', 'on behalf', 'behalf', 'child', 'son', 'daughter', 'kid', 'under 18', 'boy', 'girl', 'mother', 'father', 'parent', 'brother', 'sister', 'wife', 'husband', 'relative', 'friend', 'guardian'] },
       ],
     },
     status: {
@@ -121,7 +121,7 @@ export const eligibility = {
           meta: 'Medical report for physical and sensory disabilities. Psychological report for intellectual, psychological, ADHD, autism and learning difficulties.',
         },
       ],
-      childItem: { icon: 'users', title: 'Guardian application', text: 'You’ll apply on your child’s behalf, as they’re under 18' },
+      otherItem: { icon: 'users', title: 'Applying on someone’s behalf', text: 'You’ll apply for them, and I’ll ask for their Emirates ID' },
       actions: { review: 'Review answers', later: 'I’ll apply later', apply: 'Yes, I want to apply' },
     },
     notEligible: {

@@ -9,8 +9,8 @@ const clause = '[^.!?,\\n]'; // stops at a comma, so "not sure if I am a citizen
 
 // ---- Reading the message ------------------------------------------------------------------------------------------
 
-const CHILD = new RegExp(
-  "\\b(my|our)\\s+(\\w+\\s+)?(son|daughter|child|children|kid|kids|boy|girl|baby|toddler|nephew|niece|grandson|granddaughter)\\b|\\bfor (him|her|them)\\b|\\bunder 18\\b|\\bhis (report|photo|photograph)\\b|\\bher (report|photo|photograph)\\b",
+const OTHER = new RegExp(
+  "\\b(my|our)\\s+(\\w+\\s+)?(son|daughter|child|children|kid|kids|boy|girl|baby|toddler|nephew|niece|grandson|granddaughter|mother|father|mom|mum|dad|parent|parents|brother|sister|wife|husband|uncle|aunt|cousin|grandmother|grandfather|relative|friend|neighbour|neighbor)\\b|\\bfor (him|her|them|someone|somebody|another)\\b|\\b(someone|somebody) else\\b|\\bon (his|her|their|someone's|somebody's)? ?behalf\\b|\\bunder 18\\b|\\bhis (report|photo|photograph)\\b|\\bher (report|photo|photograph)\\b",
 );
 const SELF = new RegExp(
   "\\b(myself|for me|my own|i am applying|i'm applying|i am a person|i have a (disability|medical)|my (medical )?(report|photo|photograph)|i am an? (emirati|citizen|resident)|i'm an? (emirati|citizen|resident))\\b",
@@ -40,7 +40,7 @@ export function extractFacts(text) {
   const t = ` ${text.toLowerCase().replace(/[’]/g, "'")} `;
   const f = {};
 
-  if (CHILD.test(t)) f.who = 'child';
+  if (OTHER.test(t)) f.who = 'other';
   else if (SELF.test(t)) f.who = 'self';
 
   if (/not sure/.test(t) && new RegExp(`not sure${clause}{0,30}\\b(citizen|resident|emirati)\\b`).test(t)) f.status = 'unsure';

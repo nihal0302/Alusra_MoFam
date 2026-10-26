@@ -75,6 +75,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
   const [statusAwait, setStatusAwait] = useState(false); // Mira has asked for an application ID
   const [micShine, setMicShine] = useState(true); // Variation 2: the mic lights up once when the chat opens, and once each time a question is asked, then rests
   const [shineRun, setShineRun] = useState(0); // counts the runs, so a new question restarts the effect
+  const questionShone = useRef(false); // the mic lights up for the FIRST question only, not for every one after it
   const statusRef = useRef(false);
 
   const [attachments, setAttachments] = useState([]); // up to two files chosen for the next message
@@ -388,7 +389,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
         lock(msgId, 'apply');
         pushUser(payload.label);
         app.prefill(docsRef.current); // files sent earlier are not asked for again
-        app.setWho(flowRef.current.answers.who); // an application for a child asks for the child's details too
+        app.setWho(flowRef.current.answers.who); // an application for someone else asks for their details too
         pushNoor(conv ? buildApplyConv(application, afterCheck.apply, flowRef.current.answers.who) : afterCheck.apply);
         break;
       case 'ask':
@@ -568,8 +569,9 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
         followed.current.add(msgId);
         later(() => (conv ? askBatch(flowRef.current.answers) : askNext(flowRef.current.answers)), reduced ? 0 : FOLLOW_MS);
       }
-      // A question that waits for an answer: the mic lights up once to point to it (Variation 2).
-      if (v2 && (flowRef.current.awaiting?.msgId === msgId || appRef.current?.awaiting?.msgId === msgId)) {
+      // The first question that waits for an answer: the mic lights up once to point to it (Variation 2). Later questions do not.
+      if (v2 && !questionShone.current && (flowRef.current.awaiting?.msgId === msgId || appRef.current?.awaiting?.msgId === msgId)) {
+        questionShone.current = true;
         setShineRun((n) => n + 1);
         setMicShine(true);
       }
@@ -624,6 +626,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
     setAttachError('');
     setAnnouncement('');
     setMicShine(true);
+    questionShone.current = false;
     anchorRef.current = null;
     focusInput();
   };

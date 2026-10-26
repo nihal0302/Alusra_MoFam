@@ -15,15 +15,18 @@ const same = (a, b) => JSON.stringify(Object.entries(a).sort()) === JSON.stringi
 
 const facts = [
   ['I am an Emirati citizen applying for myself. I have a medical report from a government hospital.', { who: 'self', status: 'citizen', report: 'yes', accredited: 'yes' }],
-  ['I want to apply for my son. We are Emirati and we have a psychological report from Rashid Hospital.', { who: 'child', status: 'citizen', report: 'yes', accredited: 'yes' }],
-  ['My daughter has autism. We are residents of Dubai and the report is from a private clinic.', { who: 'child', status: 'resident', report: 'yes', accredited: 'no' }],
+  ['I want to apply for my son. We are Emirati and we have a psychological report from Rashid Hospital.', { who: 'other', status: 'citizen', report: 'yes', accredited: 'yes' }],
+  ['My daughter has autism. We are residents of Dubai and the report is from a private clinic.', { who: 'other', status: 'resident', report: 'yes', accredited: 'no' }],
   ['I have a disability. I am a resident and I have a medical report attached.', { who: 'self', status: 'resident', report: 'yes' }],
   ['I am Emirati but I do not have a medical report yet.', { status: 'citizen', report: 'no' }],
   ['I want to apply for the card for myself, I am an Emirati', { who: 'self', status: 'citizen' }],
   ['We are on a visit visa, just visitors', { status: 'neither' }],
   ['I am not a citizen but I have residency in the UAE', { status: 'resident' }],
   ['not sure if I am a citizen, but the report is from a government hospital', { who: 'self', status: 'unsure', report: 'yes', accredited: 'yes' }],
-  ['My son has a report from a hospital abroad', { who: 'child', report: 'yes', accredited: 'no' }],
+  ['My son has a report from a hospital abroad', { who: 'other', report: 'yes', accredited: 'no' }],
+  ['It is for my mother, she is an Emirati citizen', { who: 'other', status: 'citizen' }],
+  ['I am applying on behalf of my brother', { who: 'other' }],
+  ['This is for someone else, they have a report from a government hospital', { who: 'other', report: 'yes', accredited: 'yes' }],
   ['yes', {}],
   ['Dubai', {}],
   ['What documents do I need for the marriage grant?', {}],
@@ -56,9 +59,9 @@ check('complete: no follow-up question', complete.scenario.then === undefined);
 check('complete: checklist shows the received files', complete.scenario.cards[1].items.some((i) => i.text.includes('photo.jpg')) && complete.scenario.cards[1].items.some((i) => i.text.includes('report.pdf')));
 
 // Scenario: some details missing
-const partial = run({ who: 'child', report: 'yes' }, { photo: both.docs.photo });
+const partial = run({ who: 'other', report: 'yes' }, { photo: both.docs.photo });
 check('partial: asks for what is missing', !partial.complete && partial.scenario.then === 'continueIntake' && partial.scenario.cards.length === 1);
-check('partial: next question is the first one missing', nextStep({ who: 'child', report: 'yes' }) === 'status');
+check('partial: next question is the first one missing', nextStep({ who: 'other', report: 'yes' }) === 'status');
 const missing = partial.scenario.cards[0].rows.filter((r) => r.value === null).map((r) => r.qid);
 check('partial: the card lists the missing answers', missing.join() === 'status,accredited', missing.join());
 check('partial: the card lists the missing document', partial.scenario.cards[0].docs.find((d) => d.id === 'report').value === null);

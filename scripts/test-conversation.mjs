@@ -28,13 +28,13 @@ const check = (label, ok, extra = '') => {
 };
 const same = (a, b) => JSON.stringify(Object.entries(a).sort()) === JSON.stringify(Object.entries(b).sort());
 const self = { who: 'self', conv };
-const child = { who: 'child', conv };
+const other = { who: 'other', conv };
 
 // ---- Groups: what one message tells us
 const groups = [
-  ['cardholder', '784-2012-1234567-1, born 15 May 2012', child, {}, { cardholderEid: '784-2012-1234567-1', cardholderDob: '15 May 2012' }],
-  ['cardholder', 'his Emirates ID is 784201212345671', child, {}, { cardholderEid: '784-2012-1234567-1' }],
-  ['cardholder', 'born 03/09/2013', child, {}, { cardholderDob: '3 September 2013' }],
+  ['cardholder', '784-2012-1234567-1, born 15 May 2012', other, {}, { cardholderEid: '784-2012-1234567-1', cardholderDob: '15 May 2012' }],
+  ['cardholder', 'his Emirates ID is 784201212345671', other, {}, { cardholderEid: '784-2012-1234567-1' }],
+  ['cardholder', 'born 03/09/2013', other, {}, { cardholderDob: '3 September 2013' }],
   ['delivery', 'Dubai, Villa 12, Street 5, Al Barsha 1', self, {}, { emirate: 'Dubai', address: 'Dubai, Villa 12, Street 5, Al Barsha 1' }],
   ['delivery', 'Please deliver it to Sharjah, Al Nahda, Building 7', self, {}, { emirate: 'Sharjah', address: 'Sharjah, Al Nahda, Building 7' }],
   ['delivery', 'Dubai', self, {}, { emirate: 'Dubai' }],
@@ -43,27 +43,27 @@ const groups = [
   ['delivery', 'How long does delivery take?', self, {}, {}],
   ['delivery', 'RAK, near the clock tower', self, {}, { emirate: 'Ras Al Khaimah', address: 'RAK, near the clock tower' }],
   ['disability', 'Autism', self, {}, { disability: 'Autism' }],
-  ['disability', 'she is deaf-blind', child, {}, { disability: 'Hearing-Visual' }],
+  ['disability', 'she is deaf-blind', other, {}, { disability: 'Hearing-Visual' }],
   ['disability', 'hearing and visual', self, {}, { disability: 'Hearing-Visual' }],
   ['disability', 'hearing impairment', self, {}, { disability: 'Hearing' }],
-  ['disability', 'he has ADHD', child, {}, { disability: 'ADHD' }],
-  ['disability', 'dyslexia', child, {}, { disability: 'Specific learning disorder' }],
+  ['disability', 'he has ADHD', other, {}, { disability: 'ADHD' }],
+  ['disability', 'dyslexia', other, {}, { disability: 'Specific learning disorder' }],
   ['disability', 'not sure', self, {}, {}],
   ['extras', '050 111 2222, expires 20 March 2030', self, {}, { altMobile: '+971 50 111 2222', eidExpiry: '20 March 2030' }],
-  ['extras', '050 111 2222, expires 20 March 2030', child, {}, { altMobile: '+971 50 111 2222' }],
+  ['extras', '050 111 2222, expires 20 March 2030', other, {}, { altMobile: '+971 50 111 2222' }],
   ['extras', 'skip', self, {}, {}],
-  ['employment', 'He is a student', child, {}, { employmentStatus: 'Student' }],
+  ['employment', 'He is a student', other, {}, { employmentStatus: 'Student' }],
   ['employment', 'self-employed', self, {}, { employmentStatus: 'Self-employed' }],
   ['employment', 'I am not employed', self, {}, { employmentStatus: 'Not employed' }],
   ['workplace', 'Private sector, Al Noor Trading, accountant', self, {}, { workSector: 'Private', employer: 'Al Noor Trading', jobTitle: 'accountant' }],
   ['workplace', 'I work in the government sector at Dubai Municipality as an engineer', self, {}, { workSector: 'Government', employer: 'Dubai Municipality', jobTitle: 'engineer' }],
-  ['education', 'Secondary, in Sharjah', child, {}, { educationLevel: 'Secondary', institutionLocation: 'Sharjah' }],
+  ['education', 'Secondary, in Sharjah', other, {}, { educationLevel: 'Secondary', institutionLocation: 'Sharjah' }],
   ['education', 'Higher education, bachelor’s degree, in Dubai', self, { employmentStatus: 'Employed' }, { educationLevel: 'Higher education', academicDegree: 'Bachelor’s degree', institutionLocation: 'Dubai' }],
-  ['education', 'primary school abroad', child, {}, { educationLevel: 'Primary', institutionLocation: 'Outside the UAE' }],
-  ['support', 'Support yes, shadow teacher no', child, {}, { specialSupport: 'Yes', shadowTeacher: 'No' }],
-  ['support', 'yes and yes', child, {}, { specialSupport: 'Yes', shadowTeacher: 'Yes' }],
-  ['support', 'no', child, {}, { specialSupport: 'No', shadowTeacher: 'No' }],
-  ['support', 'he has a shadow teacher but no special support', child, {}, { specialSupport: 'No', shadowTeacher: 'Yes' }],
+  ['education', 'primary school abroad', other, {}, { educationLevel: 'Primary', institutionLocation: 'Outside the UAE' }],
+  ['support', 'Support yes, shadow teacher no', other, {}, { specialSupport: 'Yes', shadowTeacher: 'No' }],
+  ['support', 'yes and yes', other, {}, { specialSupport: 'Yes', shadowTeacher: 'Yes' }],
+  ['support', 'no', other, {}, { specialSupport: 'No', shadowTeacher: 'No' }],
+  ['support', 'he has a shadow teacher but no special support', other, {}, { specialSupport: 'No', shadowTeacher: 'Yes' }],
 ];
 for (const [id, text, ctx, have, want] of groups) {
   const got = readGroup(id, text, have, ctx);
@@ -102,8 +102,8 @@ for (const [text, want] of fieldOf) check(`edit field: ${text}`, readEditField(t
 // ---- Which group is next
 const fillAll = { emirate: 'Dubai', address: 'x', disability: 'Autism', photo: {}, report: {} };
 check('next: self starts with delivery', nextGroup('self', {}, new Set()) === 'delivery');
-check('next: child starts with the cardholder', nextGroup('child', {}, new Set()) === 'cardholder');
-check('next: then delivery', nextGroup('child', { cardholderEid: 'x' }, new Set()) === 'delivery');
+check('next: someone else starts with the cardholder', nextGroup('other', {}, new Set()) === 'cardholder');
+check('next: then delivery', nextGroup('other', { cardholderEid: 'x' }, new Set()) === 'delivery');
 check('next: then disability', nextGroup('self', { emirate: 'Dubai', address: 'x' }, new Set()) === 'disability');
 check('next: then documents', nextGroup('self', { emirate: 'Dubai', address: 'x', disability: 'Autism' }, new Set()) === 'documents');
 check('next: then the optional extras', nextGroup('self', fillAll, new Set()) === 'extras');
@@ -113,7 +113,8 @@ check('next: employed asks about the workplace', nextGroup('self', { ...fillAll,
 check('next: then education', nextGroup('self', { ...fillAll, employmentStatus: 'Employed' }, new Set(['extras', 'employment', 'workplace'])) === 'education');
 check('next: a student adult asks about support', nextGroup('self', { ...fillAll, employmentStatus: 'Student' }, new Set(['extras', 'employment', 'education'])) === 'support');
 check('next: an employed adult does not', nextGroup('self', { ...fillAll, employmentStatus: 'Employed' }, new Set(['extras', 'employment', 'workplace', 'education'])) === null);
-check('next: a child always does (once employment was answered)', nextGroup('child', { ...fillAll, cardholderEid: 'x', employmentStatus: 'Not employed' }, new Set(['extras', 'employment', 'education'])) === 'support');
+check('next: someone else who is a student is asked about support', nextGroup('other', { ...fillAll, cardholderEid: 'x', employmentStatus: 'Student' }, new Set(['extras', 'employment', 'education'])) === 'support');
+check('next: someone else who is not employed is not', nextGroup('other', { ...fillAll, cardholderEid: 'x', employmentStatus: 'Not employed' }, new Set(['extras', 'employment', 'education'])) === null);
 
 // ---- The small readers
 check('eid: dashes and spaces', findEid('ID 784 2012 1234567 1')?.value === '784-2012-1234567-1');
@@ -137,7 +138,7 @@ const batches = [
   ['1. Myself 2. Emirati citizen 3. Yes 4. Yes, a government hospital', ALL, { who: 'self', status: 'citizen', report: 'yes', accredited: 'yes' }],
   ['1) myself\n2) legal resident\n3) no', ALL, { who: 'self', status: 'resident', report: 'no' }],
   ['Myself, Emirati citizen, yes, yes', ALL, { who: 'self', status: 'citizen', report: 'yes', accredited: 'yes' }],
-  ["It's for my son, we are Emirati citizens, we have a report from a government hospital", ALL, { who: 'child', status: 'citizen', report: 'yes', accredited: 'yes' }],
+  ["It's for my son, we are Emirati citizens, we have a report from a government hospital", ALL, { who: 'other', status: 'citizen', report: 'yes', accredited: 'yes' }],
   ['3. Yes 4. a private clinic', ['report', 'accredited'], { report: 'yes', accredited: 'no' }],
   ['1. yes 2. yes', ['report', 'accredited'], { report: 'yes', accredited: 'yes' }],
   ['yes, yes', ['report', 'accredited'], { report: 'yes', accredited: 'yes' }],

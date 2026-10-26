@@ -172,14 +172,14 @@ export const scenarios = [
     ],
   },
   {
-    // Guardian path is entry-only for now: it routes to the same eligibility start (gap flagged in the brief).
+    // Applying for someone else is entry-only for now: it routes to the same eligibility start (gap flagged in the brief).
     id: 'guardian',
-    match: ['my son', 'my daughter', 'my child', 'my kid', 'under 18', 'guardian', 'dependent'],
+    match: ['my son', 'my daughter', 'my child', 'my kid', 'under 18', 'guardian', 'dependent', 'on behalf', 'someone else', 'somebody else'],
     tool: { working: 'Reading the POD card service card…', done: 'Service card · POD' },
     text: [
       {
-        lead: 'Thank you for applying on your child’s behalf.',
-        primary: 'If your child is under 18, you’ll apply for them as their guardian.',
+        lead: 'Thank you for applying on someone’s behalf.',
+        primary: 'You’ll apply for them, and I’ll ask for their details after you sign in.',
         secondary: 'I’ll ask a few things first so you know what to prepare. Nothing is submitted until you say so.',
       },
     ],

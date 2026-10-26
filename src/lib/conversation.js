@@ -12,10 +12,10 @@ export const joinList = (list) => (list.length <= 1 ? list.join('') : `${list.sl
 
 // ---- Who the card is for ---------------------------------------------------------------------------------------------
 
-// Words that change when the card is for a child ("your disability type" / "your child’s disability type").
+// Words that change when the card is for someone else ("your disability type" / "their disability type").
 export const subject = (who, extra = {}) =>
-  who === 'child'
-    ? { your: 'your child’s', Your: 'Your child’s', you: 'your child', do: 'does', they: 'your child', Is: 'Is', cardholder: 'your child', ...extra }
+  who === 'other'
+    ? { your: 'their', Your: 'Their', you: 'they', do: 'do', they: 'they', Is: 'Is', cardholder: 'the person you’re applying for', ...extra }
     : { your: 'your', Your: 'Your', you: 'you', do: 'do', they: 'you', Is: 'Are', cardholder: 'you', ...extra };
 
 // ---- The groups, in the order they are asked --------------------------------------------------------------------------
@@ -23,7 +23,7 @@ export const subject = (who, extra = {}) =>
 const EMPLOYED = ['Employed', 'Self-employed'];
 
 export const GROUPS = [
-  { id: 'cardholder', required: ['cardholderEid'], when: (who) => who === 'child' },
+  { id: 'cardholder', required: ['cardholderEid'], when: (who) => who === 'other' },
   { id: 'delivery', required: ['emirate', 'address'] },
   { id: 'disability', required: ['disability'] },
   { id: 'documents', required: ['photo', 'report'] },
@@ -31,7 +31,7 @@ export const GROUPS = [
   { id: 'employment', optional: true },
   { id: 'workplace', optional: true, when: (who, d) => EMPLOYED.includes(d.employmentStatus) },
   { id: 'education', optional: true, when: (who, d) => Boolean(d.employmentStatus) },
-  { id: 'support', optional: true, when: (who, d) => Boolean(d.employmentStatus) && (who === 'child' || d.employmentStatus === 'Student') },
+  { id: 'support', optional: true, when: (who, d) => Boolean(d.employmentStatus) && d.employmentStatus === 'Student' },
 ];
 
 export const FIELD_GROUP = {
@@ -228,7 +228,7 @@ export function readGroup(id, text, have, ctx, overwrite = false) {
     case 'extras': {
       const phone = findPhone(text);
       set('altMobile', phone?.value);
-      if (ctx.who !== 'child') set('eidExpiry', findDate(phone ? text.replace(phone.raw, ' ') : text)?.display);
+      if (ctx.who !== 'other') set('eidExpiry', findDate(phone ? text.replace(phone.raw, ' ') : text)?.display);
       break;
     }
     case 'employment':
@@ -363,9 +363,9 @@ function groupParts(app, id, { who, data }) {
   const missing = (meta.required ?? []).filter((k) => !data[k]);
   const partial = Boolean(meta.required) && missing.length > 0 && meta.required.some((k) => data[k]);
   const employed = EMPLOYED.includes(data.employmentStatus);
-  const child = who === 'child';
-  const text = id === 'extras' && child ? g.askChild : id === 'education' && employed ? g.askEmployed : g.ask;
-  const example = id === 'extras' && child ? g.exampleChild : id === 'education' && employed ? g.exampleEmployed : g.example;
+  const other = who === 'other';
+  const text = id === 'extras' && other ? g.askOther : id === 'education' && employed ? g.askEmployed : g.ask;
+  const example = id === 'extras' && other ? g.exampleOther : id === 'education' && employed ? g.exampleEmployed : g.example;
   const sub = subject(who, { mobile: data.deliveryMobile ?? '' });
   return {
     primary: partial ? fill(c.more, { list: joinList(missing.map((k) => g.need[k])) }) : fill(text, sub),
@@ -390,7 +390,7 @@ export function buildSignInConv(app, { who, data, group }) {
 
 // The message and card before the UAE PASS button, worded for who the card is for. `base` is the scripted scenario.
 export function buildApplyConv(app, base, who) {
-  const a = app.conv.apply[who === 'child' ? 'child' : 'self'];
+  const a = app.conv.apply[who === 'other' ? 'other' : 'self'];
   return {
     ...base,
     text: [{ lead: a.lead, primary: a.primary, secondary: a.secondary }],
@@ -453,8 +453,8 @@ export function buildEditAsk(app, field, { who, lead }) {
 export function buildReviewConv(app, { who, data, updated = [] }) {
   const c = app.conv.review;
   const profile = Object.fromEntries(app.signIn.profile.rows.map((row) => [row.id, row.value]));
-  const child = who === 'child';
-  const summary = fill(child ? c.summaryChild : c.summarySelf, {
+  const other = who === 'other';
+  const summary = fill(other ? c.summaryOther : c.summarySelf, {
     name: profile.name,
     eid: data.cardholderEid,
     where: wordRe(data.emirate).test(data.address) ? data.address : `${data.address}, ${data.emirate}`, // do not say the emirate twice
@@ -474,13 +474,13 @@ export function buildReviewConv(app, { who, data, updated = [] }) {
   const groups = [
     {
       title: c.groups.applicant,
-      // For a child only the applicant's name, mobile and email are used; the rest of their UAE PASS is not part of the form.
+      // For someone else only the applicant's name, mobile and email are used; the rest of their UAE PASS is not part of the form.
       rows: compact([
-        row('applyingFor', child ? c.forChild : c.forSelf, 'you'),
+        row('applyingFor', other ? c.forOther : c.forSelf, 'you'),
         ...app.conv.profileRows[who].map((id) => row(id, profile[id], 'uaepass')),
       ]),
     },
-    ...(child ? [{ title: c.groups.cardholder, rows: compact([row('cardholderEid', data.cardholderEid, 'you', 'cardholderEid'), row('cardholderDob', data.cardholderDob, 'you', 'cardholderDob')]) }] : []),
+    ...(other ? [{ title: c.groups.cardholder, rows: compact([row('cardholderEid', data.cardholderEid, 'you', 'cardholderEid'), row('cardholderDob', data.cardholderDob, 'you', 'cardholderDob')]) }] : []),
     {
       title: c.groups.request,
       rows: compact([row('emirate', data.emirate, 'you', 'emirate'), row('address', data.address, 'you', 'address'), row('deliveryMobile', data.deliveryMobile, 'you', 'deliveryMobile')]),

@@ -139,9 +139,9 @@ export function useApplication(app, api, { conv = false } = {}) {
     };
   };
 
-  // Who the card is for, from the eligibility answers ("self" or "child").
+  // Who the card is for, from the eligibility answers ("self" or "other").
   const setWho = (who) => {
-    ref.current.who = who === 'child' ? 'child' : 'self';
+    ref.current.who = who === 'other' ? 'other' : 'self';
   };
 
   const reset = () => {
