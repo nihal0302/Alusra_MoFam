@@ -20,7 +20,9 @@ export const subject = (who, extra = {}) =>
 
 // ---- The groups, in the order they are asked --------------------------------------------------------------------------
 // required: what must be known before moving on. Optional groups can be skipped, and are done once answered or skipped.
-const EMPLOYED = ['Employed', 'Self-employed'];
+export const EMPLOYED = ['Employed', 'Self-employed'];
+const WORK_ONLY = ['workSector', 'employer', 'jobTitle', 'academicDegree']; // asked only of someone who is working
+const STUDENT_ONLY = ['specialSupport', 'shadowTeacher']; // asked only of a student
 
 export const GROUPS = [
   { id: 'cardholder', required: ['cardholderEid'], when: (who) => who === 'other' },
@@ -449,25 +451,11 @@ export function buildEditAsk(app, field, { who, lead }) {
   };
 }
 
-// The sentence summary, with the full review card under it for anyone who wants to see every row.
-export function buildReviewConv(app, { who, data, updated = [] }) {
+// The rows of the review, in groups (empty groups left out). Shared by the sentence summary (Variation 2) and the review card (Variation 1).
+export function reviewGroups(app, { who, data }) {
   const c = app.conv.review;
   const profile = Object.fromEntries(app.signIn.profile.rows.map((row) => [row.id, row.value]));
   const other = who === 'other';
-  const summary = fill(other ? c.summaryOther : c.summarySelf, {
-    name: profile.name,
-    eid: data.cardholderEid,
-    where: wordRe(data.emirate).test(data.address) ? data.address : `${data.address}, ${data.emirate}`, // do not say the emirate twice
-    phone: data.deliveryMobile,
-    disability: data.disability,
-  });
-  const extraBits = [
-    data.altMobile && `an alternative number (${data.altMobile})`,
-    data.eidExpiry && `the Emirates ID expiry date (${data.eidExpiry})`,
-    data.additional?.length && `${data.additional.length === 1 ? 'an additional report' : `${data.additional.length} additional reports`}`,
-    data.employmentStatus && 'your employment and education details',
-  ].filter(Boolean);
-  const extras = extraBits.length ? ` ${fill(c.extras, { list: joinList(extraBits) })}` : '';
   const row = (id, value, source, field) => (value ? { id, label: c.labels[id], value, source, field } : null);
   const file = (f) => (f ? `${f.name} · ${formatSize(f.size)}` : '');
   const compact = (rows) => rows.filter(Boolean);
@@ -496,9 +484,38 @@ export function buildReviewConv(app, { who, data, updated = [] }) {
     },
     {
       title: c.groups.work,
-      rows: compact(['employmentStatus', 'workSector', 'employer', 'jobTitle', 'academicDegree', 'educationLevel', 'institutionLocation', 'specialSupport', 'shadowTeacher'].map((k) => row(k, data[k], 'you', k))),
+      // Answers that no longer apply (the employment status was changed afterwards) are left out.
+      rows: compact(
+        ['employmentStatus', 'workSector', 'employer', 'jobTitle', 'academicDegree', 'educationLevel', 'institutionLocation', 'specialSupport', 'shadowTeacher']
+          .filter((k) => !WORK_ONLY.includes(k) || EMPLOYED.includes(data.employmentStatus))
+          .filter((k) => !STUDENT_ONLY.includes(k) || data.employmentStatus === 'Student')
+          .map((k) => row(k, data[k], 'you', k)),
+      ),
     },
   ].filter((g) => g.rows.length);
+  return groups;
+}
+
+// The sentence summary, with the full review card under it for anyone who wants to see every row.
+export function buildReviewConv(app, { who, data, updated = [] }) {
+  const c = app.conv.review;
+  const profile = Object.fromEntries(app.signIn.profile.rows.map((row) => [row.id, row.value]));
+  const other = who === 'other';
+  const summary = fill(other ? c.summaryOther : c.summarySelf, {
+    name: profile.name,
+    eid: data.cardholderEid,
+    where: wordRe(data.emirate).test(data.address) ? data.address : `${data.address}, ${data.emirate}`, // do not say the emirate twice
+    phone: data.deliveryMobile,
+    disability: data.disability,
+  });
+  const extraBits = [
+    data.altMobile && `an alternative number (${data.altMobile})`,
+    data.eidExpiry && `the Emirates ID expiry date (${data.eidExpiry})`,
+    data.additional?.length && `${data.additional.length === 1 ? 'an additional report' : `${data.additional.length} additional reports`}`,
+    data.employmentStatus && 'your employment and education details',
+  ].filter(Boolean);
+  const extras = extraBits.length ? ` ${fill(c.extras, { list: joinList(extraBits) })}` : '';
+  const groups = reviewGroups(app, { who, data });
   const r = app.review;
   return {
     id: 'app:review',

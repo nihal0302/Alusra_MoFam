@@ -1,8 +1,6 @@
 // Application flow logic and chat turns (applying for yourself). Pure functions over the copy in
 // content/application.en.js, so a real backend can replace the data sources later.
 
-export const ORDER = ['emirate', 'emergencyName', 'emergencyPhone', 'photo', 'report'];
-
 export const fill = (str, vars) => str.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? '');
 
 // Mobile numbers must carry their country code (+ or 00 in front), 8-15 digits in all. UAE numbers
@@ -34,14 +32,16 @@ export function buildSigningIn(app) {
   };
 }
 
-export function buildSignIn(app) {
+// The details arriving from UAE PASS: for someone applying on behalf of another person only their own name, mobile and email.
+export function buildSignIn(app, who = 'self') {
   const s = app.signIn;
+  const rows = app.conv.profileRows[who].map((id) => s.profile.rows.find((r) => r.id === id)).filter(Boolean);
   return {
     id: 'app:signin',
     tool: { working: s.working, done: s.done },
     then: 'afterSignIn',
-    text: [{ lead: fill(s.lead, { first: s.profile.first }), primary: s.primary }],
-    cards: [{ type: 'fetch', title: s.card.title, rows: s.profile.rows, note: s.card.note, spoken: `From UAE PASS: ${s.profile.rows.map((r) => r.label).join(', ')}.` }],
+    text: [{ lead: fill(s.lead, { first: s.profile.first }), primary: who === 'other' ? app.conv.signIn.primary.other : s.primary }],
+    cards: [{ type: 'fetch', title: s.card.title, rows, note: s.card.note, spoken: `From UAE PASS: ${rows.map((r) => r.label).join(', ')}.` }],
   };
 }
 
@@ -53,64 +53,13 @@ export function buildPrompt(app, step, { changing = false, hasOther = false } = 
   return {
     id: `app:${step}`,
     tool: null,
-    text: [{ lead: changing ? 'Certainly. Let’s update that.' : hasOther && st.leadOne ? st.leadOne : st.lead, primary: st.text }],
+    text: [{ lead: changing ? 'Certainly. I will update that.' : hasOther && st.leadOne ? st.leadOne : st.lead, primary: st.text }],
     cards,
   };
 }
 
 export function buildNudge(text) {
-  return { id: 'app:nudge', tool: null, text: [{ lead: 'Thank you. One small correction is needed.', primary: text }], cards: [] };
-}
-
-export function buildReview(app, data) {
-  const r = app.review;
-  const profile = Object.fromEntries(app.signIn.profile.rows.map((row) => [row.id, row.value]));
-  const file = (f) => (f ? `${f.name} · ${formatSize(f.size)}` : '');
-  const row = (id, value, source, field) => ({ id, label: r.labels[id], value, source, field });
-  return {
-    id: 'app:review',
-    tool: null,
-    text: [{ lead: r.lead, primary: r.text }],
-    cards: [
-      {
-        type: 'appReview',
-        title: r.title,
-        fromUaePass: r.fromUaePass,
-        change: r.change,
-        consent: r.consent,
-        note: r.note,
-        submit: { label: r.submit, event: 'submit' },
-        groups: [
-          {
-            title: r.groups.details,
-            rows: [
-              row('applyingFor', r.myself, 'you'),
-              row('name', profile.name, 'uaepass'),
-              row('gender', profile.gender, 'uaepass'),
-              row('dob', profile.dob, 'uaepass'),
-              row('nationality', profile.nationality, 'uaepass'),
-              row('eid', profile.eid, 'uaepass'),
-              row('emirate', data.emirate, 'you', 'emirate'),
-            ],
-          },
-          {
-            title: r.groups.contact,
-            rows: [
-              row('mobile', profile.mobile, 'uaepass'),
-              row('email', profile.email, 'uaepass'),
-              row('emergencyName', data.emergencyName, 'you', 'emergencyName'),
-              row('emergencyPhone', data.emergencyPhone, 'you', 'emergencyPhone'),
-            ],
-          },
-          {
-            title: r.groups.docs,
-            rows: [row('photo', file(data.photo), 'you', 'photo'), row('report', file(data.report), 'you', 'report')],
-          },
-        ],
-        spoken: 'Review your application. Details, contact information and documents are listed with a Change option where you can edit them.',
-      },
-    ],
-  };
+  return { id: 'app:nudge', tool: null, text: [{ lead: 'Thank you. A small correction is needed.', primary: text }], cards: [] };
 }
 
 export function buildSubmitted(app, reference) {

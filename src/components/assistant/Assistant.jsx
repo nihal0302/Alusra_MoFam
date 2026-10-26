@@ -74,7 +74,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
   const [stage, setStage] = useState(null); // stepper: null | check | checkDone | docs | review | complete
   const [awaiting, setAwaiting] = useState(false); // a question is waiting for an answer
   const [statusAwait, setStatusAwait] = useState(false); // Mira has asked for an application ID
-  const [micShine, setMicShine] = useState(true); // Variation 2: the mic lights up once when the chat opens, and once each time a question is asked, then rests
+  const [micShine, setMicShine] = useState(true); // the mic lights up once when the chat opens (both variations), and once more for the first question (Variation 2 only), then rests
   const [shineRun, setShineRun] = useState(0); // counts the runs, so a new question restarts the effect
   const questionShone = useRef(false); // the mic lights up for the FIRST question only, not for every one after it
   const askCounts = useRef({}); // testing scenarios: how many times each question has been asked, so a repeat gets the next sample
@@ -393,7 +393,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
         pushUser(payload.label);
         app.prefill(docsRef.current); // files sent earlier are not asked for again
         app.setWho(flowRef.current.answers.who); // an application for someone else asks for their details too
-        pushNoor(conv ? buildApplyConv(application, afterCheck.apply, flowRef.current.answers.who) : afterCheck.apply);
+        pushNoor(buildApplyConv(application, afterCheck.apply, flowRef.current.answers.who)); // worded for who the card is for
         break;
       case 'ask':
         send(payload);
@@ -626,7 +626,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
       if (scenario.then === 'afterSignIn' && !followed.current.has(msgId)) {
         followed.current.add(msgId);
         // Let the details finish arriving before the first question.
-        later(app.next, reduced ? 0 : application.signIn.profile.rows.length * 420 + 1400);
+        later(() => app.next({ first: true }), reduced ? 0 : application.signIn.profile.rows.length * 420 + 1400);
       }
     }
   };
@@ -845,14 +845,14 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
                     )}
                     <button
                       type="button"
-                      className={`noor-mic${v2 && micShine ? ' is-shine' : ''}`}
+                      className={`noor-mic${micShine ? ' is-shine' : ''}`}
                       aria-label={ui.actions.mic}
                       aria-disabled={blocked || undefined}
                       onClick={startListening}
                       onAnimationEnd={(e) => e.animationName === 'noor-mic-shine' && setMicShine(false)}
                     >
                       <ChatIcon name="mic" size={20} />
-                      {v2 && micShine && !reduced && <MicOrb key={shineRun} />}
+                      {micShine && !reduced && <MicOrb key={shineRun} />}
                     </button>
                     <button
                       type="submit"

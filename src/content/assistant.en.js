@@ -19,12 +19,12 @@ export const persona = {
 export const ui = {
   launcher: { title: 'Ask Mira', subtitle: 'Virtual assistant', label: 'Ask Mira, virtual assistant. Opens chat.' },
   panelLabel: 'Chat with Mira, the MoFam virtual assistant',
-  welcome: { title: 'How can I help you today?', subtitle: 'Choose a task, or just tell me in your own words.' },
+  welcome: { title: 'How can I help you today?', subtitle: 'Choose a task, or describe your request in your own words.' },
   // Variation 2: a plainer starting screen that points to the microphone.
   welcomeV2: { title: 'How can I help you?', titleAccent: 'help you?', subtitle: 'Tap the microphone to speak, or type your question.', quickLabel: 'Quick start' },
   today: 'Today',
   footer: 'Mira gives general guidance about MoFam services.',
-  input: { answer: 'Type or speak your answer…', welcome: 'Describe how I can help you…', welcomeV2: 'Tap the mic to speak, or type…', conversation: 'Type your message to Mira…' },
+  input: { answer: 'Speak or type your answer…', welcome: 'Describe how I can help you…', welcomeV2: 'Tap the microphone to speak, or type…', conversation: 'Speak or type your message to Mira…' },
   tray: { label: 'Choose a reply' },
   listening: 'Listening…',
   listeningHint: 'Speak naturally, then press stop',
@@ -76,7 +76,7 @@ const REQUIRED_DOCS = [
 export const eligibilityCard = {
   type: 'eligibility',
   title: 'Check if you’re eligible',
-  description: 'A few quick questions · I’ll tell you exactly what to prepare',
+  description: 'A few quick questions · I will tell you exactly what to prepare',
   note: 'Nothing is submitted',
   action: { label: 'Start check', event: 'startCheck' }, // starts the in-chat eligibility flow
 };
@@ -159,7 +159,7 @@ export const scenarios = [
       {
         lead: 'Happy to help you find the right service.',
         primary: 'The Ministry’s services are listed on its website, each with who it’s for and what you’ll need.',
-        secondary: 'I can walk you through the People of Determination card here. For anything else I’ll point you to the right page.',
+        secondary: 'I can walk you through the People of Determination card here. For anything else I will point you to the right page.',
       },
     ],
     cards: [
@@ -179,8 +179,8 @@ export const scenarios = [
     text: [
       {
         lead: 'Thank you for applying on someone’s behalf.',
-        primary: 'You’ll apply for them, and I’ll ask for their details after you sign in.',
-        secondary: 'I’ll ask a few things first so you know what to prepare. Nothing is submitted until you say so.',
+        primary: 'You will apply for them, and I will ask for their details after you sign in.',
+        secondary: 'I will ask a few things first so you know what to prepare. Nothing is submitted until you say so.',
       },
     ],
     cards: [{ ...eligibilityCard, title: 'Check if they’re eligible' }],
@@ -222,7 +222,7 @@ export const scenarios = [
     text: [
       {
         lead: 'Certainly, let’s begin the eligibility check.',
-        primary: 'I’ll ask a few quick questions first, so you know you’re eligible before anything else.',
+        primary: 'I will ask a few quick questions first, so you know you’re eligible before anything else.',
         secondary: 'Nothing is submitted, and you can change any answer.',
       },
     ],
@@ -234,8 +234,8 @@ export const scenarios = [
     tool: null,
     text: [
       {
-        lead: 'Of course. I’m glad to help.',
-        primary: 'You can ask me about the Ministry’s services, fees, documents and how to apply. Type or speak in your own words, or try one of these.',
+        lead: 'Of course. I am glad to help.',
+        primary: 'You can ask me about the Ministry’s services, fees, documents and how to apply. Use the microphone or type in your own words, or select one of these.',
       },
     ],
     cards: [
@@ -316,7 +316,7 @@ export const afterCheck = {
   close: {
     id: 'check:close',
     tool: null,
-    text: [{ lead: 'Understood, thank you.', primary: 'Your answers weren’t saved and nothing was submitted. I’m here whenever you want to continue.' }],
+    text: [{ lead: 'Understood, thank you.', primary: 'Your answers were not saved and nothing was submitted. I’m here whenever you want to continue.' }],
     cards: [eligibilityCard],
   },
   apply: {
@@ -325,7 +325,7 @@ export const afterCheck = {
     text: [
       {
         lead: 'Thank you. To continue, please sign in.',
-        primary: 'To fill in your details for you, I’ll ask you to sign in with UAE PASS.',
+        primary: 'To fill in your details for you, I will ask you to sign in with UAE PASS.',
         secondary: 'Your name, Emirates ID, contact details, nationality and date of birth are filled in for you.',
       },
     ],
@@ -333,7 +333,7 @@ export const afterCheck = {
       {
         type: 'uaepass',
         title: 'Sign in with UAE PASS',
-        description: 'UAE PASS shares your name, Emirates ID, contact details, nationality and date of birth. You’ll review everything before anything is submitted.',
+        description: 'UAE PASS shares your name, Emirates ID, contact details, nationality and date of birth. You will review everything before anything is submitted.',
         action: { label: 'Sign in with UAE PASS', event: 'uaepass' },
       },
     ],

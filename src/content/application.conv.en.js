@@ -25,8 +25,8 @@ export const conv = {
   signIn: {
     title: 'Your details from UAE PASS',
     primary: {
-      self: 'I’ve filled in your details from UAE PASS (name, Emirates ID, nationality, mobile and email), so you do not need to enter them again.',
-      other: 'I’ve filled in your details as the applicant from UAE PASS (name, mobile and email), so you do not need to enter them again.',
+      self: 'I have filled in your details from UAE PASS (name, Emirates ID, nationality, mobile and email), so you do not need to enter them again.',
+      other: 'I have filled in your details as the applicant from UAE PASS (name, mobile and email), so you do not need to enter them again.',
     },
   },
 
@@ -34,24 +34,24 @@ export const conv = {
   apply: {
     self: {
       lead: 'Thank you. To continue, please sign in.',
-      primary: 'To fill in your details for you, I’ll ask you to sign in with UAE PASS.',
+      primary: 'To fill in your details for you, I will ask you to sign in with UAE PASS.',
       secondary: 'Your name, Emirates ID, nationality, mobile and email are filled in for you.',
-      description: 'UAE PASS shares your name, Emirates ID, nationality, mobile and email. You’ll review everything before anything is submitted.',
+      description: 'UAE PASS shares your name, Emirates ID, nationality, mobile and email. You will review everything before anything is submitted.',
     },
     other: {
       lead: 'Thank you. To continue, please sign in.',
-      primary: 'You’ll sign in as the applicant, so I’ll use UAE PASS for your own details.',
-      secondary: 'Your name, mobile and email are filled in for you. Their Emirates ID and date of birth are not part of your UAE PASS, so I’ll ask you for those next.',
-      description: 'UAE PASS shares your name, mobile and email. Their details are not shared, so you’ll enter them yourself. You’ll review everything before anything is submitted.',
+      primary: 'You will sign in as the applicant, so I will use UAE PASS for your own details.',
+      secondary: 'Your name, mobile and email are filled in for you. Their Emirates ID and date of birth are not part of your UAE PASS, so I will ask you for those next.',
+      description: 'UAE PASS shares your name, mobile and email. Their details are not shared, so you’ll enter them yourself. You will review everything before anything is submitted.',
     },
   },
 
-  ackLead: 'Thank you. I’ve noted {list}.',
+  ackLead: 'Thank you. I have noted {list}.',
   plainLead: 'Thank you.',
   more: 'I still need {list}.',
   exampleLabel: 'For example:',
-  nudgeLead: 'I didn’t catch that.',
-  nudge: 'Please tell me {list}.',
+  nudgeLead: 'I was unable to understand that.',
+  nudge: 'Please provide {list}, using the microphone or by typing.',
   nudgeOptional: 'You can answer, or reply “skip” to leave this out.',
 
   // What was just taken, in a sentence. {v} is the value.
@@ -85,15 +85,15 @@ export const conv = {
       need: { cardholderEid: 'their 15-digit Emirates ID number' },
     },
     delivery: {
-      ask: 'Next, the delivery. Please tell me the emirate and the delivery address and location for the card. I’ll use {mobile} as the delivery contact number.',
+      ask: 'Next, the delivery details. Please provide the emirate and the delivery address and location for the card, using the microphone or by typing. The number {mobile} will be used as the delivery contact number.',
       example: 'Dubai, Villa 12, Street 5, Al Barsha 1',
       placeholder: 'e.g. Dubai, Villa 12, Street 5, Al Barsha 1',
       voiceSample: 'Dubai, Villa 12, Street 5, Al Barsha 1',
       need: { emirate: 'the emirate', address: 'the delivery address and location' },
     },
     disability: {
-      ask: 'What is {your} disability type? You can choose one below, or type it.',
-      placeholder: 'Type the disability type…',
+      ask: 'What is {your} disability type? Please select one of the options below, or provide it using the microphone or by typing.',
+      placeholder: 'Speak or type the disability type…',
       voiceSample: 'Autism',
       need: { disability: 'the disability type' },
     },
@@ -157,7 +157,7 @@ export const conv = {
     specialSupport: '{Is} {cardholder} receiving special education support?',
     shadowTeacher: 'Is there a shadow teacher?',
   },
-  editPlaceholder: 'Type the new value…',
+  editPlaceholder: 'Speak or type the new value…',
   editVoiceSample: 'Sharjah',
 
   docs: {
@@ -179,7 +179,7 @@ export const conv = {
     nudge: 'Please attach your files with the paperclip. They stay on your device until you submit.',
     wrongType: { photo: 'The photograph needs to be a JPG or PNG.', report: 'The report needs to be a PDF or JPG.' },
     extra: 'I used the first file of each kind and set the others aside.',
-    additionalNoted: 'I’ve added {name} as an additional report.',
+    additionalNoted: 'I have added {name} as an additional report.',
     editPrompt: {
       photo: 'Please upload the new personal photograph: a recent passport-size photograph with a white background, 2 × 6 cm.',
       report: 'Please upload the new medical or psychological report.',
@@ -188,17 +188,17 @@ export const conv = {
 
   review: {
     lead: 'Thank you, that is everything I need.',
-    summarySelf: 'Here is your application. You are applying for yourself, as {name}. The card will be delivered to {where}, and I’ll use {phone} as the delivery contact. Your disability type is {disability}, and your photograph and report are attached.',
-    summaryOther: 'Here is your application. You are applying on behalf of someone else (Emirates ID {eid}), and you are the applicant, {name}. The card will be delivered to {where}, and I’ll use {phone} as the delivery contact. Their disability type is {disability}, and the photograph and report are attached.',
-    extras: 'I’ve also added {list}.',
-    ask: 'Shall I submit it? Reply “yes”, or tell me what to change.',
-    askAgain: 'Shall I submit it now? Reply “yes”, or tell me what else to change.',
+    summarySelf: 'Here is your application. You are applying for yourself, as {name}. The card will be delivered to {where}, and I will use {phone} as the delivery contact. Your disability type is {disability}, and your photograph and report are attached.',
+    summaryOther: 'Here is your application. You are applying on behalf of someone else (Emirates ID {eid}), and you are the applicant, {name}. The card will be delivered to {where}, and I will use {phone} as the delivery contact. Their disability type is {disability}, and the photograph and report are attached.',
+    extras: 'I have also added {list}.',
+    ask: 'Shall I submit the application? Please reply “yes”, or state what you would like to change, using the microphone or by typing.',
+    askAgain: 'Shall I submit the application now? Please reply “yes”, or state what else you would like to change, using the microphone or by typing.',
     example: '“change the delivery address to Villa 5, Al Nahda, Sharjah”',
-    updated: 'Done. I’ve updated {list}.',
-    placeholder: 'Reply “yes” to submit, or tell me what to change…',
+    updated: 'Done. I have updated {list}.',
+    placeholder: 'Reply “yes” to submit, or state what to change…',
     voiceSample: 'Yes, submit it',
-    nudgeLead: 'I didn’t catch which detail to change.',
-    nudge: 'You can tell me what to change.',
+    nudgeLead: 'I was unable to identify which detail to change.',
+    nudge: 'Please state what you would like to change, using the microphone or by typing.',
     holdLead: 'No problem.',
     hold: 'What would you like to change?',
     changed: {
@@ -256,9 +256,9 @@ export const conv = {
 
   // After an answer to a question asked mid-application, Mira brings the person back.
   resume: {
-    multi: 'Shall we carry on with your application? I’m still waiting for your answer above.',
-    docs: 'Shall we carry on with your application? I still need your {list}.',
-    confirm: 'Shall we carry on with your application? Reply “yes” to submit, or tell me what to change.',
+    multi: 'Shall we continue with your application? I am still awaiting your answer above.',
+    docs: 'Shall we continue with your application? I still require your {list}.',
+    confirm: 'Shall we continue with your application? Please reply “yes” to submit, or state what you would like to change.',
   },
 
   // Option lists. APPROX unless noted. `aliases` are other ways people may say the same thing.

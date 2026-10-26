@@ -13,7 +13,7 @@ export const demo = {
   label: 'Scenario',
   // [id, label on the switch, what it is (shown when the label is hovered)]
   options: [
-    ['free', '1', 'Free: nothing is pre-filled. Type or say whatever you like, and attach your own files.'],
+    ['free', '1', 'Free: nothing is pre-filled. Speak or type whatever you wish, and attach your own files.'],
     ['plain', '2', 'Plain: answers each question as it is asked. A complete sample answer is pre-filled for every question.'],
     ['upfront', '3', 'Everything up front: before pressing Start POD application, all the details and both documents are already in the message box.'],
     ['forgetful', '4', 'Forgetful: like 2, but some things are missed (two eligibility answers, the delivery address, one document at a time), so the chatbot asks again.'],

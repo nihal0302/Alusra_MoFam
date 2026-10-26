@@ -11,24 +11,24 @@
 const SERVICE_PAGE = 'https://www.alusra.gov.ae/en/services/determination-card/';
 
 export const eligibility = {
-  hint: 'Choose one, or type or speak in your own words.',
-  change: { lead: 'Certainly. Let’s update that.' },
+  hint: 'Choose one, or use the microphone or type in your own words.',
+  change: { lead: 'Certainly. Let us update that.' },
   steps: ['Eligibility', 'Documents', 'Application'],
   stepsLabel: 'Application steps',
   question: 'Question {step} of {total}',
   say: {
-    placeholder: 'Type or speak your answer…',
+    placeholder: 'Speak or type your answer…',
     send: 'Send answer',
     mic: 'Answer by voice',
     stop: 'Stop listening',
     listening: 'Listening…',
-    miss: 'I didn’t quite catch that. Please choose one of the options, or try again.',
+    miss: 'I was unable to identify that answer. Please choose one of the options, or try again.',
   },
   // Variation 2: the questions are asked together, numbered, and answered in one message (typed or spoken).
   batch: {
-    lead: 'Thank you. Let’s begin.',
-    primary: 'Please answer the questions below in one message. Tap the microphone and simply say your answers, or type them.',
-    title: 'Please tell me',
+    lead: 'Thank you. Let us begin.',
+    primary: 'Please answer the questions below in one message, using the microphone or by typing.',
+    title: 'Please provide',
     numbers: { who: 1, status: 2, report: 3, accredited: 4 },
     items: {
       who: 'Who is the card for: yourself, or someone else?',
@@ -40,19 +40,19 @@ export const eligibility = {
     examples: { who: 'it is for myself', status: 'I am an Emirati citizen', report: 'I have a medical report', accredited: 'it is from a government hospital' },
     exampleLabel: 'For example:',
     moreLead: 'Thank you.',
-    more: 'I still need {what} to finish the check. Please answer in one message: tap the microphone to say it, or type it.',
-    placeholder: 'Tap the microphone to say your answers, or type them…',
+    more: 'I still require {what} to complete the check. Please respond in one message, using the microphone or by typing.',
+    placeholder: 'Use the microphone or type your answers…',
     voiceSample: 'It’s for myself, I’m an Emirati citizen, I have a medical report and it’s from a government hospital.',
-    nudgeLead: 'I didn’t catch that.',
+    nudgeLead: 'I was unable to understand that.',
     nudge: 'Please answer the questions above in order.',
-    resume: 'Shall we carry on with the check? I’m still waiting for your answers above.',
+    resume: 'Shall we continue with the check? I am still awaiting for your answers above.',
   },
   nav: { back: 'Back', continue: 'Continue', close: 'Close eligibility check', expand: 'Expand chat', collapse: 'Return to compact chat' },
 
   questions: {
     who: {
       label: 'Applying for',
-      lead: 'Thank you. Let’s begin.',
+      lead: 'Thank you. Let us begin.',
       text: 'Who is the card for?',
       voiceSample: 'It’s for my son',
       options: [
@@ -121,8 +121,8 @@ export const eligibility = {
           meta: 'Medical report for physical and sensory disabilities. Psychological report for intellectual, psychological, ADHD, autism and learning difficulties.',
         },
       ],
-      otherItem: { icon: 'users', title: 'Applying on someone’s behalf', text: 'You’ll apply for them, and I’ll ask for their Emirates ID' },
-      actions: { review: 'Review answers', later: 'I’ll apply later', apply: 'Yes, I want to apply' },
+      otherItem: { icon: 'users', title: 'Applying on someone’s behalf', text: 'You will apply for them, and I will ask for their Emirates ID' },
+      actions: { review: 'Review answers', later: 'I will apply later', apply: 'Yes, I want to apply' },
     },
     notEligible: {
       title: 'Not eligible yet',
@@ -139,11 +139,11 @@ export const eligibility = {
         ],
         report: [
           { icon: 'file', title: 'Get a medical or psychological report', text: 'Ask your doctor or a government hospital' },
-          { icon: 'refresh', title: 'Come back and check again', text: 'I’ll re-check as soon as you have it' },
+          { icon: 'refresh', title: 'Come back and check again', text: 'I will re-check as soon as you have it' },
         ],
         accredited: [
           { icon: 'building', title: 'Ask an accredited authority', text: 'For example, a government hospital' },
-          { icon: 'refresh', title: 'Come back and check again', text: 'I’ll re-check as soon as you have it' },
+          { icon: 'refresh', title: 'Come back and check again', text: 'I will re-check as soon as you have it' },
         ],
       },
     },

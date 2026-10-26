@@ -10,7 +10,8 @@
     "knowledge": "node scripts/build-knowledge.mjs",
     "knowledge:test": "node scripts/test-knowledge.mjs",
     "intake:test": "node scripts/test-intake.mjs",
-    "conversation:test": "node scripts/test-conversation.mjs"
+    "conversation:test": "node scripts/test-conversation.mjs",
+    "steps:test": "node scripts/test-steps.mjs"
   },
   "dependencies": {
     "@hugeicons/core-free-icons": "^4.3.5",

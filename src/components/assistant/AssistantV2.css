@@ -241,9 +241,10 @@
 .noor-voice-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 
 /* ---------- The microphone draws the eye, twice ---------- */
-/* On the starting screen a small glowing orb plays inside the mic, once (about six seconds), then the button
+/* (Both variations: it plays when the chat opens; Variation 2 plays it once more for the first question.)
+   On the starting screen a small glowing orb plays inside the mic, once (about six seconds), then the button
    goes back to normal (see MicOrb.jsx). It stays inside the button, and the icon warms to gold while it plays. */
-.noor--v2 .noor-mic.is-shine {
+.noor-mic.is-shine {
   position: relative;
   isolation: isolate;
   animation: noor-mic-icon 5.85s cubic-bezier(0.4, 0, 0.2, 1) 0.9s 1;

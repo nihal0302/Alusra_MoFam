@@ -21,9 +21,9 @@ export const intake = {
   stillToAttach: 'Still to attach',
 
   leads: {
-    read: 'Thank you, I’ve read your message.',
-    readFiles: 'Thank you, I’ve read your message and received your files.',
-    readFile: 'Thank you, I’ve read your message and received your file.',
+    read: 'Thank you, I have read your message.',
+    readFiles: 'Thank you, I have read your message and received your files.',
+    readFile: 'Thank you, I have read your message and received your file.',
     files: 'Thank you, your files have been received.',
     file: 'Thank you, your file has been received.',
   },

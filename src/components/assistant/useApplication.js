@@ -1,18 +1,5 @@
 import { useRef, useState } from 'react';
-import {
-  ORDER,
-  buildNudge,
-  buildPrompt,
-  buildReview,
-  buildSignIn,
-  buildSigningIn,
-  buildSubmitted,
-  fill,
-  matchEmirate,
-  newReference,
-  normalisePhone,
-  validName,
-} from '../../lib/application.js';
+import { buildNudge, buildPrompt, buildSignIn, buildSigningIn, buildSubmitted, fill, newReference } from '../../lib/application.js';
 import {
   CONV_KINDS,
   GROUPS,
@@ -36,15 +23,17 @@ import {
   subject,
 } from '../../lib/conversation.js';
 import { classifyFile } from '../../lib/intake.js';
+import { buildReviewSteps, buildStepPrompt, isOptional, nextStep, readStepAnswer } from '../../lib/stepwise.js';
 
 const EXTRA_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
 
 // The application, in the conversation: UAE PASS sign-in → details fetched → a few questions →
 // two uploads → review → consent and submit. Everything is held in memory; nothing leaves the device.
 // `api` is the small set of chat actions the assistant gives us.
-// With `conv` (Variation 2) the same journey runs as a conversation: the Ministry's form is asked in groups of two or
-// three questions, answered in free text, documents are attached to the chat, and the review is a sentence that can be
-// changed by typing.
+// Variation 1 asks the Ministry's form one question at a time (lib/stepwise.js): a short list as buttons, anything else typed or
+// spoken, optional questions with a Skip button, the two documents as upload cards, and a review card with Change on each answer.
+// With `conv` (Variation 2) the same journey runs as a conversation: the form is asked in groups of two or three questions,
+// answered in free text, documents are attached to the chat, and the review is a sentence that can be changed by typing.
 export function useApplication(app, api, { conv = false } = {}) {
   const ref = useRef({ data: {}, awaiting: null, returnToReview: false, settled: new Set(), who: 'self' });
   const signing = useRef(null); // timer while the simulated UAE PASS approval is pending
@@ -52,7 +41,7 @@ export function useApplication(app, api, { conv = false } = {}) {
 
   const setAwait = (a) => {
     ref.current.awaiting = a;
-    setAwaitingInfo(a ? { kind: a.kind, step: a.step, group: a.group, msgId: a.msgId, placeholder: a.placeholder ?? app.steps[a.step].placeholder } : null);
+    setAwaitingInfo(a ? { kind: a.kind, step: a.step, group: a.group, msgId: a.msgId, placeholder: a.placeholder ?? app.steps[a.step]?.placeholder } : null);
   };
 
   const ctx = () => ({ who: ref.current.who, conv: app.conv });
@@ -66,20 +55,22 @@ export function useApplication(app, api, { conv = false } = {}) {
       return;
     }
     setAwait(null);
-    api.pushNoor(buildReview(app, ref.current.data));
+    api.pushNoor(buildReviewSteps(app, { who: ref.current.who, data: ref.current.data }));
   };
 
-  const ask = (step, opts) => {
+  const ask = (step, opts = {}) => {
+    if (!conv) {
+      const msgId = api.pushNoor(buildStepPrompt(app, step, { who: ref.current.who, data: ref.current.data, ...opts }));
+      setAwait({ step, msgId, kind: app.steps[step].kind });
+      return;
+    }
     // The photograph is asked first; if the report is already in (sent earlier in the chat), say only one is left.
     const hasOther = step === 'photo' && Boolean(ref.current.data.report);
     const scenario = buildPrompt(app, step, { ...opts, hasOther });
-    if (conv) {
-      // Variation 2 asks for a replacement file with the form's own wording, and never offers the emirate as buttons.
-      scenario.cards = scenario.cards.filter((c) => c.type !== 'choices');
-      if (step === 'photo' || step === 'report') {
-        scenario.text[0].primary = app.conv.docs.editPrompt[step];
-        if (scenario.cards[0]) scenario.cards[0] = { ...scenario.cards[0], hint: app.conv.docs.card.items[step].hint };
-      }
+    // Variation 2 asks for a replacement file with the form's own wording.
+    if (step === 'photo' || step === 'report') {
+      scenario.text[0].primary = app.conv.docs.editPrompt[step];
+      if (scenario.cards[0]) scenario.cards[0] = { ...scenario.cards[0], hint: app.conv.docs.card.items[step].hint };
     }
     const msgId = api.pushNoor(scenario);
     setAwait({ step, msgId, kind: app.steps[step].kind });
@@ -104,20 +95,24 @@ export function useApplication(app, api, { conv = false } = {}) {
     else review(opts.updated);
   };
 
-  const next = () => {
+  // `first` marks the first question after the UAE PASS details arrive (Variation 1 says they were retrieved).
+  const next = ({ first = false } = {}) => {
     if (conv) {
       convNext();
       return;
     }
-    const step = ORDER.find((s) => !ref.current.data[s]);
-    if (step) ask(step);
+    const step = nextStep(ref.current.who, ref.current.data, ref.current.settled);
+    if (step) ask(step, { first });
     else review();
   };
 
   const afterAnswer = (noted = []) => {
     if (ref.current.returnToReview) {
       ref.current.returnToReview = false;
-      review();
+      // A changed answer can open a question that was not asked before (e.g. employed instead of student): ask it, then review.
+      const step = conv ? null : nextStep(ref.current.who, ref.current.data, ref.current.settled);
+      if (step) ask(step);
+      else review();
     } else if (conv) {
       convNext({ noted });
     } else {
@@ -194,16 +189,16 @@ export function useApplication(app, api, { conv = false } = {}) {
         signing.current = setTimeout(() => {
           signing.current = null;
           api.setStage('docs');
+          // The delivery contact number starts as the UAE PASS mobile; it can be changed in the review.
+          const mobile = app.signIn.profile.rows.find((r) => r.id === 'mobile')?.value;
+          if (mobile) store('deliveryMobile', mobile);
           if (conv) {
-            // The delivery contact number starts as the UAE PASS mobile; it can be changed in the review.
-            const mobile = app.signIn.profile.rows.find((r) => r.id === 'mobile')?.value;
-            if (mobile) store('deliveryMobile', mobile);
             const group = nextGroup(ref.current.who, ref.current.data, ref.current.settled);
             const id = api.pushNoor(buildSignInConv(app, { who: ref.current.who, data: ref.current.data, group }));
             const g = app.conv.groups[group];
             setAwait({ kind: 'multi', group, step: 'details', msgId: id, placeholder: g.placeholder, voiceSample: g.voiceSample });
           } else {
-            api.pushNoor(buildSignIn(app));
+            api.pushNoor(buildSignIn(app, ref.current.who));
           }
         }, app.signIn.wait.ms);
         return true;
@@ -217,22 +212,29 @@ export function useApplication(app, api, { conv = false } = {}) {
         api.lock(msgId, 'skipped');
         api.pushUser(payload.label);
         settle(payload.group);
-        convNext();
+        if (conv) convNext();
+        else next();
         return true;
       case 'upload': {
         const { field, file } = payload;
         const info = { name: file.name, size: file.size, type: file.type, url: URL.createObjectURL(file) };
         api.lock(msgId, info);
-        store(field, info);
         api.pushUser(`${app.steps[field].label}: ${file.name}`, info.type.startsWith('image/') ? info.url : undefined);
+        if (field === 'additional') {
+          // More than one extra report is allowed: add this one and offer to add another.
+          store(field, [...(ref.current.data.additional ?? []), info]);
+          ask('additional', { again: true, name: file.name });
+          return true;
+        }
+        store(field, info);
         afterAnswer();
         return true;
       }
       case 'editField':
         api.lock(msgId, 'editing');
-        api.pushUser(`${app.review.change}: ${conv ? app.conv.review.labels[payload.field] : app.review.labels[payload.field]}`);
+        api.pushUser(`${app.review.change}: ${app.conv.review.labels[payload.field]}`);
         if (conv && payload.field !== 'photo' && payload.field !== 'report') {
-          askEdit(payload.field, 'Certainly. Let’s update that.');
+          askEdit(payload.field, 'Certainly. I will update that.');
           return true;
         }
         ref.current.returnToReview = true;
@@ -347,42 +349,65 @@ export function useApplication(app, api, { conv = false } = {}) {
     return true;
   };
 
+  // Variation 1: typed or spoken text for the one question that is open. Returns true when it was consumed.
+  const stepText = (text, aw, known) => {
+    const step = app.steps[aw.step];
+    const optional = isOptional(aw.step) && !ref.current.returnToReview;
+    const skip = () => {
+      api.lock(aw.msgId, 'skipped');
+      api.pushUser(text);
+      settle(aw.step);
+      next();
+    };
+    if (looksLikeQuestion(text) && known) return false; // a real question (who can apply, documents…) is answered first
+    // An uploaded document is expected: typing cannot give it, apart from skipping an optional one.
+    if (step.kind === 'file') {
+      if (optional && parseSkip(text)) {
+        skip();
+        return true;
+      }
+      if (known) return false;
+      api.pushUser(text);
+      api.pushNoor(buildNudge(app.upload.nudge));
+      return true;
+    }
+    // For an open answer ("none" would be a valid employer), skipping is checked first; for a list, the answer first.
+    if (optional && step.kind === 'text' && parseSkip(text)) {
+      skip();
+      return true;
+    }
+    const value = readStepAnswer(app, aw.step, text, ref.current.who);
+    if (value) {
+      api.lock(aw.msgId, step.kind === 'choice' ? value : 'answered');
+      api.pushUser(text);
+      store(aw.step, value);
+      if (aw.step === 'address' && ref.current.returnToReview) syncEmirate(value);
+      afterAnswer([aw.step]);
+      return true;
+    }
+    if (optional && parseSkip(text)) {
+      skip();
+      return true;
+    }
+    if (known) return false;
+    api.pushUser(text);
+    api.pushNoor(buildNudge(step.error ?? app.nudges.choice));
+    return true;
+  };
+
+  // A new address in another emirate moves the delivery emirate with it.
+  const syncEmirate = (address) => {
+    const emirate = matchOption(address, app.conv.options.emirates);
+    if (emirate) store('emirate', emirate);
+  };
+
   // Typed or spoken text while a question is open. Returns true when it was consumed.
   const handleText = (text, { known }) => {
     if (signing.current) return true; // waiting for UAE PASS: ignore typing rather than derail the sign-in
     const aw = ref.current.awaiting;
     if (!aw) return false;
     if (conv && CONV_KINDS.includes(aw.kind)) return convText(text, aw, known);
-    const step = app.steps[aw.step];
-
-    if (step.kind === 'text') {
-      const value = aw.step === 'emergencyPhone' ? normalisePhone(text) : validName(text) ? text.trim() : null;
-      api.pushUser(text);
-      if (!value) {
-        api.pushNoor(buildNudge(step.error));
-        return true;
-      }
-      store(aw.step, value);
-      afterAnswer([aw.step]);
-      return true;
-    }
-
-    if (step.kind === 'choice') {
-      const hit = matchEmirate(text, step.options);
-      if (hit) {
-        api.lock(aw.msgId, hit);
-        store(aw.step, hit);
-        api.pushUser(text);
-        afterAnswer([aw.step]);
-        return true;
-      }
-    }
-
-    // A real question (who can apply, documents…) still gets answered normally.
-    if (known) return false;
-    api.pushUser(text);
-    api.pushNoor(buildNudge(step.kind === 'choice' ? app.nudges.choice : app.upload.nudge));
-    return true;
+    return stepText(text, aw, known);
   };
 
   // Files attached to a message in the conversational steps: sorted into photograph and report (or, when optional details
