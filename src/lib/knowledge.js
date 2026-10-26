@@ -237,7 +237,7 @@ export function createKnowledge({ services, serviceMeta, topics, extraTopics = [
     return {
       id: 'kb:clarify',
       tool: null,
-      text: [{ lead: pick(copy.leads, text), primary: copy.clarify.primary }],
+      text: [{ lead: pick(copy.leads, text), question: copy.clarify.primary }],
       cards: [{ type: 'suggestions', title: copy.clarify.title, items: copy.clarify.items }],
     };
   }

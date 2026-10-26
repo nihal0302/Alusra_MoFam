@@ -4,6 +4,7 @@ import { VoiceGlow } from './VoiceGlow.jsx';
 import { LandingBackdrop } from './LandingBackdrop.jsx';
 import { MicOrb } from './MicOrb.jsx';
 import { makeSampleFile } from '../../lib/sampleFiles.js';
+import { resolveHints } from '../../lib/hints.js';
 import { TopicArt } from './TopicArt.jsx';
 import { ImageSlot } from '../ImageSlot.jsx';
 import { NoorAvatar } from './NoorAvatar.jsx';
@@ -38,7 +39,7 @@ const VOICE_BARS = Array.from({ length: VOICE_COUNT }, (_, i) => {
 
 // What a screen reader hears once a reply has finished: the words, then the card titles.
 function spokenReply(scenario) {
-  const words = scenario.text.flatMap((b) => [b.lead, b.primary, b.secondary, b.example]).filter(Boolean).join(' ');
+  const words = scenario.text.flatMap((b) => [b.lead, b.primary, b.question, b.tag, ...(b.items ?? []), b.how, b.secondary, b.note, b.example]).filter(Boolean).join(' ');
   const cards = scenario.cards
     .map((c) => c.spoken ?? [c.title, c.items?.map((i) => i.title ?? i).join('. ')].filter(Boolean).join('. '))
     .filter(Boolean)
@@ -77,6 +78,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
   const [micShine, setMicShine] = useState(true); // the mic lights up once when the chat opens (both variations), and once more for the first question (Variation 2 only), then rests
   const [shineRun, setShineRun] = useState(0); // counts the runs, so a new question restarts the effect
   const questionShone = useRef(false); // the mic lights up for the FIRST question only, not for every one after it
+  const micHinted = useRef(false); // the reminder to use the microphone or type has been given once in this conversation
   const askCounts = useRef({}); // testing scenarios: how many times each question has been asked, so a repeat gets the next sample
   const [session, setSession] = useState(0); // counts restarts, so the starting-screen sample is filled again
   const statusRef = useRef(false);
@@ -238,7 +240,10 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
     anchorRef.current = null;
     setMessages((m) => [...m, { id: nextId++, role: 'user', text, thumb }]);
   };
-  const pushNoor = (scenario) => {
+  const pushNoor = (raw) => {
+    // "Use the microphone or type" is said in the first reply that carries it, and left out of every one after (see lib/hints.js).
+    const { scenario, had } = resolveHints(raw, !micHinted.current);
+    if (had) micHinted.current = true;
     const id = nextId++;
     setBusy(true);
     setMessages((m) => [...m, { id, role: 'noor', scenario }]);
@@ -619,7 +624,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
       if (scenario.then === 'resume' && !followed.current.has(msgId)) {
         followed.current.add(msgId);
         later(() => {
-          if (flowRef.current.awaiting?.batch) pushNoor({ id: 'check:resume', tool: null, text: [{ primary: eligibility.batch.resume }], cards: [] });
+          if (flowRef.current.awaiting?.batch) pushNoor({ id: 'check:resume', tool: null, text: [{ question: eligibility.batch.resume }], cards: [] });
           else appRef.current?.resume();
         }, reduced ? 0 : FOLLOW_MS);
       }
@@ -669,6 +674,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
     setMicShine(true);
     questionShone.current = false;
     askCounts.current = {};
+    micHinted.current = false;
     setSession((n) => n + 1);
     anchorRef.current = null;
     focusInput();

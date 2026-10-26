@@ -11,8 +11,7 @@
 const SERVICE_PAGE = 'https://www.alusra.gov.ae/en/services/determination-card/';
 
 export const eligibility = {
-  hint: 'Choose one, or use the microphone or type in your own words.',
-  change: { lead: 'Certainly. Let us update that.' },
+  hint: 'Choose one‹mic›, or use the microphone or type in your own words‹/mic›.',
   steps: ['Eligibility', 'Documents', 'Application'],
   stepsLabel: 'Application steps',
   question: 'Question {step} of {total}',
@@ -26,8 +25,9 @@ export const eligibility = {
   },
   // Variation 2: the questions are asked together, numbered, and answered in one message (typed or spoken).
   batch: {
-    lead: 'Thank you. Let us begin.',
-    primary: 'Please answer the questions below in one message, using the microphone or by typing.',
+    // No opener of its own: the message before it ("Certainly, let us begin the eligibility check") already says it.
+    primary: 'Please answer the questions below in one message.',
+    how: '‹mic›Use the microphone or type your answers.‹/mic›',
     title: 'Please provide',
     numbers: { who: 1, status: 2, report: 3, accredited: 4 },
     items: {
@@ -39,20 +39,19 @@ export const eligibility = {
     // Pieces of one sentence, joined to show how a reply could read (only for the questions being asked).
     examples: { who: 'it is for myself', status: 'I am an Emirati citizen', report: 'I have a medical report', accredited: 'it is from a government hospital' },
     exampleLabel: 'For example:',
-    moreLead: 'Thank you.',
-    more: 'I still require {what} to complete the check. Please respond in one message, using the microphone or by typing.',
+    more: 'To complete the check, could you please provide {what}?',
+    moreHow: 'Please respond in one message‹mic›, using the microphone or by typing‹/mic›.',
     placeholder: 'Use the microphone or type your answers…',
     voiceSample: 'It’s for myself, I’m an Emirati citizen, I have a medical report and it’s from a government hospital.',
     nudgeLead: 'I was unable to understand that.',
     nudge: 'Please answer the questions above in order.',
-    resume: 'Shall we continue with the check? I am still awaiting for your answers above.',
+    resume: 'Shall we continue with the check? I am still awaiting your answers above.',
   },
   nav: { back: 'Back', continue: 'Continue', close: 'Close eligibility check', expand: 'Expand chat', collapse: 'Return to compact chat' },
 
   questions: {
     who: {
       label: 'Applying for',
-      lead: 'Thank you. Let us begin.',
       text: 'Who is the card for?',
       voiceSample: 'It’s for my son',
       options: [
@@ -62,7 +61,6 @@ export const eligibility = {
     },
     status: {
       label: 'Citizen or resident',
-      lead: 'Thank you.',
       text: '{Are} an Emirati citizen or a legal resident of the UAE?',
       voiceSample: 'We’re Emirati citizens',
       options: [
@@ -74,7 +72,6 @@ export const eligibility = {
     },
     report: {
       label: 'Medical or psychological report',
-      lead: 'Thank you.',
       text: '{Do} have a medical or psychological report confirming the disability?',
       voiceSample: 'Yes, we have a report',
       options: [
@@ -97,7 +94,7 @@ export const eligibility = {
   },
 
   review: {
-    lead: 'Thank you. That completes the check.',
+    lead: 'That completes the check.',
     title: 'Check your answers',
     text: 'Please review your answers before I give you the result.',
     changeLabel: 'Change',
@@ -106,7 +103,7 @@ export const eligibility = {
   },
 
   results: {
-    intro: 'Here’s what I found.',
+    intro: 'Here is what I found.',
     metaLabel: 'Which report do I need?',
     listLabel: { eligible: 'Your preparation checklist', notEligible: 'What you can do', unsure: 'What to confirm' },
     eligible: {
@@ -122,7 +119,9 @@ export const eligibility = {
         },
       ],
       otherItem: { icon: 'users', title: 'Applying on someone’s behalf', text: 'You will apply for them, and I will ask for their Emirates ID' },
-      actions: { review: 'Review answers', later: 'I will apply later', apply: 'Yes, I want to apply' },
+      actions: { review: 'Review answers', later: 'I’ll apply later', apply: 'Yes, I want to apply' },
+      // The next step, asked in its own bubble under the checklist (the buttons follow it).
+      next: { question: 'Would you like to continue with your application now?', hint: 'You will sign in with UAE PASS next. Nothing is submitted until you confirm.' },
     },
     notEligible: {
       title: 'Not eligible yet',

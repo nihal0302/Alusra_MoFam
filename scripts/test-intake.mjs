@@ -64,7 +64,8 @@ check('partial: asks for what is missing', !partial.complete && partial.scenario
 check('partial: next question is the first one missing', nextStep({ who: 'other', report: 'yes' }) === 'status');
 const missing = partial.scenario.cards[0].rows.filter((r) => r.value === null).map((r) => r.qid);
 check('partial: the card lists the missing answers', missing.join() === 'status,accredited', missing.join());
-check('partial: the card lists the missing document', partial.scenario.cards[0].docs.find((d) => d.id === 'report').value === null);
+check('partial: only the document that was attached is listed', partial.scenario.cards[0].docs.map((d) => d.id).join() === 'photo');
+check('no documents sent: the card has no documents section', run({ who: 'self', status: 'citizen' }, {}).scenario.cards[0].docs.length === 0);
 
 // Not eligible and unsure outcomes are still results
 check('complete but not eligible: result card', run({ who: 'self', status: 'neither' }, both.docs).kind === 'notEligible');

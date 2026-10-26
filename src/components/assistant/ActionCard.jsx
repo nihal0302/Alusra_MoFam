@@ -117,6 +117,41 @@ function Ticks({ items, delay }) {
   );
 }
 
+// ---- Questions that do not depend on each other, all in one box: each has its own line and its own chips ----------------------
+function ChoiceSetCard({ card, style, onAction, locked }) {
+  const [picked, setPicked] = useState({});
+  const pick = (field, value) => {
+    if (locked) return;
+    setPicked((p) => ({ ...p, [field]: value }));
+    onAction?.('choiceSet', { group: card.group, field, value });
+  };
+  return (
+    <section className="noor-card" style={style}>
+      <div className="noor-card__body">
+        {card.sections.map((s) => (
+          <div className="noor-card__section" key={s.field}>
+            <p className="noor-card__prompt">{s.question}</p>
+            <div className="noor-suggest noor-suggest--tight" role="group" aria-label={s.question}>
+              {s.options.map((o) => (
+                <button
+                  key={o}
+                  type="button"
+                  className={`noor-suggest__btn${picked[s.field] === o ? ' is-selected' : ''}`}
+                  disabled={locked}
+                  aria-pressed={picked[s.field] === o}
+                  onClick={() => pick(s.field, o)}
+                >
+                  {o}
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 // ---- Upload: choose or drop a file; type and size are checked here, on the device -----------
 function UploadCard({ card, style, onAction, chosen }) {
   const [error, setError] = useState('');
@@ -384,19 +419,26 @@ export function ActionCard({ card, index = 0, onAction, chosen, tray = false }) 
               </div>
             ))}
           </dl>
-          <p className="noor-rev__group">{card.docsLabel}</p>
-          <dl className="noor-rev">
-            {card.docs.map((d) => (
-              <div className={`noor-rev__row${d.value ? '' : ' is-missing'}`} key={d.id}>
-                <dt>{d.label}</dt>
-                <dd>{d.value ?? card.notAttached}</dd>
-              </div>
-            ))}
-          </dl>
+          {card.docs.length > 0 && (
+            <>
+              <p className="noor-rev__group">{card.docsLabel}</p>
+              <dl className="noor-rev">
+                {card.docs.map((d) => (
+                  <div className={`noor-rev__row${d.value ? '' : ' is-missing'}`} key={d.id}>
+                    <dt>{d.label}</dt>
+                    <dd>{d.value ?? card.notAttached}</dd>
+                  </div>
+                ))}
+              </dl>
+            </>
+          )}
         </div>
-        <div className="noor-card__foot">
-          <span className="noor-card__note">{card.note}</span>
-        </div>
+        {/* The note is about the person's files, so it appears only when a file has been attached. */}
+        {card.docs.length > 0 && (
+          <div className="noor-card__foot">
+            <span className="noor-card__note">{card.note}</span>
+          </div>
+        )}
       </section>
     );
   }
@@ -488,7 +530,13 @@ export function ActionCard({ card, index = 0, onAction, chosen, tray = false }) 
             ))}
           </ul>
         </div>
-        {!tray && (
+        {card.next && (
+          <div className="noor-done__next">
+            <p className="noor-done__ask">{card.next.question}</p>
+            {card.next.hint && <p className="noor-done__hint">{card.next.hint}</p>}
+          </div>
+        )}
+        {!tray && (quiet.length > 0 || outlined.length > 0 || primary || card.links.length > 0) && (
           <div className="noor-done__foot">
             <div className="noor-done__quiet">{quiet.map((a) => act(a, 'noor-btn--text'))}</div>
             <div className="noor-done__main">
@@ -570,7 +618,7 @@ export function ActionCard({ card, index = 0, onAction, chosen, tray = false }) 
           </button>
         )}
         {card.skip && (
-          <button type="button" className="noor-btn noor-btn--text" disabled={locked} onClick={() => onAction?.('skip', { group: card.group, label: card.skip })}>
+          <button type="button" className="noor-btn noor-btn--outline" disabled={locked} onClick={() => onAction?.('skip', { group: card.group, label: card.skip })}>
             {card.skip}
           </button>
         )}
@@ -603,7 +651,7 @@ export function ActionCard({ card, index = 0, onAction, chosen, tray = false }) 
   if (card.type === 'details') {
     return (
       <section className="noor-card noor-det" style={style} aria-label={card.title}>
-        <details>
+        <details open={card.open}>
           <summary className="noor-det__sum">{card.title}</summary>
           <dl className="noor-det__rows">
             {card.rows.map((r) => (
@@ -652,25 +700,41 @@ export function ActionCard({ card, index = 0, onAction, chosen, tray = false }) 
     );
   }
 
+  if (card.type === 'choiceSet') {
+    if (tray) return null; // the choices sit above the message box instead
+    return <ChoiceSetCard card={card} style={style} onAction={onAction} locked={locked} />;
+  }
+
   if (card.type === 'choices') {
     if (tray) return null; // the choices sit above the message box instead
+    const chips = (options, label) => (
+      <div className="noor-suggest noor-suggest--tight" role="group" aria-label={label}>
+        {options.map((o) => (
+          <button
+            key={o}
+            type="button"
+            className={`noor-suggest__btn${chosen === o ? ' is-selected' : ''}`}
+            disabled={locked}
+            aria-pressed={locked ? chosen === o : undefined}
+            onClick={() => onAction?.('choice', { field: card.field, value: o })}
+          >
+            {o}
+          </button>
+        ))}
+      </div>
+    );
     return (
       <section className="noor-card" style={style} aria-label={card.label}>
         <div className="noor-card__body">
-          <div className="noor-suggest noor-suggest--tight" role="group" aria-label={card.label}>
-            {card.options.map((o) => (
-              <button
-                key={o}
-                type="button"
-                className={`noor-suggest__btn${chosen === o ? ' is-selected' : ''}`}
-                disabled={locked}
-                aria-pressed={locked ? chosen === o : undefined}
-                onClick={() => onAction?.('choice', { field: card.field, value: o })}
-              >
-                {o}
-              </button>
-            ))}
-          </div>
+          {card.prompt && <p className="noor-card__prompt">{card.prompt}</p>}
+          {chips(card.options, card.label)}
+          {/* An answer that is not one of the list but a different kind of answer (e.g. "Multiple") has its own line under a divider. */}
+          {card.extra && (
+            <div className="noor-card__extra">
+              <p className="noor-card__prompt">{card.extra.prompt}</p>
+              {chips(card.extra.options, card.extra.prompt)}
+            </div>
+          )}
         </div>
       </section>
     );

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { ChatIcon } from './ChatIcon.jsx';
 import { NoorAvatar } from './NoorAvatar.jsx';
 import { ActionCard } from './ActionCard.jsx';
@@ -7,7 +7,7 @@ import { usePrefersReducedMotion } from '../../lib/usePrefersReducedMotion.js';
 const THINK_MS = 650;
 const TOOL_MS = 900;
 const WORD_MS = 34;
-const PARTS = ['lead', 'primary', 'secondary', 'example'];
+const PARTS = ['lead', 'primary', 'tag', 'secondary', 'note', 'example'];
 
 // One Mira turn, played as: thinking dots → "shows its work" chip → streamed words → cards.
 // Stages: thinking → tool → stream → done. Reduced motion skips straight to done.
@@ -22,15 +22,35 @@ export function NoorMessage({ msgId, scenario, avatar, onStage, onAction, labels
   onStageRef.current = onStage;
 
   // A reply reads as two kinds of text: a bold opener and body copy. Any smaller third line is joined onto the body copy.
+  // A block that carries a `question` is shown as two bubbles: first what Mira acknowledges and understood (the opener and body
+  // copy), then, on its own and set apart, what the person is asked to do next (with its example).
   const blocks = useMemo(
-    () => scenario.text.map((b) => (b.secondary ? { lead: b.lead, primary: b.primary ? `${b.primary} ${b.secondary}` : b.secondary, example: b.example, exampleLabel: b.exampleLabel } : b)),
+    () =>
+      scenario.text.flatMap((b0) => {
+        // The question, then on separate lines how to answer it (`how`) and anything else worth knowing (`note`), then an example.
+        if (b0.question) {
+          return [
+            ...(b0.lead || b0.primary ? [{ lead: b0.lead, plainLead: b0.plainLead, primary: b0.primary }] : []),
+            { primary: b0.question, tag: b0.tag, plainQuestion: b0.plainQuestion, items: b0.items, secondary: b0.how, note: b0.note, example: b0.example, exampleLabel: b0.exampleLabel, ask: true },
+          ];
+        }
+        return [b0.secondary ? { ...b0, primary: b0.primary ? `${b0.primary} ${b0.secondary}` : b0.secondary, secondary: undefined } : b0];
+      }),
     [scenario],
   );
+  // Cards marked `before` (the UAE PASS details) sit between the acknowledgement and the question bubble.
+  const firstAsk = blocks.findIndex((b) => b.ask);
+  const beforeCards = firstAsk >= 0 ? scenario.cards.filter((c) => c.before) : [];
+  // The words of each block, by part (a numbered list is one part per item), in the order they are shown.
   const words = useMemo(
-    () => blocks.map((b) => PARTS.map((k) => (b[k] ? b[k].split(' ') : []))),
+    () =>
+      blocks.map((b) => {
+        const w = Object.fromEntries(PARTS.map((k) => [k, b[k] ? b[k].split(' ') : []]));
+        return { ...w, items: (b.items ?? []).map((t) => t.split(' ')) };
+      }),
     [blocks],
   );
-  const total = words.reduce((n, parts) => n + parts.reduce((m, w) => m + w.length, 0), 0);
+  const total = words.reduce((n, w) => n + PARTS.reduce((m, k) => m + w[k].length, 0) + w.items.reduce((m, t) => m + t.length, 0), 0);
 
   useEffect(() => {
     onStageRef.current?.(stage, scenario);
@@ -97,28 +117,55 @@ export function NoorMessage({ msgId, scenario, avatar, onStage, onAction, labels
         )}
         {showBubble &&
           blocks.map((b, i) => {
-            const [lead, primary, secondary, example] = words[i].map(reveal);
+            const w = words[i];
+            const lead = reveal(w.lead);
+            const primary = reveal(w.primary);
+            const tag = reveal(w.tag);
+            const items = w.items.map(reveal);
+            const secondary = reveal(w.secondary);
+            const note = reveal(w.note);
+            const example = reveal(w.example);
             if (!(lead.started || primary.started)) return null;
             const caret = <span className="noor-caret" aria-hidden="true" />;
             return (
-              <div className="noor-bubble noor-bubble--noor" key={i} aria-hidden={streaming || undefined}>
+              <Fragment key={i}>
+                {i === firstAsk && beforeCards.map((card, k) => <ActionCard key={`before${k}`} card={card} index={0} onAction={onAction} chosen={chosen} tray={tray} />)}
+              <div className={`noor-bubble noor-bubble--noor${b.ask ? ' noor-bubble--ask' : ''}`} aria-hidden={streaming || undefined}>
                 <span className="visually-hidden">{labels.noorSaid}</span>
                 {lead.started && (
-                  <p className="noor-bubble__lead">
+                  <p className={b.plainLead ? 'noor-bubble__primary' : 'noor-bubble__lead'}>
                     {lead.text}
                     {lead.active && caret}
                   </p>
                 )}
                 {primary.started && (
-                  <p className="noor-bubble__primary">
+                  <p className={b.ask && !b.plainQuestion ? 'noor-bubble__lead' : 'noor-bubble__primary'}>
                     {primary.text}
                     {primary.active && caret}
+                    {tag.started && <span className="noor-bubble__tag"> {tag.text}</span>}
+                    {tag.active && caret}
                   </p>
                 )}
+                {items.some((it) => it.started) && (
+                  <ol className="noor-bubble__list">
+                    {items.map((it, k) => it.started && (
+                      <li key={k}>
+                        {it.text}
+                        {it.active && caret}
+                      </li>
+                    ))}
+                  </ol>
+                )}
                 {secondary.started && (
-                  <p className="noor-bubble__secondary">
+                  <p className={b.ask ? 'noor-bubble__primary' : 'noor-bubble__secondary'}>
                     {secondary.text}
                     {secondary.active && caret}
+                  </p>
+                )}
+                {note.started && (
+                  <p className={b.ask ? 'noor-bubble__primary' : 'noor-bubble__secondary'}>
+                    {note.text}
+                    {note.active && caret}
                   </p>
                 )}
                 {example.started && (
@@ -128,10 +175,11 @@ export function NoorMessage({ msgId, scenario, avatar, onStage, onAction, labels
                   </p>
                 )}
               </div>
+              </Fragment>
             );
           })}
         {stage === 'done' &&
-          scenario.cards.map((card, i) => (
+          scenario.cards.filter((card) => !beforeCards.includes(card)).map((card, i) => (
             <ActionCard key={i} card={card} index={i} onAction={onAction} chosen={chosen} tray={tray} />
           ))}
       </div>

@@ -3,7 +3,7 @@
 // shown as buttons, anything else is typed or spoken, and the optional questions can be skipped. Pure functions over the copy in
 // content/application.en.js (`steps`) and application.conv.en.js (`options`), so a real service can replace them later.
 import { fill } from './application.js';
-import { EMPLOYED, readSingle, reviewGroups, subject } from './conversation.js';
+import { EMPLOYED, chipSplit, readSingle, reviewGroups, subject } from './conversation.js';
 
 // The questions, in the order they are asked. `when` decides whether the question applies; a question that is optional is
 // done once it is answered or skipped. A step can also be asked on its own, from the review (e.g. `deliveryMobile`), without being in this list.
@@ -25,8 +25,9 @@ export const STEPS = [
   { id: 'educationLevel', optional: true, when: (who, d) => Boolean(d.employmentStatus) },
   { id: 'academicDegree', optional: true, when: (who, d) => EMPLOYED.includes(d.employmentStatus) },
   { id: 'institutionLocation', optional: true, when: (who, d) => Boolean(d.employmentStatus) },
-  { id: 'specialSupport', optional: true, when: (who, d) => d.employmentStatus === 'Student' },
-  { id: 'shadowTeacher', optional: true, when: (who, d) => d.employmentStatus === 'Student' },
+  // On the Ministry's form for everyone, not only students.
+  { id: 'specialSupport', optional: true },
+  { id: 'shadowTeacher', optional: true },
 ];
 
 export const isOptional = (id) => Boolean(STEPS.find((s) => s.id === id)?.optional);
@@ -51,12 +52,12 @@ export function stepOptions(app, id) {
 
 // One question: what Mira says, and the buttons that go with it (the answers, and Skip when the question is optional).
 // `first` is the first question after the UAE PASS details arrive; `again` asks the same upload once more.
-export function buildStepPrompt(app, id, { who, data, changing = false, first = false, again = false, name = '' }) {
+export function buildStepPrompt(app, id, { who, data, changing = false, again = false, name = '' }) {
   const st = app.steps[id];
   const sub = subject(who, { mobile: data.deliveryMobile ?? '', name });
   const cards = [];
   if (st.kind === 'choice') {
-    cards.push({ type: 'choices', label: st.label, options: stepOptions(app, id), field: id, spoken: `${st.label}: ${stepOptions(app, id).join(', ')}.` });
+    cards.push({ type: 'choices', label: st.label, ...chipSplit(app, id, stepOptions(app, id)), prompt: app.conv.chipPrompts[id], field: id, spoken: `${st.label}: ${stepOptions(app, id).join(', ')}.` });
   }
   if (st.kind === 'file') {
     cards.push({ type: 'upload', field: id, ...st.upload, maxMb: app.upload.maxMb, drop: app.upload.drop, dropActive: app.upload.dropActive, errors: app.upload.errors, spoken: `${st.upload.title}. ${st.upload.hint}.` });
@@ -66,14 +67,13 @@ export function buildStepPrompt(app, id, { who, data, changing = false, first = 
 
   const hasOther = id === 'photo' && Boolean(data.report);
   let lead = st.lead;
-  if (changing) lead = 'Certainly. I will update that.';
+  if (changing) lead = undefined; // the person asked for the change: no acknowledgement
   else if (again) lead = fill(st.leadAgain, sub);
   else if (hasOther && st.leadOne) lead = st.leadOne;
-  else if (first) lead = app.signIn.retrieved;
   return {
     id: `app:${id}`,
     tool: null,
-    text: [{ lead, primary: fill(again ? st.textAgain : st.text, sub) }],
+    text: [{ lead, plainLead: true, question: fill(again ? st.textAgain : st.text, sub), tag: isOptional(id) && !changing ? app.conv.optionalTag : undefined, how: again || !st.how ? undefined : fill(st.how, sub), note: again || !st.note ? undefined : fill(st.note, sub) }],
     cards,
   };
 }
@@ -87,7 +87,7 @@ export function buildReviewSteps(app, { who, data }) {
   return {
     id: 'app:review',
     tool: null,
-    text: [{ lead: r.lead, primary: r.text }],
+    text: [{ lead: r.lead, question: r.text }],
     cards: [
       {
         type: 'appReview',

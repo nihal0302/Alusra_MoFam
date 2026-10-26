@@ -125,8 +125,8 @@ export const scenarios = [
     text: [
       {
         lead: 'Happy to help you check your application.',
-        primary: 'Please share your application ID.',
-        secondary: 'It starts with POD- and is in the confirmation you received after submitting, for example POD-1042.',
+        primary: 'The application ID starts with POD- and is in the confirmation you received after submitting, for example POD-1042.',
+        question: 'Please share your application ID‹mic›, using the microphone or by typing‹/mic›.',
       },
     ],
     cards: [],
@@ -221,8 +221,8 @@ export const scenarios = [
     then: 'startEligibility',
     text: [
       {
-        lead: 'Certainly, let’s begin the eligibility check.',
-        primary: 'I will ask a few quick questions first, so you know you’re eligible before anything else.',
+        lead: 'Certainly, let us begin the eligibility check.',
+        primary: 'I will ask a few quick questions first, so you know whether you are eligible before anything else.',
         secondary: 'Nothing is submitted, and you can change any answer.',
       },
     ],
@@ -310,13 +310,13 @@ export const afterCheck = {
   later: {
     id: 'check:later',
     tool: null,
-    text: [{ lead: 'Understood, thank you.', primary: 'Nothing has been submitted. Whenever you’re ready, I can run the check again.' }],
+    text: [{ lead: 'Understood.', primary: 'Nothing has been submitted. Whenever you’re ready, I can run the check again.' }],
     cards: [eligibilityCard],
   },
   close: {
     id: 'check:close',
     tool: null,
-    text: [{ lead: 'Understood, thank you.', primary: 'Your answers were not saved and nothing was submitted. I’m here whenever you want to continue.' }],
+    text: [{ lead: 'Understood.', primary: 'Your answers were not saved and nothing was submitted. I’m here whenever you want to continue.' }],
     cards: [eligibilityCard],
   },
   apply: {

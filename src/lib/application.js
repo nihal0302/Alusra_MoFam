@@ -53,13 +53,13 @@ export function buildPrompt(app, step, { changing = false, hasOther = false } = 
   return {
     id: `app:${step}`,
     tool: null,
-    text: [{ lead: changing ? 'Certainly. I will update that.' : hasOther && st.leadOne ? st.leadOne : st.lead, primary: st.text }],
+    text: [{ lead: changing ? undefined : hasOther && st.leadOne ? st.leadOne : st.lead, question: st.text }],
     cards,
   };
 }
 
 export function buildNudge(text) {
-  return { id: 'app:nudge', tool: null, text: [{ lead: 'Thank you. A small correction is needed.', primary: text }], cards: [] };
+  return { id: 'app:nudge', tool: null, text: [{ lead: 'A small correction is needed.', question: text }], cards: [] };
 }
 
 export function buildSubmitted(app, reference) {

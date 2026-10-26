@@ -9,6 +9,10 @@ import {
   findEid,
   findPhone,
   matchOption,
+  buildEditAsk,
+  buildGroupAsk,
+  chipOptions,
+  groupFields,
   nextGroup,
   parseNo,
   parseSkip,
@@ -108,13 +112,14 @@ check('next: then disability', nextGroup('self', { emirate: 'Dubai', address: 'x
 check('next: then documents', nextGroup('self', { emirate: 'Dubai', address: 'x', disability: 'Autism' }, new Set()) === 'documents');
 check('next: then the optional extras', nextGroup('self', fillAll, new Set()) === 'extras');
 check('next: then employment', nextGroup('self', fillAll, new Set(['extras'])) === 'employment');
-check('next: skipping employment ends it', nextGroup('self', fillAll, new Set(['extras', 'employment'])) === null);
+check('next: skipping employment still asks about support', nextGroup('self', fillAll, new Set(['extras', 'employment'])) === 'support');
+check('next: then it ends', nextGroup('self', fillAll, new Set(['extras', 'employment', 'support'])) === null);
 check('next: employed asks about the workplace', nextGroup('self', { ...fillAll, employmentStatus: 'Employed' }, new Set(['extras', 'employment'])) === 'workplace');
 check('next: then education', nextGroup('self', { ...fillAll, employmentStatus: 'Employed' }, new Set(['extras', 'employment', 'workplace'])) === 'education');
 check('next: a student adult asks about support', nextGroup('self', { ...fillAll, employmentStatus: 'Student' }, new Set(['extras', 'employment', 'education'])) === 'support');
-check('next: an employed adult does not', nextGroup('self', { ...fillAll, employmentStatus: 'Employed' }, new Set(['extras', 'employment', 'workplace', 'education'])) === null);
+check('next: an employed adult is asked about support too', nextGroup('self', { ...fillAll, employmentStatus: 'Employed' }, new Set(['extras', 'employment', 'workplace', 'education'])) === 'support');
 check('next: someone else who is a student is asked about support', nextGroup('other', { ...fillAll, cardholderEid: 'x', employmentStatus: 'Student' }, new Set(['extras', 'employment', 'education'])) === 'support');
-check('next: someone else who is not employed is not', nextGroup('other', { ...fillAll, cardholderEid: 'x', employmentStatus: 'Not employed' }, new Set(['extras', 'employment', 'education'])) === null);
+check('next: someone else who is not employed is asked about support too', nextGroup('other', { ...fillAll, cardholderEid: 'x', employmentStatus: 'Not employed' }, new Set(['extras', 'employment', 'education'])) === 'support');
 
 // ---- The small readers
 check('eid: dashes and spaces', findEid('ID 784 2012 1234567 1')?.value === '784-2012-1234567-1');
@@ -151,6 +156,28 @@ for (const [text, qids, want] of batches) {
   const got = readBatch(text, qids, eligibility);
   check(`batch: ${text.replace(/\n/g, ' / ')}`, same(got, want), same(got, want) ? '' : `got ${JSON.stringify(got)} wanted ${JSON.stringify(want)}`);
 }
+
+// ---- Chips: the fields that were drop-down lists on the Ministry's form
+const app = application;
+const chipsOf = (p) => p.cards.filter((x) => x.type === 'choices').map((x) => x.field + ':' + x.options.length).join(',');
+check('chips exist for the drop-down fields', ['emirate', 'disability', 'employmentStatus', 'workSector', 'educationLevel', 'academicDegree', 'institutionLocation', 'specialSupport', 'shadowTeacher'].every((k) => chipOptions(app, k)?.length));
+check('no chips for typed fields', ['address', 'employer', 'jobTitle', 'altMobile', 'eidExpiry', 'cardholderEid'].every((k) => chipOptions(app, k) === null));
+check('delivery offers the emirates', chipsOf(buildGroupAsk(app, 'delivery', { who: 'self', data: {} })) === 'emirate:7');
+check('after the emirate, only the address is asked and no chips are left', (() => { const p = buildGroupAsk(app, 'delivery', { who: 'self', data: { emirate: 'Dubai' } }); return chipsOf(p) === '' && p.text[0].question.includes('delivery address'); })());
+check('employment, sector and education offer chips', ['employment:5', 'workplace:4', 'education:6'].every((s) => { const [id, n] = s.split(':'); return chipsOf(buildGroupAsk(app, id, { who: 'self', data: id === 'employment' ? {} : { employmentStatus: 'Employed' } })).endsWith(':' + n); }));
+check('education, one list at a time: the level first, then the degree, then the location', (() => {
+  const d = { employmentStatus: 'Employed' };
+  const first = chipsOf(buildGroupAsk(app, 'education', { who: 'self', data: d }));
+  const second = chipsOf(buildGroupAsk(app, 'education', { who: 'self', data: { ...d, educationLevel: 'Secondary' } }));
+  const third = chipsOf(buildGroupAsk(app, 'education', { who: 'self', data: { ...d, educationLevel: 'Secondary', academicDegree: 'Diploma' } }));
+  return first === 'educationLevel:6' && second === 'academicDegree:5' && third === 'institutionLocation:8';
+})());
+check('a student is not asked for the degree', groupFields('education', { employmentStatus: 'Student' }).join() === 'educationLevel,institutionLocation');
+check('asking one field again offers its chips', chipsOf(buildEditAsk(app, 'emirate', { who: 'self' })) === 'emirate:7' && chipsOf(buildEditAsk(app, 'address', { who: 'self' })) === '');
+check('the two support questions are one card, each with Yes and No, and a Skip button', (() => { const cs = buildGroupAsk(app, 'support', { who: 'self', data: {} }).cards; const set = cs[0]; return set.type === 'choiceSet' && set.sections.length === 2 && set.sections.every((s) => s.options.join() === 'Yes,No') && cs[1].type === 'voice'; })());
+check('the support card has no list, how-to or example (it is all in the card)', (() => { const p = buildGroupAsk(app, 'support', { who: 'self', data: {} }).text[0]; return p.question === 'Please answer the following.' && !p.items && !p.how && !p.example; })());
+check('with one of them already answered, only the other is asked, as chips', chipsOf(buildGroupAsk(app, 'support', { who: 'self', data: { specialSupport: 'No' } })) === 'shadowTeacher:2');
+check('the optional groups keep their Skip button next to the chips', buildGroupAsk(app, 'employment', { who: 'self', data: {} }).cards.map((x) => x.type).join() === 'choices,voice');
 
 console.log(bad ? `\n${bad} failed` : '\nall as expected');
 process.exit(bad ? 1 : 0);

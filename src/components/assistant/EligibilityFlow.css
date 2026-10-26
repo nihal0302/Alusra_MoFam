@@ -1095,3 +1095,13 @@
 
 /* With the buttons outside the reply the outcome card has no action row, so the list closes the card: keep the same room under it as at its sides. */
 .noor-done.is-tray { padding-block-end: 12px; }
+
+/* The next step, asked inside the outcome card just above its buttons: the question first, a short hint under it. */
+.noor-done__next {
+  padding: 20px 24px 0;
+  border-block-start: 1px solid var(--noor-line);
+  margin-block-start: 20px;
+}
+.noor-done__ask { margin: 0; font-size: 14.5px; font-weight: 600; line-height: 21px; color: var(--noor-ink); }
+.noor-done__hint { margin: 5px 0 0; font-size: 14.5px; line-height: 21px; color: var(--noor-ink); }
+.noor-done__next + .noor-done__foot { padding-block-start: 16px; }

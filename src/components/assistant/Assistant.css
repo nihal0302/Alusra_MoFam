@@ -393,6 +393,16 @@
   color: var(--noor-ink);
 }
 
+/* The question: a bubble of its own, set apart from the acknowledgement above it, in the same colour. It is laid out like every
+   other reply: the question in the bold opener style (.noor-bubble__lead), then how to answer it and any note as body copy
+   (.noor-bubble__primary). */
+
+/* the line above a row of answer chips: body copy */
+.noor-card__prompt { margin: 0 0 15px; font-size: 14.5px; line-height: 21px; color: var(--noor-ink); }
+
+.noor-bubble--ask .noor-bubble__example { margin-block-start: 4px; }
+
+
 .noor-bubble__secondary {
   font-size: 13.5px;
   line-height: 19px;
@@ -1263,7 +1273,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-block-start: 8px;
+  margin-block-start: 13px; /* room between the heading and the chips */
 }
 
 .noor-suggest__btn {
@@ -2101,3 +2111,28 @@
 
 .noor-panel:has(> .noor-glow--chat) .noor-stage { z-index: 1; }
 .noor-panel:has(> .noor-glow--chat) .noor-log { background: transparent; }
+
+/* A question that asks for several things lists them, numbered, like the eligibility questions. */
+.noor-bubble__list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px; /* room between the points */
+  margin: 4px 0;
+  padding-inline-start: 22px;
+  line-height: 21px;
+  color: var(--noor-ink);
+}
+.noor-bubble__list li::marker { font-weight: 600; color: var(--noor-gold); }
+
+/* A section of its own in a row of chips: a divider, then its own line and chip. */
+.noor-card__extra {
+  margin-block-start: 16px;
+  padding-block-start: 14px;
+  border-block-start: 1px solid var(--noor-line);
+}
+
+/* "(optional)" after a question: regular weight, even though the question itself is bold. */
+.noor-bubble__tag { font-weight: 400; }
+
+/* The second and later questions in a box of several: a little air between them. */
+.noor-card__section + .noor-card__section { margin-block-start: 18px; }

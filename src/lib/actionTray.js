@@ -32,13 +32,16 @@ export function trayItems(scenario) {
         items.push({ kind: 'uaepass', label: card.action.label, event: card.action.event, payload: card.action });
         break;
       case 'voice':
-        if (card.skip) items.push({ kind: 'button', variant: 'quiet', label: card.skip, event: 'skip', payload: { group: card.group, label: card.skip } });
+        if (card.skip) items.push({ kind: 'button', variant: 'secondary', label: card.skip, event: 'skip', payload: { group: card.group, label: card.skip } });
         break;
       case 'docs':
         items.push({ kind: 'button', variant: 'secondary', icon: 'attach', label: card.button, event: 'pickFiles', payload: {} });
         break;
       case 'choices':
-        for (const o of card.options) items.push({ kind: 'chip', label: o, event: 'choice', payload: { field: card.field, value: o } });
+        for (const o of [...card.options, ...(card.extra?.options ?? [])]) items.push({ kind: 'chip', label: o, event: 'choice', payload: { field: card.field, value: o } });
+        break;
+      case 'choiceSet':
+        for (const s of card.sections) for (const o of s.options) items.push({ kind: 'chip', label: `${s.short}: ${o}`, event: 'choiceSet', payload: { group: card.group, field: s.field, value: o } });
         break;
       case 'appReview':
         items.push({ kind: 'button', variant: 'primary', label: card.submit.label, event: card.submit.event, payload: card.submit });

@@ -133,7 +133,8 @@ export function buildIntake({ eligibility, copy, answers, docs, notes, hadText, 
     changeLabel: copy.card.changeLabel,
     note: copy.card.note,
     rows,
-    docs: docRows,
+    // Only documents the person has attached are listed: the check does not ask for them, so one that is missing is not shown as missing.
+    docs: docRows.filter((d) => d.value),
     spoken: `${copy.card.title}. ${rows.map((r) => `${r.label}: ${r.value ?? copy.card.missing}`).join('. ')}.`,
   };
 
@@ -176,7 +177,7 @@ export function buildIntake({ eligibility, copy, answers, docs, notes, hadText, 
       tool: null,
       // When something is missing, the first missing question follows this message.
       then: complete ? undefined : 'continueIntake',
-      text: [{ lead, primary, secondary }],
+      text: [{ lead, plainLead: true, primary, secondary }],
       cards,
     },
   };

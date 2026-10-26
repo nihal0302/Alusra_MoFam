@@ -22,7 +22,6 @@ export const subject = (who, extra = {}) =>
 // required: what must be known before moving on. Optional groups can be skipped, and are done once answered or skipped.
 export const EMPLOYED = ['Employed', 'Self-employed'];
 const WORK_ONLY = ['workSector', 'employer', 'jobTitle', 'academicDegree']; // asked only of someone who is working
-const STUDENT_ONLY = ['specialSupport', 'shadowTeacher']; // asked only of a student
 
 export const GROUPS = [
   { id: 'cardholder', required: ['cardholderEid'], when: (who) => who === 'other' },
@@ -33,7 +32,7 @@ export const GROUPS = [
   { id: 'employment', optional: true },
   { id: 'workplace', optional: true, when: (who, d) => EMPLOYED.includes(d.employmentStatus) },
   { id: 'education', optional: true, when: (who, d) => Boolean(d.employmentStatus) },
-  { id: 'support', optional: true, when: (who, d) => Boolean(d.employmentStatus) && d.employmentStatus === 'Student' },
+  { id: 'support', optional: true }, // on the Ministry's form for everyone, not only students
 ];
 
 export const FIELD_GROUP = {
@@ -347,7 +346,7 @@ function notedList(app, data, noted, docs = []) {
 
 const ack = (app, data, noted, docs) => {
   const list = notedList(app, data, noted, docs);
-  return list ? fill(app.conv.ackLead, { list }) : app.conv.plainLead;
+  return list ? fill(app.conv.ackLead, { list }) : undefined;
 };
 
 // The optional questions have a Skip button. (There is no "answer by voice" button here: the microphone in the message box is
@@ -355,24 +354,93 @@ const ack = (app, data, noted, docs) => {
 const SKIPPABLE = ['extras', 'employment', 'workplace', 'education', 'support'];
 const buttonCard = (app, id) => (SKIPPABLE.includes(id) ? { type: 'voice', label: null, skip: app.conv.skip, group: id } : null);
 
-const disabilityCard = (app) => ({ type: 'choices', label: 'Disability type', options: app.conv.options.disability.map((o) => o.value), field: 'disability', spoken: 'Disability types.' });
+// The fields that were drop-down lists on the Ministry's form are offered as chips (the list each one uses is in content `options`).
+const CHIP_LISTS = {
+  emirate: 'emirates',
+  disability: 'disability',
+  employmentStatus: 'employmentStatus',
+  workSector: 'workSector',
+  academicDegree: 'academicDegree',
+  educationLevel: 'educationLevel',
+  institutionLocation: 'institutionLocation',
+  specialSupport: 'yesNo',
+  shadowTeacher: 'yesNo',
+};
+
+// The chips for a field, or null when it is typed or spoken only.
+export function chipOptions(app, field) {
+  const list = app.conv.options[CHIP_LISTS[field]];
+  return list ? list.map((o) => o.value) : null;
+}
+
+// The chips of a list, with any answer that has its own section (content `chipExtras`, e.g. "Multiple" for the disability type)
+// taken out of the main list.
+export function chipSplit(app, field, options = chipOptions(app, field)) {
+  const extra = app.conv.chipExtras?.[field];
+  if (!extra) return { options };
+  return { options: options.filter((o) => !extra.options.includes(o)), extra: { prompt: extra.prompt, options: extra.options.filter((o) => options.includes(o)) } };
+}
+
+const chipCard = (app, field) => ({ type: 'choices', label: app.conv.review.labels[field], ...chipSplit(app, field), prompt: app.conv.chipPrompts[field], field, spoken: `${app.conv.review.labels[field]}.` });
+
+// Every field a group asks for, so that a group answered one chip at a time knows what is still missing.
+// (A group not listed here asks for what it requires.)
+export function groupFields(id, data) {
+  switch (id) {
+    case 'delivery':
+      return ['emirate', 'address'];
+    case 'disability':
+      return ['disability'];
+    case 'employment':
+      return ['employmentStatus'];
+    case 'workplace':
+      return ['workSector', 'employer', 'jobTitle'];
+    case 'education':
+      return ['educationLevel', ...(EMPLOYED.includes(data.employmentStatus) ? ['academicDegree'] : []), 'institutionLocation'];
+    case 'support':
+      return ['specialSupport', 'shadowTeacher'];
+    default:
+      return groupMeta(id)?.required ?? [];
+  }
+}
 
 // The question for one group: the words, an example, and the buttons. `partial` is true when some of it was answered.
 function groupParts(app, id, { who, data }) {
   const c = app.conv;
   const g = c.groups[id];
   const meta = groupMeta(id);
-  const missing = (meta.required ?? []).filter((k) => !data[k]);
-  const partial = Boolean(meta.required) && missing.length > 0 && meta.required.some((k) => data[k]);
+  const fields = groupFields(id, data);
+  const missing = fields.filter((k) => !data[k]);
+  const partial = missing.length > 0 && fields.some((k) => data[k]);
   const employed = EMPLOYED.includes(data.employmentStatus);
   const other = who === 'other';
-  const text = id === 'extras' && other ? g.askOther : id === 'education' && employed ? g.askEmployed : g.ask;
+  const how = g.how;
+  const itemList = id === 'extras' && other ? g.itemsOther : id === 'education' && employed ? g.itemsEmployed : g.items;
   const example = id === 'extras' && other ? g.exampleOther : id === 'education' && employed ? g.exampleEmployed : g.example;
   const sub = subject(who, { mobile: data.deliveryMobile ?? '' });
+  const firstChip = missing.find((k) => chipOptions(app, k));
+  // The question, how to answer it, and a note, each on its own line (the message shows them as separate paragraphs).
   return {
-    primary: partial ? fill(c.more, { list: joinList(missing.map((k) => g.need[k])) }) : fill(text, sub),
+    question: partial ? fill(c.more, { list: joinList(missing.map((k) => g.need[k])) }) : fill(g.ask, sub),
+    tag: meta.optional ? c.optionalTag : undefined,
+    items: partial || !itemList ? undefined : itemList.map((t) => fill(t, sub)),
+    how: partial ? (firstChip ? c.moreHowChips : c.moreHow) : how ? fill(how, sub) : undefined,
+    note: partial || !g.note ? undefined : fill(g.note, sub),
     example: partial ? undefined : example,
-    cards: [...(id === 'disability' ? [disabilityCard(app)] : []), buttonCard(app, id)].filter(Boolean),
+    // Chips for the first thing still missing that has a list (one list at a time, so it is clear what a chip answers). Questions
+    // that do not depend on each other and are all still open (g.sections) are shown together in one card instead.
+    cards: [
+      ...(g.sections && !partial
+        ? [
+            {
+              type: 'choiceSet',
+              group: id,
+              sections: g.sections.map((s) => ({ field: s.field, short: c.review.labels[s.field], question: fill(s.question, sub), options: chipOptions(app, s.field) })),
+            },
+          ]
+        : [...[missing.find((k) => chipOptions(app, k))].filter(Boolean).map((k) => chipCard(app, k))]),
+      buttonCard(app, id),
+    ].filter(Boolean),
   };
 }
 
@@ -385,8 +453,9 @@ export function buildSignInConv(app, { who, data, group }) {
   return {
     id: 'app:signin',
     tool: { working: s.working, done: s.done },
-    text: [{ lead: fill(s.lead, { first: s.profile.first }), primary: `${c.signIn.primary[who]} ${parts.primary}`, example: parts.example, exampleLabel: parts.example ? c.exampleLabel : undefined }],
-    cards: [{ type: 'details', title: c.signIn.title, rows, note: s.card.note, spoken: `${c.signIn.title}.` }, ...parts.cards],
+    text: [{ lead: fill(s.lead, { first: s.profile.first }), primary: c.signIn.primary[who], question: parts.question, tag: parts.tag, items: parts.items, how: parts.how, note: parts.note, example: parts.example, exampleLabel: parts.example ? c.exampleLabel : undefined }],
+    // the UAE PASS details (open) come right under the acknowledgement and before the question; the answers sit under the question
+    cards: [{ type: 'details', before: true, open: true, title: c.signIn.title, rows, note: s.card.note, spoken: `${c.signIn.title}.` }, ...parts.cards],
   };
 }
 
@@ -395,7 +464,7 @@ export function buildApplyConv(app, base, who) {
   const a = app.conv.apply[who === 'other' ? 'other' : 'self'];
   return {
     ...base,
-    text: [{ lead: a.lead, primary: a.primary, secondary: a.secondary }],
+    text: [{ lead: a.lead, primary: `${a.primary} ${a.secondary}`, question: a.question, plainQuestion: true }], // a request, not a question to answer: regular text
     cards: base.cards.map((card) => (card.type === 'uaepass' ? { ...card, description: a.description } : card)),
   };
 }
@@ -409,7 +478,13 @@ export function buildGroupAsk(app, id, { who, data, noted = [], docs = [], prefi
     text: [
       {
         lead: ack(app, data, noted, docs),
-        primary: `${prefix}${prefix ? ' ' : ''}${parts.primary}`,
+        plainLead: true, // an acknowledgement: regular text
+        primary: prefix || undefined,
+        question: parts.question,
+        tag: parts.tag,
+        items: parts.items,
+        how: parts.how,
+        note: parts.note,
         example: parts.example,
         exampleLabel: parts.example ? app.conv.exampleLabel : undefined,
       },
@@ -432,10 +507,11 @@ export function buildDocsAsk(app, { who, data, noted = [], docs = [], prefix = '
   const missing = ['photo', 'report'].filter((k) => !data[k]);
   const first = !noted.length && !docs.length && missing.length === 2;
   const text = missing.length === 2 ? fill(c.text, sub) : fill(c.one, { ...sub, missing: c.names[missing[0]] });
+  const how = missing.length === 2 ? c.how : c.oneHow;
   return {
     id: 'app:docs',
     tool: null,
-    text: [{ lead: first ? c.lead : ack(app, data, noted, docs), primary: `${prefix}${prefix ? ' ' : ''}${text}` }],
+    text: [{ lead: first ? c.lead : ack(app, data, noted, docs), plainLead: true, primary: prefix || undefined, question: text, how }],
     cards: [{ type: 'docs', title: c.card.title, items: docItems(app, data), button: c.card.button, spoken: `${c.card.title}. ${missing.map((k) => c.names[k]).join(' and ')} still needed.` }],
   };
 }
@@ -446,8 +522,8 @@ export function buildEditAsk(app, field, { who, lead }) {
   return {
     id: 'app:edit',
     tool: null,
-    text: [{ lead: lead ?? 'Certainly.', primary: text }],
-    cards: field === 'disability' ? [disabilityCard(app)] : [],
+    text: [{ lead, question: text }],
+    cards: chipOptions(app, field) ? [chipCard(app, field)] : [],
   };
 }
 
@@ -488,7 +564,6 @@ export function reviewGroups(app, { who, data }) {
       rows: compact(
         ['employmentStatus', 'workSector', 'employer', 'jobTitle', 'academicDegree', 'educationLevel', 'institutionLocation', 'specialSupport', 'shadowTeacher']
           .filter((k) => !WORK_ONLY.includes(k) || EMPLOYED.includes(data.employmentStatus))
-          .filter((k) => !STUDENT_ONLY.includes(k) || data.employmentStatus === 'Student')
           .map((k) => row(k, data[k], 'you', k)),
       ),
     },
@@ -496,35 +571,16 @@ export function reviewGroups(app, { who, data }) {
   return groups;
 }
 
-// The sentence summary, with the full review card under it for anyone who wants to see every row.
+// The review: a short opener and a line saying what follows, then the card with every answer. The card's confirmation says in one
+// paragraph that the details are accurate and how to submit or change them.
 export function buildReviewConv(app, { who, data, updated = [] }) {
   const c = app.conv.review;
-  const profile = Object.fromEntries(app.signIn.profile.rows.map((row) => [row.id, row.value]));
-  const other = who === 'other';
-  const summary = fill(other ? c.summaryOther : c.summarySelf, {
-    name: profile.name,
-    eid: data.cardholderEid,
-    where: wordRe(data.emirate).test(data.address) ? data.address : `${data.address}, ${data.emirate}`, // do not say the emirate twice
-    phone: data.deliveryMobile,
-    disability: data.disability,
-  });
-  const extraBits = [
-    data.altMobile && `an alternative number (${data.altMobile})`,
-    data.eidExpiry && `the Emirates ID expiry date (${data.eidExpiry})`,
-    data.additional?.length && `${data.additional.length === 1 ? 'an additional report' : `${data.additional.length} additional reports`}`,
-    data.employmentStatus && 'your employment and education details',
-  ].filter(Boolean);
-  const extras = extraBits.length ? ` ${fill(c.extras, { list: joinList(extraBits) })}` : '';
-  const groups = reviewGroups(app, { who, data });
   const r = app.review;
+  const again = updated.length > 0;
   return {
     id: 'app:review',
     tool: null,
-    text: [
-      updated.length
-        ? { lead: fill(c.updated, { list: joinList(updated) }), primary: `${summary}${extras} ${c.askAgain}`, example: c.example, exampleLabel: app.conv.exampleLabel }
-        : { lead: c.lead, primary: `${summary}${extras} ${c.ask}`, example: c.example, exampleLabel: app.conv.exampleLabel },
-    ],
+    text: [again ? { lead: fill(c.updated, { list: joinList(updated) }), plainLead: true, primary: c.intro } : { lead: c.lead, primary: c.intro }],
     cards: [
       {
         type: 'appReview',
@@ -534,14 +590,14 @@ export function buildReviewConv(app, { who, data, updated = [] }) {
         consent: r.consent,
         note: r.note,
         submit: { label: r.submit, event: 'submit' },
-        groups,
-        spoken: 'Review your application. The details are listed in groups, with a Change option where you can edit them.',
+        groups: reviewGroups(app, { who, data }),
+        spoken: 'Review your application. The details are listed in groups, with a Change option where you can edit them. Reply yes to submit, or say what you would like to change.',
       },
     ],
   };
 }
 
-export const buildNudgeConv = (lead, primary, example, exampleLabel) => ({ id: 'app:nudge', tool: null, text: [{ lead, primary, ...(example ? { example, exampleLabel } : {}) }], cards: [] });
+export const buildNudgeConv = (lead, primary, example, exampleLabel) => ({ id: 'app:nudge', tool: null, text: [{ lead, question: primary, ...(example ? { example, exampleLabel } : {}) }], cards: [] });
 
 export function buildResume(app, kind, data) {
   const r = app.conv.resume;
@@ -550,7 +606,7 @@ export function buildResume(app, kind, data) {
   else if (kind === 'docs') primary = fill(r.docs, { list: joinList(['photo', 'report'].filter((k) => !data[k]).map((k) => app.conv.docs.names[k])) });
   else if (kind === 'confirm') primary = r.confirm;
   else return null;
-  return { id: 'app:resume', tool: null, text: [{ primary }], cards: [] };
+  return { id: 'app:resume', tool: null, text: [{ question: primary }], cards: [] };
 }
 
 // ---- The eligibility questions, asked together --------------------------------------------------------------------------
@@ -607,7 +663,7 @@ export function buildBatch(eligibility, qids, first) {
   return {
     id: first ? 'check:batch' : 'check:batchMore',
     tool: null,
-    text: [first ? { lead: b.lead, primary: b.primary } : { lead: b.moreLead, primary: fill(b.more, { what }) }],
+    text: [first ? { question: b.primary, how: b.how } : { question: fill(b.more, { what }), how: b.moreHow }],
     cards: [
       {
         type: 'batch',

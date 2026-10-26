@@ -10,6 +10,8 @@ import {
   buildResume,
   buildReviewConv,
   buildSignInConv,
+  FIELD_GROUP,
+  groupFields,
   joinList,
   looksLikeQuestion,
   matchOption,
@@ -69,7 +71,7 @@ export function useApplication(app, api, { conv = false } = {}) {
     const scenario = buildPrompt(app, step, { ...opts, hasOther });
     // Variation 2 asks for a replacement file with the form's own wording.
     if (step === 'photo' || step === 'report') {
-      scenario.text[0].primary = app.conv.docs.editPrompt[step];
+      scenario.text[0].question = app.conv.docs.editPrompt[step];
       if (scenario.cards[0]) scenario.cards[0] = { ...scenario.cards[0], hint: app.conv.docs.card.items[step].hint };
     }
     const msgId = api.pushNoor(scenario);
@@ -178,6 +180,24 @@ export function useApplication(app, api, { conv = false } = {}) {
     else review(updated);
   };
 
+  // A chip chosen in the conversation (Variation 2): the answer is taken like typed text. When the group still has something
+  // to ask (the delivery address after the emirate, the next list in education), it asks for the rest.
+  const convChoice = (field, value) => {
+    if (ref.current.awaiting?.kind === 'edit') {
+      applyEdit(field, value);
+      return;
+    }
+    store(field, value);
+    const group = FIELD_GROUP[field];
+    const missing = groupFields(group, ref.current.data).filter((k) => !ref.current.data[k]);
+    if (missing.length) {
+      askGroup(group, { noted: [field] }); // what was chosen is noted, and the rest is asked politely
+      return;
+    }
+    if (GROUPS.find((g) => g.id === group)?.optional) settle(group); // an optional group is done once all of it is answered
+    afterAnswer();
+  };
+
   // Events from cards. Returns true when handled.
   const handle = (event, payload, msgId) => {
     switch (event) {
@@ -204,10 +224,25 @@ export function useApplication(app, api, { conv = false } = {}) {
         return true;
       case 'choice':
         api.lock(msgId, payload.value);
-        store(payload.field, payload.value);
         api.pushUser(payload.value);
+        if (conv) {
+          convChoice(payload.field, payload.value);
+          return true;
+        }
+        store(payload.field, payload.value);
         afterAnswer([payload.field]);
         return true;
+      case 'choiceSet': {
+        // Independent questions in one card: each chip is stored as it is picked; once all are answered they go in as one reply.
+        store(payload.field, payload.value);
+        const fields = groupFields(payload.group, ref.current.data);
+        if (!fields.every((k) => ref.current.data[k])) return true;
+        api.lock(msgId, 'answered');
+        api.pushUser(fields.map((k) => `${app.conv.review.labels[k]}: ${ref.current.data[k]}`).join(' · '));
+        if (GROUPS.find((g) => g.id === payload.group)?.optional) settle(payload.group);
+        afterAnswer();
+        return true;
+      }
       case 'skip':
         api.lock(msgId, 'skipped');
         api.pushUser(payload.label);
@@ -234,7 +269,7 @@ export function useApplication(app, api, { conv = false } = {}) {
         api.lock(msgId, 'editing');
         api.pushUser(`${app.review.change}: ${app.conv.review.labels[payload.field]}`);
         if (conv && payload.field !== 'photo' && payload.field !== 'report') {
-          askEdit(payload.field, 'Certainly. I will update that.');
+          askEdit(payload.field);
           return true;
         }
         ref.current.returnToReview = true;

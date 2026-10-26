@@ -80,7 +80,7 @@ export function evaluate(copy, answers) {
       subtitle: u.subtitle,
       listLabel: res.listLabel.unsure,
       items: unsure.map((q) => u.confirm[q]),
-      summary: { lead: 'Thank you. A few details still need to be confirmed.' },
+      summary: { lead: 'A few details still need to be confirmed.' },
     };
   }
 
@@ -105,7 +105,7 @@ export function buildQuestion(copy, qid, answers, { changing = false } = {}) {
   return {
     id: `q:${qid}`,
     tool: null,
-    text: [{ lead: changing ? copy.change.lead : q.lead, primary: text }],
+    text: [{ lead: changing ? undefined : q.lead, question: text }],
     cards: [
       {
         type: 'question',
@@ -127,7 +127,7 @@ export function buildReview(copy, answers) {
   return {
     id: 'review',
     tool: null,
-    text: [{ lead: r.lead, primary: r.text }],
+    text: [{ lead: r.lead, question: r.text }],
     cards: [
       {
         type: 'review',
@@ -168,6 +168,8 @@ export function buildResult(copy, answers) {
           listLabel: result.listLabel,
           items: result.items,
           metaLabel: res.metaLabel,
+          // An eligible result asks what to do next inside the card, just above its buttons.
+          ...(result.kind === 'eligible' ? { next: res.eligible.next } : {}),
           actions,
           links: result.kind === 'eligible' ? [] : res.links,
         },

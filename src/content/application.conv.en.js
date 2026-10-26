@@ -33,25 +33,44 @@ export const conv = {
   // Just before the UAE PASS button: what is shared depends on who the card is for.
   apply: {
     self: {
-      lead: 'Thank you. To continue, please sign in.',
+      question: 'To continue, please sign in with UAE PASS.',
       primary: 'To fill in your details for you, I will ask you to sign in with UAE PASS.',
       secondary: 'Your name, Emirates ID, nationality, mobile and email are filled in for you.',
       description: 'UAE PASS shares your name, Emirates ID, nationality, mobile and email. You will review everything before anything is submitted.',
     },
     other: {
-      lead: 'Thank you. To continue, please sign in.',
+      question: 'To continue, please sign in with UAE PASS.',
       primary: 'You will sign in as the applicant, so I will use UAE PASS for your own details.',
       secondary: 'Your name, mobile and email are filled in for you. Their Emirates ID and date of birth are not part of your UAE PASS, so I will ask you for those next.',
       description: 'UAE PASS shares your name, mobile and email. Their details are not shared, so you’ll enter them yourself. You will review everything before anything is submitted.',
     },
   },
 
-  ackLead: 'Thank you. I have noted {list}.',
-  plainLead: 'Thank you.',
-  more: 'I still need {list}.',
+  // Said only after a typed or spoken answer, to show what was understood; a chosen option is not repeated back.
+  ackLead: 'I have noted {list}.',
+  // The line above a row of chips: it names what the chips answer.
+  // An answer that gets its own section under the rest of the chips, with a line of its own.
+  chipExtras: { disability: { prompt: 'If there is more than one disability, select:', options: ['Multiple'] } },
+  chipPrompts: {
+    emirate: 'Select the emirate:',
+    disability: 'Select the disability type:',
+    employmentStatus: 'Select the employment status:',
+    workSector: 'Select the work sector:',
+    educationLevel: 'Select the education level:',
+    academicDegree: 'Select the highest academic degree:',
+    institutionLocation: 'Select the location of the institution:',
+    specialSupport: 'Select Yes or No for special education support:',
+    shadowTeacher: 'Select Yes or No for shadow teacher:',
+  },
+  // After part of a question was answered (what was understood is said first): the polite request for the rest.
+  more: 'Could you please also provide {list}?',
+  moreHow: '‹mic›You may use the microphone or type your answer.‹/mic›',
+  moreHowChips: 'Please select an option below‹mic›, or use the microphone or type your answer‹/mic›.',
   exampleLabel: 'For example:',
-  nudgeLead: 'I was unable to understand that.',
-  nudge: 'Please provide {list}, using the microphone or by typing.',
+  nudgeLead: 'I am sorry, I was unable to understand that.',
+  nudge: 'Could you please provide {list}‹mic›, using the microphone or by typing‹/mic›?',
+  // Said after the question when it can be left out (regular weight, in brackets).
+  optionalTag: '(optional)',
   nudgeOptional: 'You can answer, or reply “skip” to leave this out.',
 
   // What was just taken, in a sentence. {v} is the value.
@@ -76,31 +95,41 @@ export const conv = {
   },
 
   // The questions, in the order they are asked. {your}, {Your}, {you} and {they} become "their" wording when the card is for someone else.
+  // Each question: `ask` (the question), `items` (what it asks for, shown as a numbered list when there are several), `how` (how to
+  // answer) and `note`. `itemsOther` / `itemsEmployed` are the lists for someone else / someone who works.
   groups: {
     cardholder: {
-      ask: 'Because the card is for someone else, I need their Emirates ID number (15 digits). Their date of birth helps too, if you have it.',
+      ask: 'Because the card is for someone else, I require the following details.',
+      items: ['Their Emirates ID number (15 digits)', 'Their date of birth (if available)'],
+      how: 'Please provide them‹mic›, using the microphone or by typing‹/mic›.',
       example: '784-1985-1234567-1, born 15 May 1985',
       placeholder: 'e.g. 784-1985-1234567-1, born 15 May 1985',
       voiceSample: 'Their Emirates ID is 784-1985-1234567-1 and they were born on 15 May 1985',
       need: { cardholderEid: 'their 15-digit Emirates ID number' },
     },
     delivery: {
-      ask: 'Next, the delivery details. Please provide the emirate and the delivery address and location for the card, using the microphone or by typing. The number {mobile} will be used as the delivery contact number.',
+      ask: 'Where should the card be delivered?',
+      items: ['Emirate', 'Delivery address and location'],
+      how: 'Select the emirate below, or provide both in one message‹mic›, using the microphone or by typing‹/mic›.',
+      note: 'The number {mobile} will be used as the delivery contact number.',
       example: 'Dubai, Villa 12, Street 5, Al Barsha 1',
       placeholder: 'e.g. Dubai, Villa 12, Street 5, Al Barsha 1',
       voiceSample: 'Dubai, Villa 12, Street 5, Al Barsha 1',
       need: { emirate: 'the emirate', address: 'the delivery address and location' },
     },
     disability: {
-      ask: 'What is {your} disability type? Please select one of the options below, or provide it using the microphone or by typing.',
+      ask: 'What is {your} disability type?',
+      how: 'Select one of the options below, or provide it‹mic›, using the microphone or by typing‹/mic›.',
       placeholder: 'Speak or type the disability type…',
       voiceSample: 'Autism',
       need: { disability: 'the disability type' },
     },
     extras: {
       optional: true,
-      ask: 'A few optional details. You can add an alternative mobile number, {your} Emirates ID expiry date, and any additional reports (attach them with the paperclip). Reply “skip” to leave them out.',
-      askOther: 'A few optional details. You can add an alternative mobile number and any additional reports (attach them with the paperclip). Reply “skip” to leave them out.',
+      ask: 'Would you like to provide any further details?',
+      items: ['Alternative mobile number', '{Your} Emirates ID expiry date', 'Additional reports (attach them using the paperclip)'],
+      itemsOther: ['Alternative mobile number', 'Additional reports (attach them using the paperclip)'],
+      how: 'Reply “skip” to leave them out.',
       example: '050 111 2222, expires 20 March 2030',
       exampleOther: '050 111 2222',
       placeholder: 'Add details, attach reports, or reply “skip”…',
@@ -108,32 +137,44 @@ export const conv = {
     },
     employment: {
       optional: true,
-      ask: 'Optional: what is {your} employment status? For example employed, self-employed, student or not employed. Reply “skip” to leave out employment and education.',
+      ask: 'What is {your} employment status?',
+      how: 'Select one of the options below, or provide it‹mic›, using the microphone or by typing‹/mic›. Reply “skip” to leave out employment and education.',
       placeholder: 'Employment status, or reply “skip”…',
       voiceSample: 'Student',
     },
     workplace: {
       optional: true,
-      ask: 'Which sector {do} {they} work in (government, semi-government, private or non-profit), who is the employer, and what is the job title? Reply “skip” to leave this out.',
+      ask: 'Where {do} {they} work?',
+      items: ['Sector', 'Employer', 'Job title'],
+      how: 'Select the sector below, or provide all three in one message‹mic›, using the microphone or by typing‹/mic›. Reply “skip” to leave this out.',
       example: 'Private sector, Al Noor Trading, accountant',
       placeholder: 'Sector, employer and job title, or reply “skip”…',
       voiceSample: 'Private sector, Al Noor Trading, accountant',
+      need: { workSector: 'the work sector', employer: 'the employer', jobTitle: 'the job title' },
     },
     education: {
       optional: true,
-      ask: 'And {your} education: the education level (for example primary, secondary or higher education) and where the institution is, in an emirate or outside the UAE. Reply “skip” to leave this out.',
-      askEmployed: 'And {your} education: the education level, the highest academic degree, and where the institution is, in an emirate or outside the UAE. Reply “skip” to leave this out.',
+      ask: 'What is {your} education?',
+      items: ['Education level', 'Location of the institution (in an emirate, or outside the UAE)'],
+      itemsEmployed: ['Education level', 'Highest academic degree', 'Location of the institution (in an emirate, or outside the UAE)'],
+      how: 'Select the education level below, or provide the details in one message‹mic›, using the microphone or by typing‹/mic›. Reply “skip” to leave this out.',
       example: 'Secondary, in Sharjah',
       exampleEmployed: 'Higher education, bachelor’s degree, in Dubai',
       placeholder: 'Education details, or reply “skip”…',
       voiceSample: 'Secondary, in Sharjah',
+      need: { educationLevel: 'the education level', academicDegree: 'the highest academic degree', institutionLocation: 'the location of the institution' },
     },
     support: {
       optional: true,
-      ask: 'Last one. {Is} {cardholder} receiving special education support, and is there a shadow teacher? You can answer yes or no to each. Reply “skip” to leave this out.',
-      example: 'Support yes, shadow teacher no',
+      ask: 'Please answer the following.',
+      // Independent questions: asked together in one card, each with its own Yes / No (the question is filled for who the card is for).
+      sections: [
+        { field: 'specialSupport', question: '{Is} {cardholder} receiving special education support?' },
+        { field: 'shadowTeacher', question: 'Is there a shadow teacher?' },
+      ],
       placeholder: 'e.g. support yes, shadow teacher no, or “skip”…',
       voiceSample: 'Support yes, shadow teacher no',
+      need: { specialSupport: 'whether special education support is received', shadowTeacher: 'whether there is a shadow teacher' },
     },
   },
 
@@ -161,9 +202,10 @@ export const conv = {
   editVoiceSample: 'Sharjah',
 
   docs: {
-    lead: 'Good progress.',
-    text: 'Please attach {your} personal photograph (a recent passport-size photograph with a white background, 2 × 6 cm) and the medical or psychological report. You can send both together with the paperclip.',
-    one: 'I still need {your} {missing}. You can attach it with the paperclip.',
+    text: 'Please attach {your} personal photograph and the medical or psychological report.',
+    how: 'You can send both together using the paperclip. The requirements for each are listed below.',
+    one: 'I still require {your} {missing}.',
+    oneHow: 'You can attach it using the paperclip.',
     names: { photo: 'photograph', report: 'report' },
     yourNames: { photo: 'the photograph', report: 'the report' },
     card: {
@@ -187,18 +229,15 @@ export const conv = {
   },
 
   review: {
-    lead: 'Thank you, that is everything I need.',
-    summarySelf: 'Here is your application. You are applying for yourself, as {name}. The card will be delivered to {where}, and I will use {phone} as the delivery contact. Your disability type is {disability}, and your photograph and report are attached.',
-    summaryOther: 'Here is your application. You are applying on behalf of someone else (Emirates ID {eid}), and you are the applicant, {name}. The card will be delivered to {where}, and I will use {phone} as the delivery contact. Their disability type is {disability}, and the photograph and report are attached.',
-    extras: 'I have also added {list}.',
-    ask: 'Shall I submit the application? Please reply “yes”, or state what you would like to change, using the microphone or by typing.',
-    askAgain: 'Shall I submit the application now? Please reply “yes”, or state what else you would like to change, using the microphone or by typing.',
+    lead: 'That is everything I require.',
+    // The line under the opener. (The confirmation in the card above the submit button is `review.consent` in application.en.js.)
+    intro: 'Below are all the details I have recorded so far.',
     example: '“change the delivery address to Villa 5, Al Nahda, Sharjah”',
     updated: 'Done. I have updated {list}.',
     placeholder: 'Reply “yes” to submit, or state what to change…',
     voiceSample: 'Yes, submit it',
     nudgeLead: 'I was unable to identify which detail to change.',
-    nudge: 'Please state what you would like to change, using the microphone or by typing.',
+    nudge: 'Please state what you would like to change‹mic›, using the microphone or by typing‹/mic›.',
     holdLead: 'No problem.',
     hold: 'What would you like to change?',
     changed: {
@@ -306,6 +345,10 @@ export const conv = {
       { value: 'Secondary', aliases: ['secondary', 'high school'] },
       { value: 'Higher education', aliases: ['higher education', 'university', 'college'] },
       { value: 'Not in education', aliases: ['not in education', 'not studying', 'no education'] },
+    ],
+    yesNo: [
+      { value: 'Yes', aliases: [] },
+      { value: 'No', aliases: [] },
     ],
     institutionLocation: [
       ...emirates.map((v) => ({ value: v, aliases: v === 'Ras Al Khaimah' ? ['rak'] : v === 'Umm Al Quwain' ? ['uaq'] : [] })),
