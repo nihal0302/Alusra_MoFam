@@ -7,7 +7,7 @@ import { NoorAvatar } from './NoorAvatar.jsx';
 import { NoorMessage } from './NoorMessage.jsx';
 import { resolveScenario } from '../../lib/noor.js';
 import { buildQuestion, buildResult, buildReview, nextStep, parseAnswer, pathOf, purge } from '../../lib/eligibility.js';
-import { batchExample, buildBatch, buildNudgeConv, looksLikeQuestion, readBatch } from '../../lib/conversation.js';
+import { CONV_KINDS, batchExample, buildBatch, buildNudgeConv, looksLikeQuestion, readBatch } from '../../lib/conversation.js';
 import { useApplication } from './useApplication.js';
 import { usePrefersReducedMotion } from '../../lib/usePrefersReducedMotion.js';
 import { buildNudge, formatSize } from '../../lib/application.js';
@@ -375,6 +375,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, onButt
         lock(msgId, 'apply');
         pushUser(payload.label);
         app.prefill(docsRef.current); // files sent earlier are not asked for again
+        app.setWho(flowRef.current.answers.who); // an application for a child asks for the child's details too
         pushNoor(afterCheck.apply);
         break;
       case 'ask':
@@ -453,7 +454,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, onButt
           }
           return;
         }
-        if (conv && files.length && open && ['multi', 'docs', 'confirm'].includes(open.kind)) {
+        if (conv && files.length && open && CONV_KINDS.includes(open.kind)) {
           // Files attached while the application is open: sorted into photograph and report, read with any typed details.
           setAttach([]);
           appRef.current.handleFiles(files, text);
@@ -504,7 +505,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, onButt
         }
         pushUser(text);
         // A question asked in the middle of the application is answered, then Mira brings the person back to it.
-        const midway = conv && !scenario.then && (waiting?.batch || ['multi', 'docs', 'confirm'].includes(appRef.current?.awaiting?.kind));
+        const midway = conv && !scenario.then && (waiting?.batch || CONV_KINDS.includes(appRef.current?.awaiting?.kind));
         pushNoor(midway ? { ...scenario, then: 'resume' } : scenario);
         if (scenario.id === 'track') {
           statusRef.current = true;

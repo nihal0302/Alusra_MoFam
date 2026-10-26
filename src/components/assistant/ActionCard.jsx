@@ -558,15 +558,22 @@ export function ActionCard({ card, index = 0, onAction, chosen, tray = false }) 
     );
   }
 
-  // Just a button: answer by voice instead of typing.
+  // Buttons that go with a question: answer by voice instead of typing, and skip an optional question.
   if (card.type === 'voice') {
-    if (tray) return null; // it sits above the message box instead
+    if (tray) return null; // they sit above the message box instead
     return (
       <div className="noor-voice-row" style={style}>
-        <button type="button" className="noor-btn noor-btn--outline" disabled={locked} onClick={() => onAction?.('startVoice', {})}>
-          <ChatIcon name="mic" size={16} />
-          {card.label}
-        </button>
+        {card.label && (
+          <button type="button" className="noor-btn noor-btn--outline" disabled={locked} onClick={() => onAction?.('startVoice', {})}>
+            <ChatIcon name="mic" size={16} />
+            {card.label}
+          </button>
+        )}
+        {card.skip && (
+          <button type="button" className="noor-btn noor-btn--text" disabled={locked} onClick={() => onAction?.('skip', { group: card.group, label: card.skip })}>
+            {card.skip}
+          </button>
+        )}
       </div>
     );
   }

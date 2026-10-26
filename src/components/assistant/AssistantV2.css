@@ -212,3 +212,5 @@
 
 
 .noor-voice-row { animation: noor-msg-in var(--dur-3) var(--ease-out) var(--card-delay, 0ms) both; }
+
+.noor-voice-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
