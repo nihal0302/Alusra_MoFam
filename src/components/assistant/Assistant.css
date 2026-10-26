@@ -93,7 +93,7 @@
   transform-origin: bottom right;
   animation:
     noor-launcher-in var(--dur-5) var(--ease-spring) both,
-    noor-breathe 4.8s ease-in-out 1.2s infinite;
+    noor-breathe 2.4s ease-in-out 0.8s infinite; /* the gentle pulse that invites a tap: every 2.4 seconds (it was 4.8) */
   transition: box-shadow var(--dur-2) var(--ease-out);
 }
 
@@ -140,7 +140,7 @@
 
 /* ---------- Panel ---------- */
 .noor-shell {
-  --noor-bubble-max: 318px;
+  --noor-bubble-max: 346px; /* APPROX: a little wider than the 318px it was, still leaving a margin at the right */
   --noor-user-max: 300px;
   position: fixed;
   inset-block-end: 24px;
@@ -156,7 +156,7 @@
 
 /* Expanded: the panel grows from the centre of the screen to the right edge. */
 .noor-shell.is-expanded {
-  --noor-bubble-max: 560px;
+  --noor-bubble-max: 600px; /* APPROX: a little wider than the 560px it was */
   --noor-user-max: 480px;
   inset-block-end: 16px;
   inset-inline-end: 16px;
@@ -306,8 +306,8 @@
 }
 
 .noor-welcome__sub {
-  font-size: 14.5px;
-  line-height: 21px;
+  font-size: 16px;
+  line-height: 24px;
   color: var(--noor-muted);
 }
 
@@ -362,7 +362,7 @@
 }
 
 .noor-bubble {
-  font-size: 14.5px;
+  font-size: 16px;
   overflow-wrap: anywhere;
 }
 
@@ -370,7 +370,7 @@
   max-inline-size: var(--noor-user-max);
   padding: 10px 14px;
   font-weight: 500;
-  line-height: 20px;
+  line-height: 24px;
   color: var(--c-white);
   background: var(--noor-ink);
   border-radius: 18px;
@@ -389,7 +389,7 @@
 }
 
 .noor-bubble__primary {
-  line-height: 21px;
+  line-height: 24px;
   color: var(--noor-ink);
 }
 
@@ -398,7 +398,7 @@
    (.noor-bubble__primary). */
 
 /* the line above a row of answer chips: body copy */
-.noor-card__prompt { margin: 0 0 15px; font-size: 14.5px; line-height: 21px; color: var(--noor-ink); }
+.noor-card__prompt { margin: 0 0 15px; font-size: 16px; line-height: 24px; color: var(--noor-ink); }
 
 .noor-bubble--ask .noor-bubble__example { margin-block-start: 4px; }
 
@@ -543,7 +543,7 @@
   gap: 6px;
   min-block-size: 44px;
   padding: 0 16px;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--c-white);
   background: var(--noor-gold);
@@ -644,7 +644,7 @@
   gap: 10px;
   min-block-size: 48px;
   padding: 0 12px;
-  font-size: 14.5px;
+  font-size: 16px;
   color: var(--noor-ink);
   text-align: start;
   background: var(--noor-chip);
@@ -860,7 +860,7 @@
 /* ================= Positive lead line ================= */
 .noor-bubble__lead {
   font-weight: 600;
-  line-height: 21px;
+  line-height: 24px;
   color: var(--noor-ink);
 }
 
@@ -1037,7 +1037,7 @@
 
 .noor-shell.is-expanded .noor-bubble--noor,
 .noor-shell.is-expanded .noor-bubble--user {
-  font-size: 15.5px;
+  font-size: 16px;
 }
 
 .noor-shell.is-expanded .noor-welcome__title {
@@ -1279,7 +1279,8 @@
 .noor-suggest__btn {
   min-block-size: 44px;
   padding: 0 14px;
-  font-size: 14px;
+  text-align: start; /* a chip that wraps to a second line starts it at the left, not the centre */
+  font-size: 16px;
   color: var(--noor-ink);
   background: var(--noor-chip);
   border: 1px solid var(--noor-line-strong);
@@ -1334,7 +1335,7 @@
 
 .noor-attach__thumb img { inline-size: 100%; block-size: 100%; object-fit: cover; }
 .noor-attach__meta { flex: 1; display: flex; flex-direction: column; min-inline-size: 0; }
-.noor-attach__name { overflow: hidden; font-size: 14px; font-weight: 600; color: var(--noor-ink); text-overflow: ellipsis; white-space: nowrap; }
+.noor-attach__name { overflow: hidden; font-size: 16px; font-weight: 600; color: var(--noor-ink); text-overflow: ellipsis; white-space: nowrap; }
 .noor-attach__size { font-size: 12.5px; color: var(--noor-muted); }
 
 .noor-attach__remove {
@@ -1765,7 +1766,7 @@
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   overflow: hidden;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.35;
   color: var(--noor-muted);
 }
@@ -2068,7 +2069,7 @@
 /* Choices and quick replies have no fill of their own: just a hairline, so the background shows through. */
 .noor-tray .noor-suggest__btn,
 .noor-tray .noor-btn--outline { background: transparent; }
-.noor-tray .noor-suggest__btn { min-block-size: 44px; padding-inline: 18px; font-size: 14.5px; font-weight: 600; border-color: color-mix(in srgb, var(--noor-gold) 55%, var(--noor-line-strong)); }
+.noor-tray .noor-suggest__btn { min-block-size: 44px; padding-inline: 18px; font-size: 16px; font-weight: 600; border-color: color-mix(in srgb, var(--noor-gold) 55%, var(--noor-line-strong)); }
 .noor-tray .noor-suggest__btn:hover,
 .noor-tray .noor-btn--outline:hover:not(:disabled) { background: color-mix(in srgb, var(--c-white) 55%, transparent); }
 
@@ -2119,7 +2120,7 @@
   gap: 9px; /* room between the points */
   margin: 4px 0;
   padding-inline-start: 22px;
-  line-height: 21px;
+  line-height: 24px;
   color: var(--noor-ink);
 }
 .noor-bubble__list li::marker { font-weight: 600; color: var(--noor-gold); }
@@ -2136,3 +2137,118 @@
 
 /* The second and later questions in a box of several: a little air between them. */
 .noor-card__section + .noor-card__section { margin-block-start: 18px; }
+
+/* ---------- The microphone: a moving glare around its outline, and a pop-up on the starting screen ---------- */
+.noor-mic-wrap { position: relative; flex: none; display: inline-flex; }
+
+/* After the one-time orb has played, a shimmer sweeps across the microphone icon itself, like the highlight on a loading skeleton:
+   a second, lighter copy of the icon sits exactly over it and is only visible through a narrow band that travels across and back. */
+.noor-mic__icon { position: relative; display: inline-flex; }
+.noor-mic__sheen {
+  position: absolute;
+  inset: 0;
+  display: inline-flex;
+  color: var(--c-white);
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(105deg, transparent 0 40%, #000 50%, transparent 60% 100%);
+  mask-image: linear-gradient(105deg, transparent 0 40%, #000 50%, transparent 60% 100%);
+  -webkit-mask-size: 300% 100%;
+  mask-size: 300% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  animation: noor-sheen 1.6s ease-in-out infinite alternate;
+}
+@keyframes noor-sheen {
+  from { -webkit-mask-position: 100% 0; mask-position: 100% 0; }
+  to { -webkit-mask-position: 0 0; mask-position: 0 0; }
+}
+.noor-mic[aria-disabled='true'] .noor-mic__sheen { display: none; }
+
+/* The pop-up over the microphone: tells the person Mira can be spoken to. It goes after a few seconds, or on a tap. */
+.noor-mic-pop {
+  position: absolute;
+  inset-block-end: calc(100% + 12px);
+  inset-inline-end: -6px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  inline-size: max-content; /* as wide as its text, no wider */
+  max-inline-size: min(340px, calc(100vw - 48px));
+  padding: 10px 14px;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--c-white);
+  background: var(--noor-ink);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  animation: noor-pop-in var(--dur-3) var(--ease-out) 600ms both;
+}
+.noor-mic-pop strong { padding-inline-end: 26px; font-weight: 600; } /* the title leaves room for the close button; the body text does not need to */
+.noor-mic-pop__close {
+  position: absolute;
+  inset-block-start: 8px;
+  inset-inline-end: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 24px;
+  block-size: 24px;
+  padding: 0;
+  color: var(--c-white);
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.noor-mic-pop__close:hover { background: color-mix(in srgb, var(--c-white) 18%, transparent); }
+.noor-mic-pop::after {
+  content: '';
+  position: absolute;
+  inset-block-end: -5px;
+  inset-inline-end: 22px;
+  inline-size: 10px;
+  block-size: 10px;
+  background: var(--noor-ink);
+  rotate: 45deg;
+}
+@keyframes noor-pop-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .noor-mic__sheen { display: none; }
+  .noor-mic-pop { animation: none; }
+}
+
+/* ---------- The UAE PASS logo ---------- */
+.uaepass-logo { flex: none; display: block; inline-size: auto; max-inline-size: none; }
+.noor-det__logo { margin-inline-start: auto; }
+.noor-card__headrow { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-block-end: 6px; }
+.noor-card__headrow .noor-card__title { margin: 0; }
+
+/* The line under the message box stays centred under it when the chat is wide (a reset rule was zeroing its auto margins). */
+.noor .noor-footer > .noor-footer__note { margin-inline: auto; text-align: center; }
+
+/* ================= Voice mode: the words appear in the message box as they are heard (no waveform) ================= */
+.noor-vtext {
+  display: block;
+  inline-size: 100%;
+  max-block-size: 72px; /* three lines; older words scroll away and the newest stay in view */
+  overflow-y: auto;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--noor-ink);
+  overflow-wrap: anywhere;
+  scrollbar-width: none;
+}
+.noor-vtext::-webkit-scrollbar { display: none; }
+.noor-vtext__hint { color: var(--noor-muted); }
+.noor-vwave:has(.noor-vtext) { padding-block: 8px; }
+
+/* ================= Variation 1: a white chat instead of the cream one ================= */
+/* The conversation background, the strip of buttons, and the chips and lists that took the cream tint all follow these two. The reply
+   bubbles take the soft grey (the same as Variation 2's) so they still stand out from the white. Cards keep their white fill and
+   hairline border. */
+.noor:not(.noor--v2) {
+  --noor-surface: var(--c-white);
+  --noor-chip: var(--c-surface-soft);
+}
+.noor:not(.noor--v2) .noor-bubble--noor { background: var(--noor-chip); }

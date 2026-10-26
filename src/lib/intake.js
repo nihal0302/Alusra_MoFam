@@ -2,7 +2,6 @@
 // Plain keyword reading, no model: it fills the same answers the question cards would collect (who, status, report,
 // accredited), and only trusts clear wording. Anything it cannot tell is asked as a normal question afterwards.
 import { buildResult, nextStep, reviewRows } from './eligibility.js';
-import { formatSize } from './application.js';
 
 const sentence = '[^.!?\\n]';
 const clause = '[^.!?,\\n]'; // stops at a comma, so "not sure if I am a citizen, but the report..." reads as two statements
@@ -96,7 +95,8 @@ export function placeFiles(docs, files) {
 // ---- Mira's reply ----------------------------------------------------------------------------------------------
 
 const fill = (str, vars) => str.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? '');
-const docValue = (d) => (d ? `${d.name} · ${formatSize(d.size)}` : null);
+const joinAnd = (list) => (list.length <= 1 ? list.join('') : `${list.slice(0, -1).join(', ')} and ${list[list.length - 1]}`);
+const docValue = (d) => (d ? d.name : null);
 
 // On an eligible result, the checklist shows which documents have already been attached.
 export function markReceived(card, docs, copy, always = false) {
@@ -144,7 +144,6 @@ export function buildIntake({ eligibility, copy, answers, docs, notes, hadText, 
     : fileCount > 1 ? copy.leads.files : copy.leads.file;
   const noteText = notes.map((n) => fill(copy.notes[n.type], { kind: copy.docNames[n.kind], name: n.name })).join(' ');
   const missingText = missingDocs.map((k) => copy.docNames[k]).join(' and ');
-  const filesOnlyNoFacts = !hadText && fileCount > 0 && !rows.some((r) => r.value);
 
   let primary;
   let secondary;
@@ -155,12 +154,17 @@ export function buildIntake({ eligibility, copy, answers, docs, notes, hadText, 
     primary = copy.primary.complete;
     secondary = missingDocs.length ? fill(copy.secondary.docsMissing, { missing: missingText }) : copy.secondary.docsDone;
   } else {
-    primary = filesOnlyNoFacts ? copy.primary.filesOnly : copy.primary.partial;
-    secondary = copy.secondary.partial;
+    // Some answers are still missing: no "What I understood" card yet. Mira says what she has noted so far (a plain sentence) and
+    // the next question follows. The card comes once all the answers are in.
+    const heard = Object.entries(copy.noted)
+      .map(([qid, said]) => said[answers[qid]])
+      .filter(Boolean);
+    primary = heard.length ? fill(copy.notedLead, { list: joinAnd(heard) }) : undefined;
+    secondary = undefined;
   }
-  if (noteText) secondary = `${noteText} ${secondary}`;
+  if (noteText) secondary = secondary ? `${noteText} ${secondary}` : noteText;
 
-  const cards = [card];
+  const cards = complete ? [card] : [];
   let kind = null;
   if (complete && !sameResult) {
     const built = buildResult(eligibility, answers);

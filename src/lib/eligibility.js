@@ -127,7 +127,7 @@ export function buildReview(copy, answers) {
   return {
     id: 'review',
     tool: null,
-    text: [{ lead: r.lead, question: r.text }],
+    text: [{ lead: r.lead, primary: r.text }],
     cards: [
       {
         type: 'review',

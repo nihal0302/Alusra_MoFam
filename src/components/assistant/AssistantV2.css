@@ -175,7 +175,7 @@
   justify-content: space-between;
   gap: 12px;
   padding: 12px 14px;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--noor-ink);
   cursor: pointer;
@@ -201,8 +201,8 @@
 .noor-det__rows { margin: 0; padding: 0 14px 4px; border-block-start: 1px solid var(--noor-line); }
 .noor-det__rows > div { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-block-end: 1px solid var(--noor-line); }
 .noor-det__rows > div:last-child { border-block-end: 0; }
-.noor-det__rows dt { font-size: 14px; color: var(--noor-muted); }
-.noor-det__rows dd { margin: 0; font-size: 14px; font-weight: 600; color: var(--noor-ink); text-align: end; }
+.noor-det__rows dt { font-size: 16px; color: var(--noor-muted); }
+.noor-det__rows dd { margin: 0; font-size: 16px; font-weight: 600; color: var(--noor-ink); text-align: end; }
 .noor-det__note { margin: 0; padding: 10px 14px 12px; font-size: 13px; color: var(--noor-muted); border-block-start: 1px solid var(--noor-line); }
 
 .noor-docs__list { display: flex; flex-direction: column; gap: 12px; margin: 6px 0 0; padding: 0; list-style: none; }
@@ -222,17 +222,17 @@
 
 .noor-docs__list .is-done .noor-docs__mark { background: var(--noor-success); border-color: var(--noor-success); }
 .noor-docs__text { display: flex; flex-direction: column; gap: 2px; min-inline-size: 0; }
-.noor-docs__label { font-size: 14px; font-weight: 600; color: var(--noor-ink); }
-.noor-docs__hint { font-size: 14px; color: var(--noor-muted); overflow-wrap: anywhere; }
+.noor-docs__label { font-size: 16px; font-weight: 600; color: var(--noor-ink); }
+.noor-docs__hint { font-size: 16px; color: var(--noor-muted); overflow-wrap: anywhere; }
 
 /* An example of what to type: a label and plain text on its own line. */
-.noor-bubble__example { margin: 8px 0 0; font-size: 14px; line-height: 20px; color: var(--noor-muted); }
+.noor-bubble__example { margin: 8px 0 0; font-size: 16px; line-height: 24px; color: var(--noor-muted); }
 .noor-bubble__example strong { font-weight: 600; color: var(--noor-ink); }
 
 /* ---------- The numbered eligibility questions ---------- */
-.noor-batch__list { display: flex; flex-direction: column; gap: 10px; margin: 8px 0 0; padding-inline-start: 22px; font-size: 14px; line-height: 20px; color: var(--noor-ink); }
+.noor-batch__list { display: flex; flex-direction: column; gap: 10px; margin: 8px 0 0; padding-inline-start: 22px; font-size: 16px; line-height: 24px; color: var(--noor-ink); }
 .noor-batch__list li::marker { font-weight: 600; color: var(--noor-gold); }
-.noor-batch__example { margin: 14px 0 0; font-size: 14px; line-height: 20px; color: var(--noor-muted); }
+.noor-batch__example { margin: 14px 0 0; font-size: 16px; line-height: 24px; color: var(--noor-muted); }
 .noor-batch__example strong { font-weight: 600; color: var(--noor-ink); }
 
 
@@ -247,7 +247,7 @@
 .noor-mic.is-shine {
   position: relative;
   isolation: isolate;
-  animation: noor-mic-icon 5.85s cubic-bezier(0.4, 0, 0.2, 1) 0.9s 1;
+  animation: noor-mic-icon 9.1s cubic-bezier(0.4, 0, 0.2, 1) 0.9s 1; /* 0.9 + 9.1 = 10 s: the same as the pop-up over the microphone */
 }
 
 .noor-mic__orb {
@@ -258,7 +258,7 @@
   overflow: hidden;
   pointer-events: none;
   opacity: 0;
-  animation: noor-mic-shine 5.85s cubic-bezier(0.4, 0, 0.2, 1) 0.9s 1;
+  animation: noor-mic-shine 9.1s cubic-bezier(0.4, 0, 0.2, 1) 0.9s 1;
 }
 
 .noor-mic__orb svg { display: block; inline-size: 100%; block-size: 100%; }
@@ -326,3 +326,7 @@
 @media (prefers-reduced-motion: reduce) {
   .nb-drift, .nb-sweeps { animation: none; }
 }
+
+/* The briefer run, for the first question of Variation 2 (about 6.75 s). */
+.noor-mic.is-shine.is-brief { animation-duration: 5.85s; }
+.noor-mic.is-brief .noor-mic__orb { animation-duration: 5.85s; }

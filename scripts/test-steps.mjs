@@ -21,19 +21,19 @@ function walk(who, answers, skipped = []) {
     if (!id) break;
     asked.push(id);
     if (skipped.includes(id)) settled.add(id);
-    else data[id] = answers[id] ?? 'x';
+    else for (const k of STEPS.find((s) => s.id === id).fields ?? [id]) data[k] = answers[k] ?? 'x';
   }
   return asked.join(' ');
 }
 
-check('self, no employment', walk('self', {}, ['employmentStatus']) === 'emirate address disability photo report additional altMobile eidExpiry employmentStatus specialSupport shadowTeacher');
+check('self, no employment', walk('self', {}, ['employmentStatus']) === 'emirate address disability photo report additional altMobile eidExpiry employmentStatus support');
 check(
   'self, employed',
-  walk('self', { employmentStatus: 'Employed' }) === 'emirate address disability photo report additional altMobile eidExpiry employmentStatus workSector employer jobTitle educationLevel academicDegree institutionLocation specialSupport shadowTeacher',
+  walk('self', { employmentStatus: 'Employed' }) === 'emirate address disability photo report additional altMobile eidExpiry employmentStatus workSector employer jobTitle educationLevel academicDegree institutionLocation support',
 );
 check(
   'self, student',
-  walk('self', { employmentStatus: 'Student' }) === 'emirate address disability photo report additional altMobile eidExpiry employmentStatus educationLevel institutionLocation specialSupport shadowTeacher',
+  walk('self', { employmentStatus: 'Student' }) === 'emirate address disability photo report additional altMobile eidExpiry employmentStatus educationLevel institutionLocation support',
 );
 check('someone else asks for their Emirates ID and birth date first, and not the expiry date', walk('other', {}, ['employmentStatus']).startsWith('cardholderEid cardholderDob emirate address') && !walk('other', {}, ['employmentStatus']).includes('eidExpiry'));
 check('documents already sent are not asked again', nextStep('self', { emirate: 'Dubai', address: 'x', disability: 'Autism', photo: {}, report: {} }, new Set()) === 'additional');
@@ -76,6 +76,8 @@ check('disability: all eleven types, Multiple in a section of its own', (() => {
 check('photo: upload card only', types(prompt('photo')) === 'upload');
 check('the optional employment question has choices and Skip', types(prompt('employmentStatus')) === 'choices,voice');
 check('changing an optional answer has no Skip', types(prompt('employmentStatus', 'self', {}, { changing: true })) === 'choices');
+check('the two support questions are one card with Yes and No each, and a Skip button', (() => { const cs = prompt('support').cards; return cs[0].type === 'choiceSet' && cs[0].sections.length === 2 && cs[0].sections.every((s) => s.options.join() === 'Yes,No') && cs[1].type === 'voice'; })());
+check('a support step with one answered is complete only when both are', nextStep('self', { emirate: 'a', address: 'a', disability: 'a', photo: {}, report: {}, specialSupport: 'No' }, new Set(['additional', 'altMobile', 'eidExpiry', 'employmentStatus'])) === 'support' && nextStep('self', { emirate: 'a', address: 'a', disability: 'a', photo: {}, report: {}, specialSupport: 'No', shadowTeacher: 'No' }, new Set(['additional', 'altMobile', 'eidExpiry', 'employmentStatus'])) === null);
 check('yes or no questions offer Yes and No', prompt('specialSupport').cards[0].options.join() === 'Yes,No');
 check('someone else: “their” wording', prompt('disability', 'other').text[0].question.includes('their') && !prompt('disability', 'other').text[0].question.includes('your'));
 check('yourself: “your” wording', prompt('disability', 'self').text[0].question.includes('your'));

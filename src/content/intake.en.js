@@ -29,12 +29,26 @@ export const intake = {
   },
   primary: {
     complete: 'I have what I need, so here is the result of your eligibility check.',
-    partial: 'Here is what I understood so far.',
-    filesOnly: 'Here is what I have so far.',
     docsUpdated: 'Here are your documents so far.',
   },
+  // While answers are still coming in one at a time, Mira only says what she has noted (no card until all four are in).
+  notedLead: 'I have noted {list}.',
+  noted: {
+    who: { self: 'that you are applying for yourself', other: 'that you are applying on behalf of someone else' },
+    status: {
+      citizen: 'that you are an Emirati citizen',
+      resident: 'that you are a legal UAE resident',
+      neither: 'that you are neither an Emirati citizen nor a legal UAE resident',
+      unsure: 'that you are not sure about your citizenship or residency',
+    },
+    report: { yes: 'that there is a medical or psychological report', no: 'that there is no report yet', unsure: 'that you are not sure about the report' },
+    accredited: {
+      yes: 'that the report was issued by an accredited official authority',
+      no: 'that the report was not issued by an accredited official authority',
+      unsure: 'that you are not sure whether the report was issued by an accredited official authority',
+    },
+  },
   secondary: {
-    partial: 'I need a few more details to finish the check, so I will ask only for those.',
     docsMissing: 'You can attach your {missing} here whenever you like, or when we reach the documents step.',
     docsDone: 'Both documents are in, so you will not need to upload them again when you apply.',
     resultAbove: 'Your result is above, and you can continue from there whenever you are ready.',

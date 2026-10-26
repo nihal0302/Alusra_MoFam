@@ -2,7 +2,7 @@
 // free text (or by voice), documents are attached to the chat, the review is a sentence, and changes are typed. Plain keyword
 // and pattern reading, no model: it only trusts what is clearly there, and asks again for the rest. Pure functions over the
 // copy in content/application.conv.en.js (`conv`) so a real service can replace them later.
-import { fill, formatSize, normalisePhone, validName } from './application.js';
+import { fill, normalisePhone, validName } from './application.js';
 import { parseAnswer } from './eligibility.js';
 import { extractFacts } from './intake.js';
 
@@ -497,7 +497,7 @@ const docItems = (app, data) =>
   ['photo', 'report'].map((k) => ({
     id: k,
     label: app.conv.docs.card.items[k].label,
-    hint: data[k] ? `${data[k].name} · ${formatSize(data[k].size)}` : app.conv.docs.card.items[k].hint,
+    hint: data[k] ? data[k].name : app.conv.docs.card.items[k].hint,
     done: Boolean(data[k]),
   }));
 
@@ -533,7 +533,7 @@ export function reviewGroups(app, { who, data }) {
   const profile = Object.fromEntries(app.signIn.profile.rows.map((row) => [row.id, row.value]));
   const other = who === 'other';
   const row = (id, value, source, field) => (value ? { id, label: c.labels[id], value, source, field } : null);
-  const file = (f) => (f ? `${f.name} · ${formatSize(f.size)}` : '');
+  const file = (f) => (f ? f.name : '');
   const compact = (rows) => rows.filter(Boolean);
   const groups = [
     {

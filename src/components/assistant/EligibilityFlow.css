@@ -132,7 +132,7 @@
 .noor-optcard:hover:not(:disabled) .noor-optcard__icon { transform: scale(1.12); }
 
 .noor-optcard__text { display: flex; flex-direction: column; gap: 2px; }
-.noor-optcard__title { font-size: 14.5px; font-weight: 600; line-height: 1.25; color: var(--noor-ink); }
+.noor-optcard__title { font-size: 16px; font-weight: 600; line-height: 1.25; color: var(--noor-ink); }
 .noor-optcard__hint { font-size: 13px; line-height: 17px; color: var(--noor-muted); }
 
 .noor-optcard__check {
@@ -177,7 +177,7 @@
 }
 
 .noor-rev__row dt { grid-column: 1; font-size: 13px; color: var(--noor-muted); }
-.noor-rev__row dd { grid-column: 1; margin: 0; font-size: 14.5px; font-weight: 600; color: var(--noor-ink); }
+.noor-rev__row dd { grid-column: 1; margin: 0; font-size: 16px; font-weight: 600; color: var(--noor-ink); }
 .noor-rev__row .noor-link-btn { grid-column: 2; grid-row: 1 / span 2; }
 
 .noor-link-btn {
@@ -185,7 +185,7 @@
   min-inline-size: 44px;
   padding: 0 8px;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--noor-gold);
   text-decoration: underline;
@@ -252,8 +252,8 @@
 }
 
 .noor-done__sub {
-  font-size: 14px;
-  line-height: 20px;
+  font-size: 16px;
+  line-height: 24px;
   color: var(--noor-muted);
   animation: noor-rise var(--dur-3) var(--ease-out) 340ms backwards;
 }
@@ -289,7 +289,7 @@
 }
 
 .noor-done__icon { flex: none; display: inline-flex; color: var(--noor-gold); }
-.noor-done__item { display: block; font-size: 14.5px; font-weight: 600; color: var(--noor-ink); }
+.noor-done__item { display: block; font-size: 16px; font-weight: 600; color: var(--noor-ink); }
 .noor-done__text { display: block; font-size: 13px; line-height: 18px; color: var(--noor-muted); }
 
 .noor-done__links {
@@ -378,7 +378,7 @@
 .noor-done__badge { margin-block-end: 10px; }
 
 .noor-done__title { font-size: 20px; line-height: 1.3; max-inline-size: 22ch; }
-.noor-done__sub { max-inline-size: 36ch; font-size: 14.5px; line-height: 22px; }
+.noor-done__sub { max-inline-size: 36ch; font-size: 16px; line-height: 24px; }
 
 .noor-done__list { padding: 20px 20px 8px; }
 .noor-done__label { margin-block-end: 12px; text-align: center; }
@@ -523,7 +523,7 @@
 
 .noor-fetch__value {
   grid-area: value;
-  font-size: 14.5px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--noor-ink);
   animation: noor-reveal var(--dur-3) var(--ease-out) var(--d, 0ms) backwards;
@@ -633,7 +633,7 @@
 
 .noor-up__thumb img { inline-size: 100%; block-size: 100%; object-fit: cover; }
 .noor-up__meta { flex: 1; display: flex; flex-direction: column; min-inline-size: 0; }
-.noor-up__name { font-size: 14px; font-weight: 600; color: var(--noor-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.noor-up__name { font-size: 16px; font-weight: 600; color: var(--noor-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .noor-up__size { font-size: 12.5px; color: var(--noor-muted); }
 
 .noor-up__ok {
@@ -649,13 +649,21 @@
   animation: noor-pop var(--dur-3) var(--ease-spring) both;
 }
 
+/* The files that were sent: one thumbnail each (a picture, or a document icon for a PDF), side by side. */
+.noor-bubble__thumbs { display: flex; flex-wrap: wrap; gap: 8px; margin-block-end: 8px; }
 .noor-bubble__thumb {
   display: block;
   inline-size: 72px;
   block-size: 72px;
-  margin-block-end: 8px;
   object-fit: cover;
   border-radius: 12px;
+}
+.noor-bubble__thumb--file {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--c-white);
+  background: color-mix(in srgb, var(--c-white) 16%, transparent);
 }
 
 /* ================= Review before submitting ================= */
@@ -677,7 +685,7 @@
 .noor-arev__row dd { grid-column: 1; margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
 .noor-arev__row .noor-link-btn,
 .noor-arev__row .noor-arev__tag { grid-column: 2; grid-row: 1 / span 2; justify-self: end; }
-.noor-arev__value { font-size: 14.5px; font-weight: 600; color: var(--noor-ink); overflow-wrap: anywhere; }
+.noor-arev__value { font-size: 16px; font-weight: 600; color: var(--noor-ink); overflow-wrap: anywhere; }
 
 .noor-arev__tag {
   display: inline-flex;
@@ -699,7 +707,7 @@
   border-block-start: 1px solid var(--noor-line);
 }
 
-.noor-arev__consent { font-size: 14px; line-height: 21px; color: var(--noor-ink); }
+.noor-arev__consent { font-size: 16px; line-height: 24px; color: var(--noor-ink); }
 
 /* ================= Submitted ================= */
 .noor-sub__top {
@@ -748,7 +756,7 @@
 .noor-done__badge > span { inline-size: 34px; block-size: 34px; }
 
 .noor-done__title { font-size: 19px; max-inline-size: none; text-wrap: balance; }
-.noor-done__sub { font-size: 14px; line-height: 20px; max-inline-size: none; text-wrap: balance; }
+.noor-done__sub { font-size: 16px; line-height: 24px; max-inline-size: none; text-wrap: balance; }
 
 .noor-done__list { padding: 14px 16px 4px; }
 .noor-done__label { margin-block-end: 14px; }
@@ -883,7 +891,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 14px;
+  font-size: 16px;
   color: var(--noor-muted);
   transition: color var(--dur-2) var(--ease-out);
 }
@@ -965,7 +973,7 @@
 /* ================= "What I understood" card (details and files sent in one message) ================= */
 .noor-rev__group {
   margin: 14px 0 2px;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--noor-ink);
 }
@@ -1010,8 +1018,8 @@
   grid-row: 2;
   align-self: start;
   margin: 0;
-  font-size: 14px;
-  line-height: 20px;
+  font-size: 16px;
+  line-height: 24px;
   text-wrap: pretty;
 }
 
@@ -1028,7 +1036,7 @@
 .noor-done__list li { gap: 12px; padding: 9px 12px; }
 .noor-done__icon { inline-size: 32px; block-size: 32px; }
 .noor-done__copy { gap: 1px; }
-.noor-done__item { font-size: 14px; }
+.noor-done__item { font-size: 16px; }
 .noor-done__text { font-size: 13px; line-height: 18px; }
 .noor-done__foot { padding: 12px 16px 14px; }
 .noor-done__foot .noor-btn { min-block-size: 40px; }
@@ -1059,7 +1067,7 @@
 
 .noor-sub__top .noor-done__check { grid-column: 1; grid-row: 1 / span 2; inline-size: 76px; block-size: 76px; margin: 0; }
 .noor-sub__top .noor-done__title { grid-column: 2; grid-row: 1; align-self: end; font-size: 17px; line-height: 1.25; }
-.noor-sub__label { grid-column: 2; grid-row: 2; align-self: start; margin: 0; font-size: 14px; line-height: 20px; color: var(--noor-muted); }
+.noor-sub__label { grid-column: 2; grid-row: 2; align-self: start; margin: 0; font-size: 16px; line-height: 24px; color: var(--noor-muted); }
 
 .noor-sub__copy {
   display: inline-grid;
@@ -1077,7 +1085,7 @@
 
 .noor-sub__copy:hover { background: var(--noor-chip); }
 .noor-sub__copy.is-copied { color: var(--noor-success); }
-.noor-sub__copied { font-size: 14px; color: var(--noor-success); }
+.noor-sub__copied { font-size: 16px; color: var(--noor-success); }
 
 .noor-sub__next { padding: 12px 16px 16px; }
 .noor-sub__next .noor-done__label { margin-block-end: 6px; }
@@ -1102,6 +1110,86 @@
   border-block-start: 1px solid var(--noor-line);
   margin-block-start: 20px;
 }
-.noor-done__ask { margin: 0; font-size: 14.5px; font-weight: 600; line-height: 21px; color: var(--noor-ink); }
-.noor-done__hint { margin: 5px 0 0; font-size: 14.5px; line-height: 21px; color: var(--noor-ink); }
+.noor-done__ask { margin: 0; font-size: 16px; font-weight: 600; line-height: 24px; color: var(--noor-ink); }
+.noor-done__hint { margin: 5px 0 0; font-size: 16px; line-height: 24px; color: var(--noor-ink); }
 .noor-done__next + .noor-done__foot { padding-block-start: 16px; }
+
+/* ---- Outcome card in the compact chat: stacked (the animation above the heading and message), with room to breathe ---- */
+.noor-shell:not(.is-expanded) .noor-done__top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 28px 24px 8px;
+  text-align: center;
+}
+.noor-shell:not(.is-expanded) .noor-done__check { margin: 0 0 4px; }
+/* title and message: centred, one under the other, the same width (the side-by-side rules set align-self start / end on them) */
+.noor-shell:not(.is-expanded) .noor-done__title,
+.noor-shell:not(.is-expanded) .noor-done__sub {
+  align-self: center;
+  inline-size: 100%;
+  max-inline-size: none; /* both fill the card's inner width, so they are exactly as wide as each other */
+  margin-inline: auto;
+  text-align: center;
+  text-wrap: balance;
+}
+.noor-shell:not(.is-expanded) .noor-done__title { font-size: 18px; }
+.noor-shell:not(.is-expanded) .noor-done__list { padding: 24px 20px 8px; }
+.noor-shell:not(.is-expanded) .noor-done__list ul { gap: 12px; }
+.noor-shell:not(.is-expanded) .noor-done__list li { padding: 14px 16px; gap: 14px; }
+.noor-shell:not(.is-expanded) .noor-done__next { padding: 20px 20px 0; margin-block-start: 16px; }
+.noor-shell:not(.is-expanded) .noor-done__foot { padding: 20px 20px 22px; }
+
+/* The submitted card has two lines beside the tick: the label "Application number", then the number. */
+.noor-sub__label--number { grid-column: 2; grid-row: 1; align-self: end; margin: 0; }
+.noor-sub__top .noor-sub__head { grid-row: 2; align-self: start; }
+
+/* The line at the end of the submitted card: the number is also sent to the applicant's email. */
+.noor-sub__email {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+  padding: 16px 20px 20px;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--noor-ink);
+  border-block-start: 1px solid var(--noor-line);
+}
+
+/* Submitted card in the compact chat: stacked like the outcome card (tick above, then the label and the number, centred). */
+.noor-shell:not(.is-expanded) .noor-sub__top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 28px 24px 22px;
+  text-align: center;
+}
+.noor-shell:not(.is-expanded) .noor-sub__top .noor-done__check { margin: 0 0 6px; }
+.noor-shell:not(.is-expanded) .noor-sub__label--number,
+.noor-shell:not(.is-expanded) .noor-sub__top .noor-sub__head { align-self: center; }
+.noor-shell:not(.is-expanded) .noor-sub__top .noor-sub__head { justify-content: center; }
+.noor-shell:not(.is-expanded) .noor-sub__next { padding: 20px 20px 22px; }
+.noor-shell:not(.is-expanded) .noor-sub__email { padding: 16px 20px 22px; }
+
+/* Details under the summary line of the application status card (e.g. when it was submitted). */
+.noor-status__meta { margin: 0 0 14px; }
+.noor-status__meta > div { display: flex; flex-wrap: wrap; gap: 4px 12px; padding: 10px 0; border-block: 1px solid var(--noor-line); }
+.noor-status__meta dt { font-size: 16px; line-height: 24px; color: var(--noor-muted); }
+.noor-status__meta dd { margin: 0; font-size: 16px; line-height: 24px; font-weight: 600; color: var(--noor-ink); }
+
+/* The copy button (and the word "Copied") comes straight after the number. */
+.noor-sub__after { display: inline-flex; align-items: center; gap: 6px; }
+
+/* Compact chat: only the number is centred; the copy button is placed after it without moving it. */
+.noor-shell:not(.is-expanded) .noor-sub__top .noor-sub__head { position: relative; display: inline-flex; justify-content: center; }
+.noor-shell:not(.is-expanded) .noor-sub__after {
+  position: absolute;
+  inset-inline-start: 100%;
+  inset-block-start: 50%;
+  translate: 0 -50%;
+  margin-inline-start: 6px;
+  white-space: nowrap;
+}

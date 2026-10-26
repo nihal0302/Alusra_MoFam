@@ -62,6 +62,14 @@ export function useApplication(app, api, { conv = false } = {}) {
 
   const ask = (step, opts = {}) => {
     if (!conv) {
+      // The two support questions are asked together, unless one is already answered (then only the other is asked, as its own question).
+      if (step === 'support') {
+        const left = groupFields('support', ref.current.data).filter((k) => !ref.current.data[k]);
+        if (left.length === 1) {
+          ask(left[0], opts);
+          return;
+        }
+      }
       const msgId = api.pushNoor(buildStepPrompt(app, step, { who: ref.current.who, data: ref.current.data, ...opts }));
       setAwait({ step, msgId, kind: app.steps[step].kind });
       return;
@@ -254,7 +262,7 @@ export function useApplication(app, api, { conv = false } = {}) {
         const { field, file } = payload;
         const info = { name: file.name, size: file.size, type: file.type, url: URL.createObjectURL(file) };
         api.lock(msgId, info);
-        api.pushUser(`${app.steps[field].label}: ${file.name}`, info.type.startsWith('image/') ? info.url : undefined);
+        api.pushUser(`${app.steps[field].label}: ${file.name}`, [{ url: info.type.startsWith('image/') ? info.url : undefined }]);
         if (field === 'additional') {
           // More than one extra report is allowed: add this one and offer to add another.
           store(field, [...(ref.current.data.additional ?? []), info]);
@@ -395,6 +403,17 @@ export function useApplication(app, api, { conv = false } = {}) {
       next();
     };
     if (looksLikeQuestion(text) && known) return false; // a real question (who can apply, documents…) is answered first
+    // The two support questions in one card: "support yes, shadow teacher no" answers both, one answers one (the other is asked next).
+    if (aw.step === 'support') {
+      const found = readGroup('support', text, ref.current.data, ctx());
+      if (Object.keys(found).length) {
+        api.lock(aw.msgId, 'answered');
+        api.pushUser(text);
+        ref.current.data = { ...ref.current.data, ...found };
+        next();
+        return true;
+      }
+    }
     // An uploaded document is expected: typing cannot give it, apart from skipping an optional one.
     if (step.kind === 'file') {
       if (optional && parseSkip(text)) {
@@ -484,8 +503,7 @@ export function useApplication(app, api, { conv = false } = {}) {
     const found = aw.kind === 'multi' && text ? readGroup(aw.group, text, d, ctx()) : {};
     d = { ...d, ...found };
     ref.current.data = d;
-    const firstImage = got.includes('photo') ? d.photo.url : undefined;
-    api.pushUser([text, files.map((f) => f.name).join(', ')].filter(Boolean).join(' — '), firstImage);
+    api.pushUser([text, files.map((f) => f.name).join(', ')].filter(Boolean).join(' — '), files.map((f) => ({ url: f.type.startsWith('image/') ? f.url : undefined })));
     api.lock(aw.msgId, aw.kind === 'docs' ? 'received' : aw.kind === 'confirm' || aw.kind === 'edit' ? 'updated' : found.disability ?? 'answered');
 
     const prefix = [

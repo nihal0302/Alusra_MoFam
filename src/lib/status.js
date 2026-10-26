@@ -15,6 +15,11 @@ export function buildStatusReply(copy, id) {
     return { label, state, stateLabel: copy.states[state] };
   });
   const title = copy.card.title.replace('{id}', id);
+  // Sample data: it was submitted a few days ago, at a fixed time of day.
+  const submitted = new Date();
+  submitted.setDate(submitted.getDate() - (2 + stage));
+  submitted.setHours(10, 42, 0, 0);
+  const when = `${submitted.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}, ${submitted.toLocaleTimeString('en-GB', { hour: 'numeric', minute: '2-digit', hour12: true }).replace(/\s?(am|pm)/i, (m) => ` ${m.trim().toUpperCase()}`)}`;
   return {
     id: `status:${id}`,
     tool: copy.tool,
@@ -30,6 +35,8 @@ export function buildStatusReply(copy, id) {
         type: 'status',
         title,
         summary: copy.card.summary.replace('{done}', done).replace('{total}', copy.steps.length),
+        meta: [{ label: copy.card.submittedLabel, value: when }],
+        emailNote: copy.card.emailNote,
         spoken: title,
         steps,
       },

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ChatIcon } from './ChatIcon.jsx';
 import { UaePassButton } from './UaePassButton.jsx';
 import { usePrefersReducedMotion } from '../../lib/usePrefersReducedMotion.js';
-import { formatSize } from '../../lib/application.js';
+import { UaePassLogo } from './UaePassLogo.jsx';
 import { SuccessCheck } from './SuccessCheck.jsx';
 import { InfoMark } from './InfoMark.jsx';
 
@@ -38,7 +38,10 @@ function SigningCard({ card, style }) {
   return (
     <section className="noor-card noor-signing" style={style} aria-label={card.title}>
       <div className="noor-card__body">
-        <h3 className="noor-card__title">{card.title}</h3>
+        <div className="noor-card__headrow">
+          <h3 className="noor-card__title">{card.title}</h3>
+          <UaePassLogo />
+        </div>
         <ul className="noor-signing__steps">
           {card.steps.map((s, i) => {
             const state = finished || i < active ? 'done' : i === active ? 'active' : 'todo';
@@ -187,7 +190,7 @@ function UploadCard({ card, style, onAction, chosen }) {
           </span>
           <span className="noor-up__meta">
             <span className="noor-up__name">{uploaded.name}</span>
-            <span className="noor-up__size">{formatSize(uploaded.size)} · Uploaded</span>
+            <span className="noor-up__size">Uploaded</span>
           </span>
           <span className="noor-up__ok" aria-hidden="true">
             <ChatIcon name="check" size={12} />
@@ -271,27 +274,29 @@ function SubmittedCard({ card, style }) {
     <section className="noor-card noor-sub" style={style} aria-label={card.title}>
       <div className="noor-sub__top">
         <SuccessCheck className="noor-done__check" />
+        <p className="noor-sub__label noor-sub__label--number">{card.numberLabel}</p>
         <div className="noor-sub__head">
           <h3 className="noor-sub__ref" aria-label={`${card.title}: ${card.reference}`}>
             POD-{String(n).padStart(4, '0')}
           </h3>
-          <button
-            type="button"
-            className={`noor-sub__copy${copied ? ' is-copied' : ''}`}
-            onClick={copy}
-            aria-label={`${card.copy}: ${card.reference}`}
-            title={copied ? card.copied : card.copy}
-          >
-            <ChatIcon name={copied ? 'check' : 'copy'} size={16} />
-          </button>
-          <span className="noor-sub__copied" aria-hidden="true">
-            {copied ? card.copied : ''}
-          </span>
-          <span className="visually-hidden" role="status">
-            {copied ? card.copied : ''}
+          <span className="noor-sub__after">
+            <button
+              type="button"
+              className={`noor-sub__copy${copied ? ' is-copied' : ''}`}
+              onClick={copy}
+              aria-label={`${card.copy}: ${card.reference}`}
+              title={copied ? card.copied : card.copy}
+            >
+              <ChatIcon name={copied ? 'check' : 'copy'} size={16} />
+            </button>
+            <span className="noor-sub__copied" aria-hidden="true">
+              {copied ? card.copied : ''}
+            </span>
+            <span className="visually-hidden" role="status">
+              {copied ? card.copied : ''}
+            </span>
           </span>
         </div>
-        <p className="noor-sub__label">{card.body}</p>
       </div>
       <div className="noor-sub__next">
         <p className="noor-done__label">{card.trackerTitle}</p>
@@ -311,6 +316,11 @@ function SubmittedCard({ card, style }) {
           ))}
         </ol>
       </div>
+      {card.emailNote && (
+        <p className="noor-sub__email">
+          <span>{card.emailNote}</span>
+        </p>
+      )}
     </section>
   );
 }
@@ -582,7 +592,10 @@ export function ActionCard({ card, index = 0, onAction, chosen, tray = false }) 
     return (
       <section className="noor-card noor-fetch" style={style} aria-label={card.title}>
         <div className="noor-card__body">
-          <h3 className="noor-card__title">{card.title}</h3>
+          <div className="noor-card__headrow">
+            <h3 className="noor-card__title">{card.title}</h3>
+            <UaePassLogo />
+          </div>
           <ul className="noor-fetch__rows">
             {card.rows.map((r, i) => (
               <li key={r.id} style={{ '--d': `${i * FETCH_STEP_MS + 250}ms` }}>
@@ -652,7 +665,10 @@ export function ActionCard({ card, index = 0, onAction, chosen, tray = false }) 
     return (
       <section className="noor-card noor-det" style={style} aria-label={card.title}>
         <details open={card.open}>
-          <summary className="noor-det__sum">{card.title}</summary>
+          <summary className="noor-det__sum">
+            <span>{card.title}</span>
+            <UaePassLogo className="noor-det__logo" />
+          </summary>
           <dl className="noor-det__rows">
             {card.rows.map((r) => (
               <div key={r.id}>
@@ -859,6 +875,16 @@ export function ActionCard({ card, index = 0, onAction, chosen, tray = false }) 
         <div className="noor-card__body">
           <h3 className="noor-card__title">{card.title}</h3>
           <p className="noor-card__text">{card.summary}</p>
+          {card.meta && (
+            <dl className="noor-status__meta">
+              {card.meta.map((m) => (
+                <div key={m.label}>
+                  <dt>{m.label}</dt>
+                  <dd>{m.value}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
           <ol className="noor-steps">
             {card.steps.map((s, i) => (
               <li
@@ -875,6 +901,11 @@ export function ActionCard({ card, index = 0, onAction, chosen, tray = false }) 
             ))}
           </ol>
         </div>
+        {card.emailNote && (
+          <p className="noor-sub__email">
+            <span>{card.emailNote}</span>
+          </p>
+        )}
       </section>
     );
   }

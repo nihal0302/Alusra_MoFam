@@ -60,12 +60,13 @@ check('complete: checklist shows the received files', complete.scenario.cards[1]
 
 // Scenario: some details missing
 const partial = run({ who: 'other', report: 'yes' }, { photo: both.docs.photo });
-check('partial: asks for what is missing', !partial.complete && partial.scenario.then === 'continueIntake' && partial.scenario.cards.length === 1);
-check('partial: next question is the first one missing', nextStep({ who: 'other', report: 'yes' }) === 'status');
-const missing = partial.scenario.cards[0].rows.filter((r) => r.value === null).map((r) => r.qid);
-check('partial: the card lists the missing answers', missing.join() === 'status,accredited', missing.join());
-check('partial: only the document that was attached is listed', partial.scenario.cards[0].docs.map((d) => d.id).join() === 'photo');
-check('no documents sent: the card has no documents section', run({ who: 'self', status: 'citizen' }, {}).scenario.cards[0].docs.length === 0);
+check('partial: no "What I understood" card, and the next question follows', !partial.complete && partial.scenario.then === 'continueIntake' && partial.scenario.cards.length === 0);
+check('partial: the next question is the first one missing', nextStep({ who: 'other', report: 'yes' }) === 'status');
+const said = partial.scenario.text[0].primary;
+check('partial: says what has been noted so far', said === 'I have noted that you are applying on behalf of someone else and that there is a medical or psychological report.', said);
+check('partial: one answer at a time still gets no card', run({ who: 'self' }, {}).scenario.cards.length === 0 && run({ who: 'self', status: 'citizen' }, {}).scenario.cards.length === 0 && run({ who: 'self', status: 'citizen', report: 'yes' }, {}).scenario.cards.length === 0);
+check('the card comes once all four are in, and lists only the documents attached', run({ who: 'self', status: 'citizen', report: 'yes', accredited: 'yes' }, { photo: both.docs.photo }).scenario.cards[0].docs.map((d) => d.id).join() === 'photo');
+check('no documents sent: the card has no documents section', run({ who: 'self', status: 'citizen', report: 'yes', accredited: 'yes' }, {}).scenario.cards[0].docs.length === 0);
 
 // Not eligible and unsure outcomes are still results
 check('complete but not eligible: result card', run({ who: 'self', status: 'neither' }, both.docs).kind === 'notEligible');

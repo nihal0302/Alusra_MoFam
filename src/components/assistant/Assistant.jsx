@@ -14,7 +14,7 @@ import { buildQuestion, buildResult, buildReview, nextStep, parseAnswer, pathOf,
 import { CONV_KINDS, batchExample, buildApplyConv, buildBatch, buildNudgeConv, looksLikeQuestion, readBatch } from '../../lib/conversation.js';
 import { useApplication } from './useApplication.js';
 import { usePrefersReducedMotion } from '../../lib/usePrefersReducedMotion.js';
-import { buildNudge, formatSize } from '../../lib/application.js';
+import { buildNudge } from '../../lib/application.js';
 import { buildStatusReply, parseApplicationId } from '../../lib/status.js';
 import { createKnowledge } from '../../lib/knowledge.js';
 import { trayItems } from '../../lib/actionTray.js';
@@ -28,14 +28,8 @@ import './AssistantV2.css';
 let nextId = 1;
 const LEAVE_MS = 200; // welcome → conversation
 const CLOSE_MS = 180; // panel back into the launcher
+const MIC_PROMPT_MS = 10000; // how long the pop-up over the microphone stays by default, and the orb on it with it
 const FOLLOW_MS = 350; // pause before the first question follows its intro
-
-// Heights (0 to 1) for the waveform bars: taller in the middle, uneven like speech.
-const VOICE_COUNT = 112;
-const VOICE_BARS = Array.from({ length: VOICE_COUNT }, (_, i) => {
-  const envelope = 0.3 + 0.7 * Math.sin((Math.PI * (i + 0.5)) / VOICE_COUNT);
-  return +Math.max(0.16, envelope * (0.45 + 0.55 * Math.abs(Math.sin(i * 1.9 + 0.6) * Math.cos(i * 0.37)))).toFixed(2);
-});
 
 // What a screen reader hears once a reply has finished: the words, then the card titles.
 function spokenReply(scenario) {
@@ -77,6 +71,13 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
   const [statusAwait, setStatusAwait] = useState(false); // Mira has asked for an application ID
   const [micShine, setMicShine] = useState(true); // the mic lights up once when the chat opens (both variations), and once more for the first question (Variation 2 only), then rests
   const [shineRun, setShineRun] = useState(0); // counts the runs, so a new question restarts the effect
+  const [transcript, setTranscript] = useState(''); // what is being heard while the microphone is on (shown in the message box as it comes)
+  const heard = useRef(''); // the same, readable the moment the stop button is pressed
+  const recRef = useRef(null); // the browser's speech recognition, when there is one
+  const simRef = useRef(null); // the simulated stream, when there is not
+  const simUsed = useRef(false);
+  const vtextRef = useRef(null);
+  const [micPop, setMicPop] = useState(true); // the pop-up over the microphone on the starting screen
   const questionShone = useRef(false); // the mic lights up for the FIRST question only, not for every one after it
   const micHinted = useRef(false); // the reminder to use the microphone or type has been given once in this conversation
   const askCounts = useRef({}); // testing scenarios: how many times each question has been asked, so a repeat gets the next sample
@@ -141,6 +142,18 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
   };
 
   const started = messages.length > 0;
+  // The one-time orb is over after about 7 seconds; if the browser never reports the end of its animation (a hidden tab), end it anyway.
+  useEffect(() => {
+    if (!micShine || !open) return undefined;
+    // On the starting screen the orb lasts as long as the pop-up does by default (10 s, MIC_PROMPT_MS); for the first question it is briefer.
+    const t = setTimeout(() => setMicShine(false), shineRun === 0 ? MIC_PROMPT_MS + 500 : 8000);
+    return () => clearTimeout(t);
+  }, [micShine, shineRun, open]);
+  useEffect(() => {
+    if (!micPop || !open) return undefined;
+    const t = setTimeout(() => setMicPop(false), MIC_PROMPT_MS);
+    return () => clearTimeout(t);
+  }, [micPop, open, session]);
   const later = (fn, ms) => {
     const id = setTimeout(fn, ms);
     timers.current.push(id);
@@ -235,6 +248,8 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
 
   useEffect(() => () => timers.current.forEach(clearTimeout), []);
 
+  // `thumb` is one picture's address, or a list of { url } for the files that were sent (a file that is not a picture has no url
+  // and shows a document icon).
   const pushUser = (text, thumb) => {
     pinned.current = true; // sending always jumps to the latest
     anchorRef.current = null;
@@ -318,8 +333,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
     if (open) lock(open.msgId, 'skipped'); // the question card is replaced by this message
     setWaiting(null);
     setStage('check');
-    const firstImage = files.find((f) => f.type.startsWith('image/'));
-    pushUser([text, files.map((f) => f.name).join(', ')].filter(Boolean).join(' — '), firstImage?.url);
+    pushUser([text, files.map((f) => f.name).join(', ')].filter(Boolean).join(' — '), files.map((f) => ({ url: f.type.startsWith('image/') ? f.url : undefined })));
     attachRef.current = []; // the bubble and the documents keep the preview URLs alive
     setAttachments([]);
     const built = buildIntake({
@@ -636,20 +650,86 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
     }
   };
 
-  // ---- Voice (simulated) -----------------------------------------------------------------
-  const stopListening = () => {
-    setListening(false);
+  // ---- Voice: speech to text, streamed into the message box as it is heard ------------------------------------------------
+  // The browser's own speech recognition is used when it has one (Chrome, Edge, Safari; the person is asked for the microphone).
+  // When it has not, or is not allowed, the sample answer for the question that is open is streamed word by word instead, so the
+  // prototype behaves the same everywhere. Nothing is sent anywhere by this code.
+  const sampleSaid = () => {
     const waiting = flowRef.current.awaiting;
-    // The transcript lands in the message box; the person decides whether to send it.
-    const said = app.voiceSample ?? (statusRef.current ? statusCheck.voiceSample : waiting?.batch ? eligibility.batch.voiceSample : waiting ? eligibility.questions[waiting.qid].voiceSample : voice.transcript);
-    setDraft((d) => (d.trim() ? `${d.trim()} ${said}` : said));
+    return app.voiceSample ?? (statusRef.current ? statusCheck.voiceSample : waiting?.batch ? eligibility.batch.voiceSample : waiting ? eligibility.questions[waiting.qid].voiceSample : voice.transcript);
+  };
+
+  const showHeard = (text) => {
+    heard.current = text;
+    setTranscript(text);
+  };
+
+  const startSimulated = () => {
+    simUsed.current = true;
+    clearInterval(simRef.current);
+    const words = sampleSaid().split(' ');
+    let i = 0;
+    simRef.current = setInterval(() => {
+      i += 1;
+      showHeard(words.slice(0, i).join(' '));
+      if (i >= words.length) clearInterval(simRef.current);
+    }, 260);
+  };
+
+  const stopListening = () => {
+    // What was heard lands in the message box; the person decides whether to send it. (If the simulated stream was used and the
+    // stop came before any word, the whole sample answer is used.)
+    const said = heard.current.trim() || (simUsed.current ? sampleSaid() : '');
+    setListening(false);
+    if (said) setDraft((d) => (d.trim() ? `${d.trim()} ${said}` : said));
     focusInput();
   };
 
   const startListening = () => {
     if (busy || listening || leaving) return;
+    setMicPop(false);
+    showHeard('');
+    simUsed.current = false;
     setListening(true); // runs until the person presses stop
+    const Recognition = typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition);
+    if (!Recognition) {
+      startSimulated();
+      return;
+    }
+    try {
+      const rec = new Recognition();
+      rec.lang = 'en-US';
+      rec.continuous = true;
+      rec.interimResults = true;
+      rec.onresult = (e) => showHeard(Array.from(e.results, (r) => r[0].transcript).join(' ').trim());
+      // not allowed, no microphone, no network: carry on with the simulated stream instead of leaving a silent box
+      rec.onerror = (e) => {
+        if (e.error !== 'no-speech' && e.error !== 'aborted' && !heard.current) startSimulated();
+      };
+      rec.start();
+      recRef.current = rec;
+    } catch {
+      startSimulated();
+    }
   };
+
+  // Whenever listening ends (stop, close, restart), the recognition and the simulated stream end with it.
+  useEffect(() => {
+    if (listening) return undefined;
+    clearInterval(simRef.current);
+    try {
+      recRef.current?.stop();
+    } catch {
+      /* already stopped */
+    }
+    recRef.current = null;
+    return undefined;
+  }, [listening]);
+
+  // The newest words stay in view as the text grows.
+  useEffect(() => {
+    if (vtextRef.current) vtextRef.current.scrollTop = vtextRef.current.scrollHeight;
+  }, [transcript]);
 
   const restart = () => {
     timers.current.forEach(clearTimeout);
@@ -672,6 +752,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
     setAttachError('');
     setAnnouncement('');
     setMicShine(true);
+    setMicPop(true);
     questionShone.current = false;
     askCounts.current = {};
     micHinted.current = false;
@@ -728,7 +809,9 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
     !buttonsInside && lastMessage?.role === 'noor' && lastMessage.chosen === undefined && !busy && !listening
       ? trayItems(lastMessage.scenario)
       : [];
-  const placeholder = attachments.length ? ui.attach.placeholder : app.awaiting?.placeholder ?? (statusAwait ? statusCheck.placeholder : conv && flowRef.current.awaiting?.batch ? eligibility.batch.placeholder : awaiting ? ui.input.answer : started ? ui.input.conversation : v2 ? ui.input.welcomeV2 : ui.input.welcome);
+  // The hint in the message box is the same for every question ("Speak or type your answer…"); it does not change with the question.
+  const questionOpen = Boolean(app.awaiting) || statusAwait || awaiting;
+  const placeholder = attachments.length ? ui.attach.placeholder : questionOpen ? ui.input.answer : started ? ui.input.conversation : v2 ? ui.input.welcomeV2 : ui.input.welcome;
   const blocked = busy || leaving;
   const topicsEl = (
     <div className={`noor-topics${leaving ? ' is-leaving' : ''}${listening ? ' is-muted' : ''}`} inert={listening || undefined}>
@@ -765,7 +848,6 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
                   </span>
                   <span className="noor-attach__meta">
                     <span className="noor-attach__name">{attachment.name}</span>
-                    <span className="noor-attach__size">{formatSize(attachment.size)}</span>
                   </span>
                   <button
                     type="button"
@@ -793,10 +875,15 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
                   <>
                     <span className="noor-vwave" role="status">
                       <span className="visually-hidden">{ui.listening}</span>
-                      <span className="noor-vwave__bars" aria-hidden="true">
-                        {VOICE_BARS.map((p, i) => (
-                          <i key={i} style={{ '--p': p, '--d': `${(i * 59) % 700}ms` }} />
-                        ))}
+                      <span className="noor-vtext" ref={vtextRef} aria-hidden="true">
+                        {transcript ? (
+                          <>
+                            {transcript}
+                            <span className="noor-caret" aria-hidden="true" />
+                          </>
+                        ) : (
+                          <span className="noor-vtext__hint">{ui.listening}</span>
+                        )}
                       </span>
                     </span>
                     <button type="button" className="noor-send" aria-label={ui.actions.stop} onClick={stopListening}>
@@ -812,7 +899,10 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
                       dir="auto"
                       enterKeyHint="send"
                       value={draft}
-                      onChange={(e) => setDraft(e.target.value)}
+                      onChange={(e) => {
+                        setDraft(e.target.value);
+                        setMicPop(false);
+                      }}
                       onKeyDown={(e) => {
                         // Enter sends; Shift+Enter starts a new line.
                         if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
@@ -849,17 +939,36 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
                         </button>
                       </>
                     )}
-                    <button
-                      type="button"
-                      className={`noor-mic${micShine ? ' is-shine' : ''}`}
-                      aria-label={ui.actions.mic}
-                      aria-disabled={blocked || undefined}
-                      onClick={startListening}
-                      onAnimationEnd={(e) => e.animationName === 'noor-mic-shine' && setMicShine(false)}
-                    >
-                      <ChatIcon name="mic" size={20} />
-                      {micShine && !reduced && <MicOrb key={shineRun} />}
-                    </button>
+                    <span className="noor-mic-wrap">
+                      <button
+                        type="button"
+                        className={`noor-mic${micShine ? ` is-shine${shineRun > 0 ? ' is-brief' : ''}` : ''}`}
+                        aria-label={ui.actions.mic}
+                        aria-disabled={blocked || undefined}
+                        onClick={startListening}
+                        onAnimationEnd={(e) => e.animationName === 'noor-mic-shine' && setMicShine(false)}
+                      >
+                        <span className="noor-mic__icon">
+                          <ChatIcon name="mic" size={20} />
+                          {/* the shimmer: a second, lighter copy of the icon, shown only through a band that sweeps across it */}
+                          {!micShine && !reduced && (
+                            <span className="noor-mic__sheen" aria-hidden="true">
+                              <ChatIcon name="mic" size={20} />
+                            </span>
+                          )}
+                        </span>
+                        {micShine && !reduced && <MicOrb key={shineRun} />}
+                      </button>
+                      {micPop && !started && (
+                        <div className="noor-mic-pop" role="status">
+                          <strong>{ui.micPop.title}</strong>
+                          <span>{ui.micPop.text}</span>
+                          <button type="button" className="noor-mic-pop__close" aria-label={ui.micPop.close} onClick={() => setMicPop(false)}>
+                            <ChatIcon name="close" size={14} />
+                          </button>
+                        </div>
+                      )}
+                    </span>
                     <button
                       type="submit"
                       className="noor-send"
@@ -1038,7 +1147,19 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
                       <div className="noor-msg noor-msg--user" key={m.id}>
                         <div className="noor-bubble noor-bubble--user">
                           <span className="visually-hidden">{ui.announce.youSaid}</span>
-                          {m.thumb && <img className="noor-bubble__thumb" src={m.thumb} alt="" />}
+                          {(Array.isArray(m.thumb) ? m.thumb : m.thumb ? [{ url: m.thumb }] : []).length > 0 && (
+                            <span className="noor-bubble__thumbs">
+                              {(Array.isArray(m.thumb) ? m.thumb : [{ url: m.thumb }]).map((t, i) =>
+                                t.url ? (
+                                  <img className="noor-bubble__thumb" key={i} src={t.url} alt="" />
+                                ) : (
+                                  <span className="noor-bubble__thumb noor-bubble__thumb--file" key={i} aria-hidden="true">
+                                    <ChatIcon name="file" size={28} weight={1.4} />
+                                  </span>
+                                )
+                              )}
+                            </span>
+                          )}
                           {m.text}
                         </div>
                       </div>

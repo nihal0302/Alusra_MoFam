@@ -9,7 +9,7 @@ export const application = {
   signIn: {
     // Simulated wait while the person approves in the UAE PASS app (the real hand-off is not built).
     wait: {
-      ms: 15000,
+      ms: 8000,
       lead: 'Opening UAE PASS now.',
       primary: 'Please approve the sign-in in your UAE PASS app. This can take a little while, so please keep this window open.',
       title: 'Signing in with UAE PASS',
@@ -235,6 +235,14 @@ export const application = {
       voiceSample: 'Sharjah',
       error: 'I was unable to identify the location. Please select an emirate or “Outside the UAE”, provide it‹mic› using the microphone or by typing‹/mic›, or select Skip.',
     },
+    // Both support questions in one card (the questions are in application.conv.en.js, groups.support.sections).
+    support: {
+      kind: 'choiceSet',
+      label: 'Special education support and shadow teacher',
+      text: 'Please answer the following.',
+      placeholder: 'e.g. support yes, shadow teacher no, or skip…',
+      voiceSample: 'Support yes, shadow teacher no',
+    },
     specialSupport: {
       kind: 'choice',
       options: ['Yes', 'No'],
@@ -265,8 +273,7 @@ export const application = {
   },
 
   review: {
-    lead: 'That is all the information I require.',
-    text: 'Please check your application before you submit it.',
+    text: 'Please check them before you submit your application.',
     title: 'Review your application',
     fromUaePass: 'From UAE PASS',
     change: 'Change',
@@ -278,12 +285,12 @@ export const application = {
   submit: {
     working: 'Sending your application to the Ministry…',
     done: 'Received by the Ministry’s platform',
-    lead: 'Thank you for applying.',
-    primary: 'Your application has been submitted.',
-    secondary: 'You can ask me for its status at any time.',
+    lead: 'Application submitted.',
+    primary: 'You can ask me for its status at any time.',
     card: {
       title: 'Application submitted',
-      body: 'Application submitted. Keep this number to check its status.',
+      numberLabel: 'Application number', // shown above the number (nothing under it)
+      emailNote: 'You will also receive this application number by email.', // the last line of the card (no address, no icon)
       copy: 'Copy number',
       copied: 'Copied',
       trackerTitle: 'What happens next',

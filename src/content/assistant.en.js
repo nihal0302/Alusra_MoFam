@@ -22,6 +22,8 @@ export const ui = {
   welcome: { title: 'How can I help you today?', subtitle: 'Choose a task, or describe your request in your own words.' },
   // Variation 2: a plainer starting screen that points to the microphone.
   welcomeV2: { title: 'How can I help you?', titleAccent: 'help you?', subtitle: 'Tap the microphone to speak, or type your question.', quickLabel: 'Quick start' },
+  // The pop-up over the microphone when the chat opens on its starting screen.
+  micPop: { title: 'Voice input available', text: 'Tap the mic and give your inputs.', close: 'Close this message' },
   today: 'Today',
   footer: 'Mira gives general guidance about MoFam services.',
   input: { answer: 'Speak or type your answer…', welcome: 'Describe how I can help you…', welcomeV2: 'Tap the microphone to speak, or type…', conversation: 'Speak or type your message to Mira…' },
@@ -273,7 +275,7 @@ export const statusCheck = {
     primary: 'Application {id} is currently at the “{stage}” step.',
     sample: 'This is sample data for the prototype.',
   },
-  card: { title: 'Application {id}', summary: '{done} of {total} steps complete' },
+  card: { title: 'Application {id}', summary: '{done} of {total} steps complete', submittedLabel: 'Submitted', emailNote: 'You will receive an email once a decision is taken.' },
   steps: ['Eligibility check', 'Submitted', 'Documents under review', 'Decision'],
   states: { done: 'Done', current: 'In progress', pending: 'Pending' },
   // One line per sample stage, in the order the steps are reached.
