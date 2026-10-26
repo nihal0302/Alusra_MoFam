@@ -57,6 +57,7 @@
 :root {
   --font-assistant: "Archivo", var(--font-body);
   --noor-ink: #241d10;
+  --noor-bubble-user: var(--noor-ink); /* the dark user bubble; resolved here so Variation 2 (which re-points --noor-ink) keeps the same colour */
   --noor-muted: #625c52;
   --noor-placeholder: #8c8477;
   --noor-gold: #7c5e24;          /* accent (dark gold): icons, links, focus */

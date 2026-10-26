@@ -121,7 +121,7 @@
 
 /* ---------- Conversation ---------- */
 .noor--v2 .noor-bubble--noor { background: var(--noor-chip); border-radius: 14px; border-start-start-radius: 4px; }
-.noor--v2 .noor-bubble--user { background: var(--c-green); border-radius: 14px; border-end-end-radius: 4px; }
+.noor--v2 .noor-bubble--user { background: var(--noor-bubble-user); border-radius: 14px; border-end-end-radius: 4px; }
 
 .noor--v2 .noor-card { border-color: var(--noor-line-strong); border-radius: 12px; }
 .noor--v2 .noor-card:hover { box-shadow: none; }
