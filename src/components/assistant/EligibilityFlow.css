@@ -724,7 +724,6 @@
 
 .noor-sub__next { padding: 20px 20px 22px; }
 .noor-sub__next .noor-done__label { text-align: start; }
-.noor-sub__notify { margin-block-start: 14px; }
 
 @media (prefers-reduced-motion: reduce) {
   .noor-done__halo { animation: none; }
@@ -958,7 +957,6 @@
 /* More air under the sign-in title and above the notification line */
 .noor-signing .noor-card__title { margin-block-end: 6px; }
 .noor-signing__steps { margin-block-start: 22px; gap: 14px; }
-.noor-sub__next .noor-sub__notify { margin-block-start: 26px; }
 
 /* ================= Outcome actions: same footer as the success card ================= */
 /* Text action left; secondary + primary together on the right. Links are ordinary buttons. */
@@ -1084,10 +1082,13 @@
 .noor-sub__next { padding: 12px 16px 16px; }
 .noor-sub__next .noor-done__label { margin-block-end: 6px; }
 .noor-sub__next .noor-steps { gap: 6px; margin-block-start: 6px; }
-.noor-sub__next .noor-sub__notify { margin-block-start: 12px; }
 
 /* Submitted: the application number is the heading, the body copy says what it is for. */
 .noor-sub__head { grid-column: 2; grid-row: 1; align-self: end; display: flex; align-items: center; gap: 4px; min-inline-size: 0; }
 .noor-sub__ref { margin: 0; font-size: 24px; line-height: 1.15; font-weight: 700; letter-spacing: 0.02em; color: var(--noor-ink); }
 .noor-sub__top .noor-sub__label { margin-block-start: 2px; }
 .noor-sub__next { padding-block-start: 14px; border-block-start: 1px solid var(--noor-line); margin-block-start: 12px; }
+
+/* A little more space under "What happens next". */
+.noor-sub__next .noor-done__label { margin-block-end: 12px; }
+.noor-sub__next .noor-steps { margin-block-start: 12px; }

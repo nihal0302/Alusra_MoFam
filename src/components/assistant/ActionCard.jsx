@@ -275,7 +275,6 @@ function SubmittedCard({ card, style }) {
             </li>
           ))}
         </ol>
-        <p className="noor-card__text noor-sub__notify">{card.notify}</p>
       </div>
     </section>
   );

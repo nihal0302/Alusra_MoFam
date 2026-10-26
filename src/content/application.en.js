@@ -142,11 +142,9 @@ export const application = {
       steps: [
         { label: 'Eligibility check', state: 'done' },
         { label: 'Submitted', state: 'done' },
-        { label: 'Document processing', state: 'pending' },
-        { label: 'Authorized Reviewer', state: 'pending' },
+        { label: 'Documents under review', state: 'pending' },
         { label: 'Decision', state: 'pending' },
       ],
-      notify: 'We’ll notify you by SMS and email as your application moves forward.',
     },
     suggestion: 'Check application status',
   },

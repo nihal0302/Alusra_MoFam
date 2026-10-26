@@ -132,11 +132,17 @@ export function Assistant({ content }) {
   const focusInput = () => later(() => inputRef.current?.focus(), 30);
 
   // The message box grows with what is typed, so the whole message stays in view (up to six lines, then it scrolls).
+  // It also re-measures when the window is resized, because a different width changes how the text wraps.
   useLayoutEffect(() => {
-    const el = inputRef.current;
-    if (!el) return;
-    el.style.height = 'auto';
-    el.style.height = `${el.scrollHeight}px`;
+    const fit = () => {
+      const el = inputRef.current;
+      if (!el) return;
+      el.style.height = 'auto';
+      el.style.height = `${el.scrollHeight}px`;
+    };
+    fit();
+    window.addEventListener('resize', fit);
+    return () => window.removeEventListener('resize', fit);
   }, [draft, listening, expanded, open, attachments.length]);
 
   // Focus moves in on open and returns to the launcher on close.

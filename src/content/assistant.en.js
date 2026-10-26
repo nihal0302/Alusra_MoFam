@@ -270,14 +270,10 @@ export const statusCheck = {
     sample: 'This is sample data for the prototype.',
   },
   card: { title: 'Application {id}', summary: '{done} of {total} steps complete' },
-  steps: ['Eligibility check', 'Submitted', 'Document processing', 'Authorized Reviewer', 'Decision'],
+  steps: ['Eligibility check', 'Submitted', 'Documents under review', 'Decision'],
   states: { done: 'Done', current: 'In progress', pending: 'Pending' },
   // One line per sample stage, in the order the steps are reached.
-  stages: [
-    'Your documents are being checked.',
-    'An authorized reviewer is looking at your application.',
-    'Your application is awaiting its final decision.',
-  ],
+  stages: ['Your documents are being reviewed.', 'Your application is awaiting its final decision.'],
 };
 
 // Off-topic or unrecognised: redirect gracefully and offer a person.
