@@ -236,28 +236,27 @@ function SubmittedCard({ card, style }) {
     <section className="noor-card noor-sub" style={style} aria-label={card.title}>
       <div className="noor-sub__top">
         <SuccessCheck className="noor-done__check" />
-        <h3 className="noor-done__title">{card.title}</h3>
-        <p className="noor-sub__label">{card.refLabel}</p>
-      </div>
-      <div className="noor-sub__refrow">
-        <p className="noor-sub__ref" aria-label={card.reference}>
-          POD-{String(n).padStart(4, '0')}
-        </p>
-        <button
-          type="button"
-          className={`noor-sub__copy${copied ? ' is-copied' : ''}`}
-          onClick={copy}
-          aria-label={`${card.copy}: ${card.reference}`}
-          title={copied ? card.copied : card.copy}
-        >
-          <ChatIcon name={copied ? 'check' : 'copy'} size={16} />
-        </button>
-        <span className="noor-sub__copied" aria-hidden="true">
-          {copied ? card.copied : ''}
-        </span>
-        <span className="visually-hidden" role="status">
-          {copied ? card.copied : ''}
-        </span>
+        <div className="noor-sub__head">
+          <h3 className="noor-sub__ref" aria-label={`${card.title}: ${card.reference}`}>
+            POD-{String(n).padStart(4, '0')}
+          </h3>
+          <button
+            type="button"
+            className={`noor-sub__copy${copied ? ' is-copied' : ''}`}
+            onClick={copy}
+            aria-label={`${card.copy}: ${card.reference}`}
+            title={copied ? card.copied : card.copy}
+          >
+            <ChatIcon name={copied ? 'check' : 'copy'} size={16} />
+          </button>
+          <span className="noor-sub__copied" aria-hidden="true">
+            {copied ? card.copied : ''}
+          </span>
+          <span className="visually-hidden" role="status">
+            {copied ? card.copied : ''}
+          </span>
+        </div>
+        <p className="noor-sub__label">{card.body}</p>
       </div>
       <div className="noor-sub__next">
         <p className="noor-done__label">{card.trackerTitle}</p>

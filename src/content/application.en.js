@@ -135,7 +135,7 @@ export const application = {
     secondary: 'You can ask me for its status at any time.',
     card: {
       title: 'Application submitted',
-      refLabel: 'Your application number',
+      body: 'Application submitted. Keep this number to check its status.',
       copy: 'Copy number',
       copied: 'Copied',
       trackerTitle: 'What happens next',

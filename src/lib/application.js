@@ -120,7 +120,7 @@ export function buildSubmitted(app, reference) {
     tool: { working: s.working, done: s.done },
     text: [{ lead: fill(s.lead, { first: app.signIn.profile.first }), primary: s.primary, secondary: s.secondary }],
     cards: [
-      { type: 'submitted', reference, ...s.card, spoken: `${s.card.title}. ${s.card.refLabel}: ${reference}.` },
+      { type: 'submitted', reference, ...s.card, spoken: `${s.card.title}. Application number: ${reference}.` },
       { type: 'suggestions', title: 'Need anything else?', items: [s.suggestion] },
     ],
   };

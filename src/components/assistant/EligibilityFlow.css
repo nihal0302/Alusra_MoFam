@@ -1063,15 +1063,6 @@
 .noor-sub__top .noor-done__title { grid-column: 2; grid-row: 1; align-self: end; font-size: 17px; line-height: 1.25; }
 .noor-sub__label { grid-column: 2; grid-row: 2; align-self: start; margin: 0; font-size: 14px; line-height: 20px; color: var(--noor-muted); }
 
-.noor-sub__refrow {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 2px 16px 0;
-}
-
-.noor-sub__ref { font-size: 22px; line-height: 1.2; font-weight: 700; letter-spacing: 0.02em; }
-
 .noor-sub__copy {
   display: inline-grid;
   place-items: center;
@@ -1094,3 +1085,9 @@
 .noor-sub__next .noor-done__label { margin-block-end: 6px; }
 .noor-sub__next .noor-steps { gap: 6px; margin-block-start: 6px; }
 .noor-sub__next .noor-sub__notify { margin-block-start: 12px; }
+
+/* Submitted: the application number is the heading, the body copy says what it is for. */
+.noor-sub__head { grid-column: 2; grid-row: 1; align-self: end; display: flex; align-items: center; gap: 4px; min-inline-size: 0; }
+.noor-sub__ref { margin: 0; font-size: 24px; line-height: 1.15; font-weight: 700; letter-spacing: 0.02em; color: var(--noor-ink); }
+.noor-sub__top .noor-sub__label { margin-block-start: 2px; }
+.noor-sub__next { padding-block-start: 14px; border-block-start: 1px solid var(--noor-line); margin-block-start: 12px; }
