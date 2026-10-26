@@ -378,12 +378,22 @@ export function buildSignInConv(app, { who, data, group }) {
   const s = app.signIn;
   const c = app.conv;
   const parts = groupParts(app, group, { who, data });
-  const rows = c.profileRows.map((id) => s.profile.rows.find((r) => r.id === id)).filter(Boolean);
+  const rows = c.profileRows[who].map((id) => s.profile.rows.find((r) => r.id === id)).filter(Boolean);
   return {
     id: 'app:signin',
     tool: { working: s.working, done: s.done },
-    text: [{ lead: fill(s.lead, { first: s.profile.first }), primary: `${c.signIn.primary} ${parts.primary}`, example: parts.example, exampleLabel: parts.example ? c.exampleLabel : undefined }],
+    text: [{ lead: fill(s.lead, { first: s.profile.first }), primary: `${c.signIn.primary[who]} ${parts.primary}`, example: parts.example, exampleLabel: parts.example ? c.exampleLabel : undefined }],
     cards: [{ type: 'details', title: c.signIn.title, rows, note: s.card.note, spoken: `${c.signIn.title}.` }, ...parts.cards],
+  };
+}
+
+// The message and card before the UAE PASS button, worded for who the card is for. `base` is the scripted scenario.
+export function buildApplyConv(app, base, who) {
+  const a = app.conv.apply[who === 'child' ? 'child' : 'self'];
+  return {
+    ...base,
+    text: [{ lead: a.lead, primary: a.primary, secondary: a.secondary }],
+    cards: base.cards.map((card) => (card.type === 'uaepass' ? { ...card, description: a.description } : card)),
   };
 }
 
@@ -463,14 +473,10 @@ export function buildReviewConv(app, { who, data, updated = [] }) {
   const groups = [
     {
       title: c.groups.applicant,
+      // For a child only the applicant's name, mobile and email are used; the rest of their UAE PASS is not part of the form.
       rows: compact([
         row('applyingFor', child ? c.forChild : c.forSelf, 'you'),
-        row('name', profile.name, 'uaepass'),
-        row('eid', profile.eid, 'uaepass'),
-        row('nationality', profile.nationality, 'uaepass'),
-        row('gender', profile.gender, 'uaepass'),
-        row('mobile', profile.mobile, 'uaepass'),
-        row('email', profile.email, 'uaepass'),
+        ...app.conv.profileRows[who].map((id) => row(id, profile[id], 'uaepass')),
       ]),
     },
     ...(child ? [{ title: c.groups.cardholder, rows: compact([row('cardholderEid', data.cardholderEid, 'you', 'cardholderEid'), row('cardholderDob', data.cardholderDob, 'you', 'cardholderDob')]) }] : []),

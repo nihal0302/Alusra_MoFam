@@ -17,10 +17,34 @@ export const conv = {
   skip: 'Skip',
 
   // The rows shown under "Your details from UAE PASS" (ids of application.signIn.profile.rows; no date of birth).
-  profileRows: ['name', 'eid', 'nationality', 'gender', 'mobile', 'email'],
+  // When someone applies on behalf of a child they are only the applicant: the form uses just their name, mobile and email.
+  // The child's Emirates ID and date of birth are not in their UAE PASS, so they are asked for.
+  profileRows: {
+    self: ['name', 'eid', 'nationality', 'gender', 'mobile', 'email'],
+    child: ['name', 'mobile', 'email'],
+  },
   signIn: {
     title: 'Your details from UAE PASS',
-    primary: 'I’ve filled in your details from UAE PASS (name, Emirates ID, nationality, mobile and email), so you do not need to enter them again.',
+    primary: {
+      self: 'I’ve filled in your details from UAE PASS (name, Emirates ID, nationality, mobile and email), so you do not need to enter them again.',
+      child: 'I’ve filled in your details as the applicant from UAE PASS (name, mobile and email), so you do not need to enter them again.',
+    },
+  },
+
+  // Just before the UAE PASS button: what is shared depends on who the card is for.
+  apply: {
+    self: {
+      lead: 'Thank you. To continue, please sign in.',
+      primary: 'To fill in your details for you, I’ll ask you to sign in with UAE PASS.',
+      secondary: 'Your name, Emirates ID, nationality, mobile and email are filled in for you.',
+      description: 'UAE PASS shares your name, Emirates ID, nationality, mobile and email. You’ll review everything before anything is submitted.',
+    },
+    child: {
+      lead: 'Thank you. To continue, please sign in.',
+      primary: 'You’ll sign in as the applicant, so I’ll use UAE PASS for your own details.',
+      secondary: 'Your name, mobile and email are filled in for you. Your child’s Emirates ID and date of birth are not part of your UAE PASS, so I’ll ask you for those next.',
+      description: 'UAE PASS shares your name, mobile and email. Your child’s details are not shared, so you’ll enter them yourself. You’ll review everything before anything is submitted.',
+    },
   },
 
   ackLead: 'Thank you. I’ve noted {list}.',
@@ -166,7 +190,7 @@ export const conv = {
   review: {
     lead: 'Thank you, that is everything I need.',
     summarySelf: 'Here is your application. You are applying for yourself, as {name}. The card will be delivered to {where}, and I’ll use {phone} as the delivery contact. Your disability type is {disability}, and your photograph and report are attached.',
-    summaryChild: 'Here is your application. You are applying for your child (Emirates ID {eid}), as {name}. The card will be delivered to {where}, and I’ll use {phone} as the delivery contact. Their disability type is {disability}, and the photograph and report are attached.',
+    summaryChild: 'Here is your application. You are applying on behalf of your child (Emirates ID {eid}), and you are the applicant, {name}. The card will be delivered to {where}, and I’ll use {phone} as the delivery contact. Their disability type is {disability}, and the photograph and report are attached.',
     extras: 'I’ve also added {list}.',
     ask: 'Shall I submit it? Reply “yes”, or tell me what to change.',
     askAgain: 'Shall I submit it now? Reply “yes”, or tell me what else to change.',

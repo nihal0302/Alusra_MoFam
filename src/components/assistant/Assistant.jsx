@@ -7,7 +7,7 @@ import { NoorAvatar } from './NoorAvatar.jsx';
 import { NoorMessage } from './NoorMessage.jsx';
 import { resolveScenario } from '../../lib/noor.js';
 import { buildQuestion, buildResult, buildReview, nextStep, parseAnswer, pathOf, purge } from '../../lib/eligibility.js';
-import { CONV_KINDS, batchExample, buildBatch, buildNudgeConv, looksLikeQuestion, readBatch } from '../../lib/conversation.js';
+import { CONV_KINDS, batchExample, buildApplyConv, buildBatch, buildNudgeConv, looksLikeQuestion, readBatch } from '../../lib/conversation.js';
 import { useApplication } from './useApplication.js';
 import { usePrefersReducedMotion } from '../../lib/usePrefersReducedMotion.js';
 import { buildNudge, formatSize } from '../../lib/application.js';
@@ -376,7 +376,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, onButt
         pushUser(payload.label);
         app.prefill(docsRef.current); // files sent earlier are not asked for again
         app.setWho(flowRef.current.answers.who); // an application for a child asks for the child's details too
-        pushNoor(afterCheck.apply);
+        pushNoor(conv ? buildApplyConv(application, afterCheck.apply, flowRef.current.answers.who) : afterCheck.apply);
         break;
       case 'ask':
         send(payload);
