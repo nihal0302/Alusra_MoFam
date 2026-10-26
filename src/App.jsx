@@ -22,7 +22,7 @@ const assistant = { ...assistantCopy, eligibility, application, intake, knowledg
 
 export function App() {
   // Testing controls: which chatbot design, and whether the buttons sit inside or outside the replies.
-  const [variant, setVariant] = useState('1');
+  const [variant, setVariant] = useState('2'); // opens on Variation 2; the switch goes back to Variation 1
   const [buttonsInside, setButtonsInside] = useState(true);
   const [chatOpen, setChatOpen] = useState(false);
   return (
