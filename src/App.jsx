@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { home } from './content/home.en.js';
 import { VariantSwitch } from './components/PrototypeSwitches.jsx';
+import { demo } from './content/demo.en.js';
 import { Navbar } from './components/Navbar.jsx';
 import { RegistrationBanner } from './components/RegistrationBanner.jsx';
 import { HeroSlider } from './components/HeroSlider.jsx';
@@ -18,13 +19,14 @@ import { intake } from './content/intake.en.js';
 import { knowledgeCopy, knowledgeServices, resolutionEntries, serviceMeta, topics as knowledgeTopics } from './content/knowledge.en.js';
 
 const knowledge = { services: knowledgeServices, serviceMeta, topics: knowledgeTopics, extraTopics: resolutionEntries, copy: knowledgeCopy };
-const assistant = { ...assistantCopy, eligibility, application, intake, knowledge };
+const assistant = { ...assistantCopy, eligibility, application, intake, knowledge, demo };
 
 export function App() {
   // Testing controls: which chatbot design, and whether the buttons sit inside or outside the replies.
   const [variant, setVariant] = useState('2'); // opens on Variation 2; the switch goes back to Variation 1
   const [buttonsInside, setButtonsInside] = useState(true);
   const [chatOpen, setChatOpen] = useState(false);
+  const [scenario, setScenario] = useState('free'); // which kind of person the testing samples pretend to be (free = nothing pre-filled)
   return (
     <>
       <Navbar content={home.nav} />
@@ -38,9 +40,9 @@ export function App() {
         <ContactSection content={home.contact} />
       </main>
       <Footer content={home.footer} />
-      <VariantSwitch value={variant} onChange={setVariant} buttonsInside={buttonsInside} onButtonsInside={setButtonsInside} />
+      <VariantSwitch value={variant} onChange={setVariant} buttonsInside={buttonsInside} onButtonsInside={setButtonsInside} scenario={scenario} onScenario={setScenario} scenarios={demo} />
       {/* Keyed by design: switching starts a fresh conversation in the new design (and keeps the chat open if it was open). */}
-      <Assistant key={variant} content={assistant} variant={variant} defaultOpen={chatOpen} onOpenChange={setChatOpen} buttonsInside={buttonsInside} />
+      <Assistant key={variant} content={assistant} variant={variant} defaultOpen={chatOpen} onOpenChange={setChatOpen} buttonsInside={buttonsInside} scenario={scenario} />
     </>
   );
 }

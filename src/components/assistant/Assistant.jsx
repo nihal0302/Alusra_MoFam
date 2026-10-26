@@ -3,6 +3,7 @@ import { ChatIcon } from './ChatIcon.jsx';
 import { VoiceGlow } from './VoiceGlow.jsx';
 import { LandingBackdrop } from './LandingBackdrop.jsx';
 import { MicOrb } from './MicOrb.jsx';
+import { makeSampleFile } from '../../lib/sampleFiles.js';
 import { TopicArt } from './TopicArt.jsx';
 import { ImageSlot } from '../ImageSlot.jsx';
 import { NoorAvatar } from './NoorAvatar.jsx';
@@ -53,8 +54,8 @@ function stepState(stage, i) {
   return i === current ? 'active' : 'todo';
 }
 
-export function Assistant({ content, variant = '1', buttonsInside = true, defaultOpen = false, onOpenChange }) {
-  const { persona, ui, topics, voice, scenarios, fallback, afterCheck, eligibility, application, intake, statusCheck, eligibilityCard, knowledge } = content;
+export function Assistant({ content, variant = '1', buttonsInside = true, defaultOpen = false, onOpenChange, scenario = 'free' }) {
+  const { persona, ui, topics, voice, scenarios, fallback, afterCheck, eligibility, application, intake, statusCheck, eligibilityCard, knowledge, demo } = content;
   // Search over the Ministry's published information (see src/lib/knowledge.js). The service we were just discussing is
   // remembered so a follow-up like "and the fees?" knows what it is about.
   const kb = useMemo(() => createKnowledge({ ...knowledge, extras: { eligibilityCard } }), [knowledge, eligibilityCard]);
@@ -76,6 +77,8 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
   const [micShine, setMicShine] = useState(true); // Variation 2: the mic lights up once when the chat opens, and once each time a question is asked, then rests
   const [shineRun, setShineRun] = useState(0); // counts the runs, so a new question restarts the effect
   const questionShone = useRef(false); // the mic lights up for the FIRST question only, not for every one after it
+  const askCounts = useRef({}); // testing scenarios: how many times each question has been asked, so a repeat gets the next sample
+  const [session, setSession] = useState(0); // counts restarts, so the starting-screen sample is filled again
   const statusRef = useRef(false);
 
   const [attachments, setAttachments] = useState([]); // up to two files chosen for the next message
@@ -532,6 +535,40 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
     [busy, leaving, started, reduced, scenarios, fallback],
   );
 
+  // ---- Testing scenarios: pre-fill the message box (see content/demo.en.js) --------------------------------------------
+  // Puts a sample in the box (and the sample documents on it), ready to send. Anything the person has already typed is kept.
+  const fillBox = (entry) => {
+    const text = typeof entry === 'string' ? entry : entry.text ?? '';
+    if (text) setDraft((d) => (d.trim() ? d : text));
+    const kinds = typeof entry === 'string' ? [] : entry.files ?? [];
+    if (!kinds.length) return;
+    Promise.all(kinds.map(makeSampleFile)).then((files) =>
+      setAttach(files.map((file) => ({ file, name: file.name, size: file.size, type: file.type, url: URL.createObjectURL(file) }))),
+    );
+  };
+
+  // The sample for the question that is being asked: the first time its own first sample, a repeat the next one.
+  const sampleFor = (key) => {
+    if (scenario === 'free') return; // nothing is pre-filled
+    const set = demo?.samples?.[key];
+    const list = set?.[scenario] ?? set?.default;
+    if (!list?.length) return;
+    const n = (askCounts.current[key] ?? -1) + 1;
+    askCounts.current[key] = n;
+    fillBox(list[Math.min(n, list.length - 1)]);
+  };
+
+  // Which question a finished reply is waiting on, if any.
+  const questionKey = (msgId) => {
+    const waiting = flowRef.current.awaiting;
+    if (waiting?.msgId === msgId && waiting.batch) return 'batch';
+    const a = appRef.current?.awaiting;
+    if (a?.msgId !== msgId) return null;
+    if (a.kind === 'docs') return 'documents';
+    if (a.kind === 'confirm') return 'confirm';
+    return a.kind === 'multi' ? a.group : null;
+  };
+
   const onStage = (st, scenario, msgId) => {
     setThinking(st === 'thinking' || st === 'tool');
     const hasResult = scenario.cards?.some((card) => card.type === 'result' || card.type === 'submitted');
@@ -559,6 +596,10 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
     }
     if (st === 'thinking') setAnnouncement(ui.announce.thinking);
     if (st === 'done') {
+      if (conv) {
+        const key = questionKey(msgId);
+        if (key) sampleFor(key);
+      }
       setBusy(false);
       setAnnouncement(spokenReply(scenario));
       if (scenario.then === 'startEligibility' && !followed.current.has(msgId)) {
@@ -627,9 +668,26 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
     setAnnouncement('');
     setMicShine(true);
     questionShone.current = false;
+    askCounts.current = {};
+    setSession((n) => n + 1);
     anchorRef.current = null;
     focusInput();
   };
+
+  // Switching the testing scenario starts the conversation again, so it begins from the right place.
+  const lastScenario = useRef(scenario);
+  useEffect(() => {
+    if (lastScenario.current === scenario) return;
+    lastScenario.current = scenario;
+    restart();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scenario]);
+
+  // The "everything up front" scenario starts with everything already in the box and the documents attached.
+  useEffect(() => {
+    if (open && !started && scenario === 'upfront' && demo?.landing) fillBox(demo.landing);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, scenario, session]);
 
   const close = () => {
     timers.current.forEach(clearTimeout);

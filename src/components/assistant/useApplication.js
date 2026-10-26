@@ -52,7 +52,7 @@ export function useApplication(app, api, { conv = false } = {}) {
 
   const setAwait = (a) => {
     ref.current.awaiting = a;
-    setAwaitingInfo(a ? { kind: a.kind, step: a.step, msgId: a.msgId, placeholder: a.placeholder ?? app.steps[a.step].placeholder } : null);
+    setAwaitingInfo(a ? { kind: a.kind, step: a.step, group: a.group, msgId: a.msgId, placeholder: a.placeholder ?? app.steps[a.step].placeholder } : null);
   };
 
   const ctx = () => ({ who: ref.current.who, conv: app.conv });
