@@ -6,7 +6,8 @@ import { usePrefersReducedMotion } from '../../lib/usePrefersReducedMotion.js';
 // and written to the CSS variable --level, so the blobs swell and brighten as someone speaks and
 // settle when they pause. If the microphone is unavailable or blocked, a slow idle pulse takes over.
 // Under reduced motion the glow is still and the microphone is not used.
-export function VoiceGlow() {
+// `overChat`: in the middle of a conversation only the colour rises from the bottom; the chat itself is left as it is.
+export function VoiceGlow({ overChat = false }) {
   const box = useRef(null);
   const reduced = usePrefersReducedMotion();
 
@@ -82,7 +83,7 @@ export function VoiceGlow() {
   }, [reduced]);
 
   return (
-    <div className="noor-glow" ref={box} aria-hidden="true">
+    <div className={`noor-glow${overChat ? ' noor-glow--chat' : ''}`} ref={box} aria-hidden="true">
       <i /><i /><i /><i />
     </div>
   );

@@ -152,4 +152,79 @@ export const application = {
   nudges: {
     choice: 'I didn’t catch the emirate. Please pick one from the list, or type its name.',
   },
+
+  // Variation 2: the same application, as a conversation. Several answers in one message, documents attached to the
+  // chat, a sentence summary, and changes by typing. The same data and the same steps as above.
+  conv: {
+    signIn: {
+      title: 'Your details from UAE PASS',
+      primary: 'I’ve filled in your details from UAE PASS, so you do not need to enter them again.',
+    },
+    // What each detail is called when Mira asks for it.
+    ask: {
+      emirate: 'the emirate you live in',
+      emergencyName: 'the full name of your emergency contact',
+      emergencyPhone: 'their mobile number, including the country code',
+    },
+    voice: 'Answer by voice',
+    first: 'To continue, I need {list}. You can tell me all of it in one message.',
+    exampleLabel: 'For example:',
+    example: '“Dubai, Sara Al Ketbi, +971 50 765 4321”',
+    nudgeEmirate: 'Please type the name of your emirate, for example Dubai.',
+    editPlaceholder: 'Type your emirate…',
+    more: 'I still need {list}.',
+    plainLead: 'Thank you.',
+    ackLead: 'Thank you. I’ve noted {list}.',
+    noted: {
+      emirate: '{v} as your emirate',
+      emergencyName: '{v} as your emergency contact',
+      emergencyPhone: '{v} as their number',
+      both: '{name} ({phone}) as your emergency contact',
+    },
+    nudgeLead: 'I didn’t catch that.',
+    nudge: 'Please tell me {list}.',
+    placeholder: 'e.g. Dubai, Sara Al Ketbi, +971 50 765 4321',
+    voiceSample: 'Dubai, Fatima Al Ketbi, +971 50 765 4321',
+    docs: {
+      lead: 'Good progress.',
+      text: 'Please attach your personal photograph (a passport-size photo with a white background) and your medical or psychological report from an accredited authority. You can send both together with the paperclip.',
+      one: 'I still need your {missing}. You can attach it with the paperclip.',
+      names: { photo: 'photograph', report: 'report' },
+      yourNames: { photo: 'your photograph', report: 'your report' },
+      card: {
+        title: 'Documents',
+        button: 'Attach files',
+        items: {
+          photo: { label: 'Personal photograph', hint: 'Passport-size, white background · JPG or PNG' },
+          report: { label: 'Medical or psychological report', hint: 'From an accredited authority · PDF or JPG' },
+        },
+      },
+      placeholder: 'Attach your photograph and report with the paperclip…',
+      voiceSample: 'How do I attach my files?',
+      nudge: 'Please attach your files with the paperclip. They stay on your device until you submit.',
+      wrongType: { photo: 'The photograph needs to be a JPG or PNG.', report: 'The report needs to be a PDF or JPG.' },
+      extra: 'I used the first file of each kind and set the others aside.',
+    },
+    review: {
+      lead: 'Thank you, that is everything I need.',
+      summary: 'Here is your application. You are applying for yourself, as {name}, living in {emirate}, with {contact} ({phone}) as your emergency contact. Your photograph and report are attached.',
+      ask: 'Shall I submit it? Reply “yes”, or tell me what to change.',
+      example: '“change my emergency number to +971 50 111 2222”',
+      updated: 'Done. I’ve updated {list}.',
+      askAgain: 'Shall I submit it now? Reply “yes”, or tell me what else to change.',
+      placeholder: 'Reply “yes” to submit, or tell me what to change…',
+      voiceSample: 'Yes, submit it',
+      nudgeLead: 'I didn’t catch which detail to change.',
+      nudge: 'You can tell me what to change.',
+      holdLead: 'No problem.',
+      hold: 'What would you like to change?',
+      changed: { emirate: 'your emirate to {v}', emergencyName: 'your emergency contact to {v}', emergencyPhone: 'their number to {v}' },
+    },
+    // After an answer to a question asked mid-application, Mira brings the person back.
+    resume: {
+      multi: 'Shall we carry on with your application? I still need {list}.',
+      docs: 'Shall we carry on with your application? I still need your {list}.',
+      confirm: 'Shall we carry on with your application? Reply “yes” to submit, or tell me what to change.',
+    },
+  },
 };

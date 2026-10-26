@@ -1,0 +1,214 @@
+/* Variation 2: the same assistant, drawn as a formal government service, and run as a conversation. Everything here is
+   scoped to .noor--v2, so Variation 1 is untouched. The idea: keep the avatar and the rounded corners, but take out the glass,
+   the colour, the glow and the moving background; use the website's own green for actions and plain white and hairlines
+   for the rest. Voice mode keeps Variation 1's colour veil and glass message box. */
+
+.noor--v2 {
+  --noor-ink: var(--c-ink);
+  --noor-muted: var(--c-muted);
+  --noor-gold: var(--c-green); /* the accent (icons, links, focus, progress) follows the website green */
+  --noor-chip: var(--c-surface-soft);
+  --noor-surface: var(--c-white);
+  --noor-line: var(--c-line);
+  --noor-line-strong: var(--c-line);
+  --radius-noor-panel: 16px;
+  --radius-noor-card: 12px;
+  --radius-noor-chip: 10px;
+  --radius-noor-button: 10px;
+  --radius-noor-input: 12px;
+  --shadow-noor-panel: 0 10px 28px rgba(33, 33, 27, 0.16);
+  --shadow-noor-launcher: 0 4px 14px rgba(33, 33, 27, 0.16);
+}
+
+/* ---------- Frame ---------- */
+.noor--v2 .noor-pose { display: none; }
+.noor--v2 .noor-panel,
+.noor--v2 .noor-log,
+.noor--v2 .noor-footer { background: var(--c-white); }
+
+.noor--v2 .noor-launcher { animation: none; border: 1px solid var(--noor-line-strong); }
+
+.noor--v2 .noor-header { block-size: 68px; padding: 12px 12px 12px 16px; }
+.noor--v2 .noor-header__name { font-size: 16px; font-weight: 600; line-height: 20px; }
+
+.noor--v2 .noor-icon-btn { inline-size: 36px; block-size: 36px; background: transparent; border: 0; border-radius: 50%; }
+.noor--v2 .noor-icon-btn:hover { background: var(--noor-chip); }
+
+/* ---------- Starting screen: a greeting that reads left to right, with the services right under it ---------- */
+.noor--v2 .noor-welcome--v2 {
+  align-items: stretch;
+  justify-content: safe center;
+  padding: 24px 20px;
+  text-align: start;
+  background: var(--c-white);
+  overflow-y: auto;
+}
+
+.noor--v2 .noor-welcome__body {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  column-gap: 16px;
+  row-gap: 2px;
+  inline-size: 100%;
+  max-inline-size: 560px;
+  margin-inline: auto;
+}
+
+.noor--v2 .noor-welcome__body .noor-welcome__hero { grid-row: 1 / 3; inline-size: 56px; block-size: 56px; }
+.noor--v2 .noor-welcome__body .noor-welcome__hero .noor-avatar { box-shadow: 0 0 0 1px var(--noor-line-strong); }
+.noor--v2 .noor-welcome__body .noor-welcome__avatar { animation: none; }
+.noor--v2 .noor-welcome__body .noor-welcome__title { align-self: end; font-size: 24px; line-height: 30px; font-weight: 600; letter-spacing: 0; }
+.noor--v2 .noor-welcome__body .noor-welcome__sub { align-self: start; font-size: 14px; line-height: 20px; }
+
+
+/* ---------- The message box is the main thing on the starting screen; the services are quick-starts under it ---------- */
+.noor--v2 .noor-footer { gap: 10px; padding: 12px 16px 14px; }
+.noor--v2 .noor-glow ~ .noor-footer { background: transparent; }
+
+.noor--v2 .noor-welcome__body > .noor-input,
+.noor--v2 .noor-welcome__body > .noor-attach,
+.noor--v2 .noor-welcome__body > .noor-attach__error { grid-column: 1 / -1; }
+
+.noor--v2 .noor-welcome__body > .noor-input {
+  min-block-size: 62px;
+  align-items: flex-end; /* attach, mic and send stay at the bottom right, however many lines the message takes */
+  margin-block-start: 22px;
+  padding-block: 8px;
+  padding-inline: 20px 8px;
+  border-color: var(--noor-line-strong);
+  border-radius: 18px;
+  box-shadow: 0 2px 10px rgba(33, 33, 27, 0.08);
+}
+
+/* One line is exactly as tall as the buttons (44px), so the space above and below them is equal. */
+.noor--v2 .noor-welcome__body > .noor-input .noor-input__field { box-sizing: border-box; min-block-size: 44px; padding-block: 10px; font-size: 16px; line-height: 24px; }
+.noor--v2 .noor-welcome__body > .noor-input:focus-within { border-color: color-mix(in srgb, var(--noor-gold) 55%, var(--noor-line-strong)); }
+
+.noor--v2 .noor-quick {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-block-start: 20px;
+}
+
+.noor--v2 .noor-quick__label { font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--noor-muted); }
+.noor--v2 .noor-quick__row { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.noor--v2 .noor-quick__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-block-size: 40px;
+  padding: 0 14px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--noor-ink);
+  background: transparent;
+  border: 1px solid var(--noor-line-strong);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color var(--dur-1) var(--ease-out), border-color var(--dur-1) var(--ease-out);
+}
+
+.noor--v2 .noor-quick__btn svg { color: var(--noor-gold); }
+.noor--v2 .noor-quick__btn:hover:not([aria-disabled='true']),
+.noor--v2 .noor-quick__btn:focus-visible { background: var(--noor-chip); border-color: color-mix(in srgb, var(--noor-gold) 45%, var(--noor-line-strong)); }
+.noor--v2 .noor-quick__btn[aria-disabled='true'] { opacity: 0.5; cursor: default; }
+.noor--v2 .noor-quick.is-muted { opacity: 0.4; }
+.noor--v2 .noor-quick.is-leaving { opacity: 0; transition: opacity var(--dur-2) var(--ease-out); }
+
+/* ---------- Conversation ---------- */
+.noor--v2 .noor-bubble--noor { background: var(--noor-chip); border-radius: 14px; border-start-start-radius: 4px; }
+.noor--v2 .noor-bubble--user { background: var(--c-green); border-radius: 14px; border-end-end-radius: 4px; }
+
+.noor--v2 .noor-card { border-color: var(--noor-line-strong); border-radius: 12px; }
+.noor--v2 .noor-card:hover { box-shadow: none; }
+
+.noor--v2 .noor-input:not(.is-listening) { border-color: var(--noor-line-strong); }
+
+/* Upload box: a plain dashed area, with no gradient wash or glowing icon tile. */
+.noor--v2 .noor-up__drop { background: var(--c-white); border: 1px dashed var(--noor-line-strong); border-radius: 12px; }
+.noor--v2 .noor-up__drop:hover { background: var(--noor-chip); border-color: var(--noor-gold); }
+.noor--v2 .noor-up__badge { inline-size: 48px; block-size: 48px; border-radius: 12px; background: var(--noor-chip); box-shadow: none; }
+.noor--v2 .noor-up__drop:hover .noor-up__badge,
+.noor--v2 .noor-up__drop.is-drag .noor-up__badge { transform: none; }
+
+/* Expanded: more room, so the three quick-starts sit on one line. */
+.noor--v2 .noor-shell.is-expanded .noor-welcome__body { max-inline-size: 640px; }
+.noor--v2 .noor-shell.is-expanded .noor-quick__row { flex-wrap: nowrap; }
+.noor--v2 .noor-shell.is-expanded .noor-quick__btn { white-space: nowrap; }
+
+/* ---------- The details from UAE PASS (one line that opens) and the documents checklist ---------- */
+.noor-det { padding: 0; }
+.noor-det details { display: block; }
+
+.noor-det__sum {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--noor-ink);
+  cursor: pointer;
+  list-style: none;
+}
+
+.noor-det__sum::-webkit-details-marker { display: none; }
+
+.noor-det__sum::after {
+  content: '';
+  inline-size: 8px;
+  block-size: 8px;
+  margin-inline-end: 4px;
+  border-inline-end: 1.5px solid var(--noor-muted);
+  border-block-end: 1.5px solid var(--noor-muted);
+  rotate: 45deg;
+  transition: rotate var(--dur-2) var(--ease-out);
+}
+
+.noor-det details[open] .noor-det__sum::after { rotate: -135deg; }
+.noor-det__sum:hover { background: var(--noor-chip); }
+
+.noor-det__rows { margin: 0; padding: 0 14px 4px; border-block-start: 1px solid var(--noor-line); }
+.noor-det__rows > div { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-block-end: 1px solid var(--noor-line); }
+.noor-det__rows > div:last-child { border-block-end: 0; }
+.noor-det__rows dt { font-size: 14px; color: var(--noor-muted); }
+.noor-det__rows dd { margin: 0; font-size: 14px; font-weight: 600; color: var(--noor-ink); text-align: end; }
+.noor-det__note { margin: 0; padding: 10px 14px 12px; font-size: 13px; color: var(--noor-muted); border-block-start: 1px solid var(--noor-line); }
+
+.noor-docs__list { display: flex; flex-direction: column; gap: 12px; margin: 6px 0 0; padding: 0; list-style: none; }
+.noor-docs__list li { display: flex; align-items: flex-start; gap: 12px; }
+
+.noor-docs__mark {
+  flex: none;
+  display: grid;
+  place-items: center;
+  inline-size: 22px;
+  block-size: 22px;
+  margin-block-start: 1px;
+  color: var(--c-white);
+  border: 1.5px solid var(--noor-line-strong);
+  border-radius: 50%;
+}
+
+.noor-docs__list .is-done .noor-docs__mark { background: var(--noor-success); border-color: var(--noor-success); }
+.noor-docs__text { display: flex; flex-direction: column; gap: 2px; min-inline-size: 0; }
+.noor-docs__label { font-size: 14px; font-weight: 600; color: var(--noor-ink); }
+.noor-docs__hint { font-size: 14px; color: var(--noor-muted); overflow-wrap: anywhere; }
+
+/* An example of what to type: a label and plain text on its own line. */
+.noor-bubble__example { margin: 8px 0 0; font-size: 14px; line-height: 20px; color: var(--noor-muted); }
+.noor-bubble__example strong { font-weight: 600; color: var(--noor-ink); }
+
+/* ---------- The numbered eligibility questions ---------- */
+.noor-batch__list { display: flex; flex-direction: column; gap: 10px; margin: 8px 0 0; padding-inline-start: 22px; font-size: 14px; line-height: 20px; color: var(--noor-ink); }
+.noor-batch__list li::marker { font-weight: 600; color: var(--noor-gold); }
+.noor-batch__example { margin: 14px 0 0; font-size: 14px; line-height: 20px; color: var(--noor-muted); }
+.noor-batch__example strong { font-weight: 600; color: var(--noor-ink); }
+
+
+.noor-voice-row { animation: noor-msg-in var(--dur-3) var(--ease-out) var(--card-delay, 0ms) both; }

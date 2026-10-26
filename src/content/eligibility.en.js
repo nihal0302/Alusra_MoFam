@@ -24,6 +24,30 @@ export const eligibility = {
     listening: 'Listening…',
     miss: 'I didn’t quite catch that. Please choose one of the options, or try again.',
   },
+  // Variation 2: the questions are asked together, numbered, and answered in one message (typed or spoken).
+  batch: {
+    lead: 'Thank you. Let’s begin.',
+    primary: 'Please answer the questions below in one message. You can type your answers, or tap the microphone and simply say them.',
+    title: 'Please tell me',
+    numbers: { who: 1, status: 2, report: 3, accredited: 4 },
+    items: {
+      who: 'Who is the card for: yourself, or your child (under 18)?',
+      status: 'Is the applicant an Emirati citizen or a legal UAE resident?',
+      report: 'Is there a medical or psychological report confirming the disability?',
+      accredited: 'If so, was it issued by an accredited official authority, such as a government hospital?',
+    },
+    // Pieces of one sentence, joined to show how a reply could read (only for the questions being asked).
+    examples: { who: 'it is for myself', status: 'I am an Emirati citizen', report: 'I have a medical report', accredited: 'it is from a government hospital' },
+    exampleLabel: 'For example:',
+    voice: 'Answer by voice',
+    moreLead: 'Thank you.',
+    more: 'I still need {what} to finish the check. Please answer in one message, or tap the microphone.',
+    placeholder: 'Type your answers, or tap the microphone and say them…',
+    voiceSample: 'It’s for myself, I’m an Emirati citizen, I have a medical report and it’s from a government hospital.',
+    nudgeLead: 'I didn’t catch that.',
+    nudge: 'Please answer the questions above in order.',
+    resume: 'Shall we carry on with the check? I’m still waiting for your answers above.',
+  },
   nav: { back: 'Back', continue: 'Continue', close: 'Close eligibility check', expand: 'Expand chat', collapse: 'Return to compact chat' },
 
   questions: {

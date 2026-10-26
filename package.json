@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "knowledge": "node scripts/build-knowledge.mjs",
     "knowledge:test": "node scripts/test-knowledge.mjs",
-    "intake:test": "node scripts/test-intake.mjs"
+    "intake:test": "node scripts/test-intake.mjs",
+    "conversation:test": "node scripts/test-conversation.mjs"
   },
   "dependencies": {
     "@hugeicons/core-free-icons": "^4.3.5",

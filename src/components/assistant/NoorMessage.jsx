@@ -7,13 +7,13 @@ import { usePrefersReducedMotion } from '../../lib/usePrefersReducedMotion.js';
 const THINK_MS = 650;
 const TOOL_MS = 900;
 const WORD_MS = 34;
-const PARTS = ['lead', 'primary', 'secondary'];
+const PARTS = ['lead', 'primary', 'secondary', 'example'];
 
 // One Mira turn, played as: thinking dots → "shows its work" chip → streamed words → cards.
 // Stages: thinking → tool → stream → done. Reduced motion skips straight to done.
 // Screen readers: the streaming text is hidden from them and the finished reply is announced
 // once through the panel's live region (see Assistant.jsx), so they never hear it word by word.
-export function NoorMessage({ msgId, scenario, avatar, onStage, onAction, labels, chosen }) {
+export function NoorMessage({ msgId, scenario, avatar, onStage, onAction, labels, chosen, tray = false }) {
   const reduced = usePrefersReducedMotion();
   const hasTool = Boolean(scenario.tool);
   const [stage, setStage] = useState(reduced ? 'done' : 'thinking');
@@ -23,7 +23,7 @@ export function NoorMessage({ msgId, scenario, avatar, onStage, onAction, labels
 
   // A reply reads as two kinds of text: a bold opener and body copy. Any smaller third line is joined onto the body copy.
   const blocks = useMemo(
-    () => scenario.text.map((b) => (b.secondary ? { lead: b.lead, primary: b.primary ? `${b.primary} ${b.secondary}` : b.secondary } : b)),
+    () => scenario.text.map((b) => (b.secondary ? { lead: b.lead, primary: b.primary ? `${b.primary} ${b.secondary}` : b.secondary, example: b.example, exampleLabel: b.exampleLabel } : b)),
     [scenario],
   );
   const words = useMemo(
@@ -97,7 +97,7 @@ export function NoorMessage({ msgId, scenario, avatar, onStage, onAction, labels
         )}
         {showBubble &&
           blocks.map((b, i) => {
-            const [lead, primary, secondary] = words[i].map(reveal);
+            const [lead, primary, secondary, example] = words[i].map(reveal);
             if (!(lead.started || primary.started)) return null;
             const caret = <span className="noor-caret" aria-hidden="true" />;
             return (
@@ -121,12 +121,18 @@ export function NoorMessage({ msgId, scenario, avatar, onStage, onAction, labels
                     {secondary.active && caret}
                   </p>
                 )}
+                {example.started && (
+                  <p className="noor-bubble__example">
+                    <strong>{b.exampleLabel}</strong> {example.text}
+                    {example.active && caret}
+                  </p>
+                )}
               </div>
             );
           })}
         {stage === 'done' &&
           scenario.cards.map((card, i) => (
-            <ActionCard key={i} card={card} index={i} onAction={onAction} chosen={chosen} />
+            <ActionCard key={i} card={card} index={i} onAction={onAction} chosen={chosen} tray={tray} />
           ))}
       </div>
     </div>

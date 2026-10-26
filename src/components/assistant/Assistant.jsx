@@ -6,15 +6,21 @@ import { ImageSlot } from '../ImageSlot.jsx';
 import { NoorAvatar } from './NoorAvatar.jsx';
 import { NoorMessage } from './NoorMessage.jsx';
 import { resolveScenario } from '../../lib/noor.js';
-import { buildQuestion, buildResult, buildReview, nextStep, parseAnswer, purge } from '../../lib/eligibility.js';
+import { buildQuestion, buildResult, buildReview, nextStep, parseAnswer, pathOf, purge } from '../../lib/eligibility.js';
+import { batchExample, buildBatch, buildNudgeConv, looksLikeQuestion, readBatch } from '../../lib/conversation.js';
 import { useApplication } from './useApplication.js';
 import { usePrefersReducedMotion } from '../../lib/usePrefersReducedMotion.js';
 import { buildNudge, formatSize } from '../../lib/application.js';
 import { buildStatusReply, parseApplicationId } from '../../lib/status.js';
 import { createKnowledge } from '../../lib/knowledge.js';
+import { trayItems } from '../../lib/actionTray.js';
+import { ButtonsSwitch } from '../PrototypeSwitches.jsx';
+import { LinkButton } from './ActionCard.jsx';
+import { UaePassButton } from './UaePassButton.jsx';
 import { buildIntake, countFacts, extractFacts, markReceived, placeFiles } from '../../lib/intake.js';
 import './Assistant.css';
 import './EligibilityFlow.css';
+import './AssistantV2.css';
 
 let nextId = 1;
 const LEAVE_MS = 200; // welcome → conversation
@@ -30,7 +36,7 @@ const VOICE_BARS = Array.from({ length: VOICE_COUNT }, (_, i) => {
 
 // What a screen reader hears once a reply has finished: the words, then the card titles.
 function spokenReply(scenario) {
-  const words = scenario.text.flatMap((b) => [b.lead, b.primary, b.secondary]).filter(Boolean).join(' ');
+  const words = scenario.text.flatMap((b) => [b.lead, b.primary, b.secondary, b.example]).filter(Boolean).join(' ');
   const cards = scenario.cards
     .map((c) => c.spoken ?? [c.title, c.items?.map((i) => i.title ?? i).join('. ')].filter(Boolean).join('. '))
     .filter(Boolean)
@@ -46,14 +52,14 @@ function stepState(stage, i) {
   return i === current ? 'active' : 'todo';
 }
 
-export function Assistant({ content }) {
+export function Assistant({ content, variant = '1', buttonsInside = true, onButtonsInside, defaultOpen = false, onOpenChange }) {
   const { persona, ui, topics, voice, scenarios, fallback, afterCheck, eligibility, application, intake, statusCheck, eligibilityCard, knowledge } = content;
   // Search over the Ministry's published information (see src/lib/knowledge.js). The service we were just discussing is
   // remembered so a follow-up like "and the fees?" knows what it is about.
   const kb = useMemo(() => createKnowledge({ ...knowledge, extras: { eligibilityCard } }), [knowledge, eligibilityCard]);
   const kbService = useRef(null);
   const reduced = usePrefersReducedMotion();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const [closing, setClosing] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -130,9 +136,15 @@ export function Assistant({ content }) {
     timers.current.push(id);
   };
   const focusInput = () => later(() => inputRef.current?.focus(), 30);
+  // In Variation 2 the message box moves from the centre to the footer on the first message; the cursor follows it.
+  useEffect(() => {
+    if (started && open) focusInput();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [started]);
 
   // The message box grows with what is typed, so the whole message stays in view (up to six lines, then it scrolls).
-  // It also re-measures when the window is resized, because a different width changes how the text wraps.
+  // It also re-measures whenever the box changes width (the window is resized, or the chat is expanded or collapsed),
+  // because a different width changes how the text wraps.
   useLayoutEffect(() => {
     const fit = () => {
       const el = inputRef.current;
@@ -142,8 +154,27 @@ export function Assistant({ content }) {
     };
     fit();
     window.addEventListener('resize', fit);
-    return () => window.removeEventListener('resize', fit);
-  }, [draft, listening, expanded, open, attachments.length]);
+    const el = inputRef.current;
+    let lastWidth = el?.clientWidth;
+    const watch =
+      el && typeof ResizeObserver !== 'undefined'
+        ? new ResizeObserver(() => {
+            if (el.clientWidth === lastWidth) return;
+            lastWidth = el.clientWidth;
+            fit();
+          })
+        : null;
+    watch?.observe(el);
+    return () => {
+      window.removeEventListener('resize', fit);
+      watch?.disconnect();
+    };
+  }, [draft, listening, expanded, open, attachments.length, started]);
+
+  useEffect(() => {
+    onOpenChange?.(open);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   // Focus moves in on open and returns to the launcher on close.
   useEffect(() => {
@@ -176,6 +207,7 @@ export function Assistant({ content }) {
     log.addEventListener('scroll', onScroll, { passive: true });
     const ro = new ResizeObserver(toBottom);
     ro.observe(inner);
+    ro.observe(log); // the viewport shrinks when the reply strip appears above the message box
     toBottom();
     return () => {
       log.removeEventListener('scroll', onScroll);
@@ -203,7 +235,9 @@ export function Assistant({ content }) {
   };
 
   // The application itself (UAE PASS, questions, uploads, review, submit) lives in its own hook.
-  const app = useApplication(application, { pushUser, pushNoor, lock, setStage });
+  // Variation 2 runs the application as a conversation; Variation 1 uses the cards.
+  const conv = variant === '2';
+  const app = useApplication(application, { pushUser, pushNoor, lock, setStage }, { conv });
   appRef.current = app;
 
   // ---- Eligibility flow (in the conversation) ---------------------------------------------
@@ -228,11 +262,23 @@ export function Assistant({ content }) {
     }
   };
 
+  // Variation 2 asks the questions together, numbered; Variation 1 asks them one at a time.
+  const askBatch = (answers, first = false) => {
+    const qids = first ? ['who', 'status', 'report', 'accredited'] : pathOf(answers).filter((q) => answers[q] === undefined);
+    if (!qids.length) {
+      askNext(answers);
+      return;
+    }
+    const msgId = pushNoor(buildBatch(eligibility, qids, first));
+    setWaiting({ msgId, batch: true, qids });
+  };
+
   const startEligibility = () => {
     flowRef.current = { answers: {}, awaiting: null };
     setStage('check');
     expandForCheck();
-    askNext({});
+    if (conv) askBatch({}, true);
+    else askNext({});
   };
 
   // Details and files sent in one message: read what is there, say what was understood, then either give the result
@@ -334,6 +380,12 @@ export function Assistant({ content }) {
       case 'ask':
         send(payload);
         break;
+      case 'pickFiles':
+        fileRef.current?.click();
+        break;
+      case 'startVoice':
+        startListening();
+        break;
       default:
     }
   };
@@ -378,7 +430,7 @@ export function Assistant({ content }) {
       setDraft('');
       const waiting = flowRef.current.awaiting;
       // A typed or spoken answer to the open question counts the same as tapping an option.
-      const option = waiting ? parseAnswer(eligibility.questions[waiting.qid], text) : null;
+      const option = waiting && !waiting.batch ? parseAnswer(eligibility.questions[waiting.qid], text) : null;
       const scenario = replyFor(text);
       if (scenario.then === 'startEligibility') expandForCheck();
       begin(() => {
@@ -400,6 +452,26 @@ export function Assistant({ content }) {
             appRef.current.handle('upload', { field: open.step, file: att.file }, open.msgId);
           }
           return;
+        }
+        if (conv && files.length && open && ['multi', 'docs', 'confirm'].includes(open.kind)) {
+          // Files attached while the application is open: sorted into photograph and report, read with any typed details.
+          setAttach([]);
+          appRef.current.handleFiles(files, text);
+          return;
+        }
+        if (conv && waiting?.batch) {
+          // The numbered questions are open: read the reply as answers to them, unless it is a question of its own.
+          const aside = looksLikeQuestion(text) && scenario !== fallback;
+          const got = aside ? {} : readBatch(text, waiting.qids, eligibility);
+          if (Object.keys(got).length || files.length) {
+            runIntake(text, files, got);
+            return;
+          }
+          if (!aside && scenario === fallback) {
+            pushUser(text);
+            pushNoor(buildNudgeConv(eligibility.batch.nudgeLead, eligibility.batch.nudge, batchExample(eligibility, waiting.qids), eligibility.batch.exampleLabel));
+            return;
+          }
         }
         // Files, or a message that already tells Mira two or more of the answers: read it all at once.
         const facts = extractFacts(text);
@@ -431,7 +503,9 @@ export function Assistant({ content }) {
           return;
         }
         pushUser(text);
-        pushNoor(scenario);
+        // A question asked in the middle of the application is answered, then Mira brings the person back to it.
+        const midway = conv && !scenario.then && (waiting?.batch || ['multi', 'docs', 'confirm'].includes(appRef.current?.awaiting?.kind));
+        pushNoor(midway ? { ...scenario, then: 'resume' } : scenario);
         if (scenario.id === 'track') {
           statusRef.current = true;
           setStatusAwait(true);
@@ -469,7 +543,14 @@ export function Assistant({ content }) {
       }
       if (scenario.then === 'continueIntake' && !followed.current.has(msgId)) {
         followed.current.add(msgId);
-        later(() => askNext(flowRef.current.answers), reduced ? 0 : FOLLOW_MS);
+        later(() => (conv ? askBatch(flowRef.current.answers) : askNext(flowRef.current.answers)), reduced ? 0 : FOLLOW_MS);
+      }
+      if (scenario.then === 'resume' && !followed.current.has(msgId)) {
+        followed.current.add(msgId);
+        later(() => {
+          if (flowRef.current.awaiting?.batch) pushNoor({ id: 'check:resume', tool: null, text: [{ primary: eligibility.batch.resume }], cards: [] });
+          else appRef.current?.resume();
+        }, reduced ? 0 : FOLLOW_MS);
       }
       if (scenario.then === 'afterSignIn' && !followed.current.has(msgId)) {
         followed.current.add(msgId);
@@ -484,7 +565,7 @@ export function Assistant({ content }) {
     setListening(false);
     const waiting = flowRef.current.awaiting;
     // The transcript lands in the message box; the person decides whether to send it.
-    const said = app.voiceSample ?? (statusRef.current ? statusCheck.voiceSample : waiting ? eligibility.questions[waiting.qid].voiceSample : voice.transcript);
+    const said = app.voiceSample ?? (statusRef.current ? statusCheck.voiceSample : waiting?.batch ? eligibility.batch.voiceSample : waiting ? eligibility.questions[waiting.qid].voiceSample : voice.transcript);
     setDraft((d) => (d.trim() ? `${d.trim()} ${said}` : said));
     focusInput();
   };
@@ -537,178 +618,49 @@ export function Assistant({ content }) {
   };
 
   const avatarState = listening ? 'listening' : thinking ? 'thinking' : 'idle';
-  const welcomeView = (
-    <div key="welcome" className={`noor-welcome${leaving ? ' is-leaving' : ''}${started ? ' is-over-log' : ''}`}>
-      <div className="noor-welcome__dots" aria-hidden="true" />
-      <div className="noor-welcome__aurora" aria-hidden="true">
-        <i /><i /><i />
-      </div>
-      <div className="noor-welcome__hero">
-        <span className="noor-welcome__glow" aria-hidden="true" />
-        <NoorAvatar src={persona.avatar} size={76} ring state={avatarState} className="noor-welcome__avatar" />
-      </div>
-      <h2 className="noor-welcome__title" key={listening ? 'listening' : 'idle'}>
-        {listening ? ui.listening : ui.welcome.title}
-      </h2>
-      <p className="noor-welcome__sub">{listening ? ui.listeningHint : ui.welcome.subtitle}</p>
+  const v2 = variant === '2';
+  // Listening looks the way it does in Variation 1 (colour veil, centred avatar, glass message box).
+  const v2view = v2 && !listening;
+  const welcomeCopy = v2 ? ui.welcomeV2 : ui.welcome;
+  const pose = started ? persona.poses.selection : persona.poses.greeting;
+
+  // With the buttons outside the reply, the latest reply's buttons wait in a strip above the message box
+  // until it is answered (or the person types instead).
+  const lastMessage = messages[messages.length - 1];
+  const trayNow =
+    !buttonsInside && lastMessage?.role === 'noor' && lastMessage.chosen === undefined && !busy && !listening
+      ? trayItems(lastMessage.scenario)
+      : [];
+  const placeholder = attachments.length ? ui.attach.placeholder : app.awaiting?.placeholder ?? (statusAwait ? statusCheck.placeholder : conv && flowRef.current.awaiting?.batch ? eligibility.batch.placeholder : awaiting ? ui.input.answer : started ? ui.input.conversation : v2 ? ui.input.welcomeV2 : ui.input.welcome);
+  const blocked = busy || leaving;
+  const topicsEl = (
+    <div className={`noor-topics${leaving ? ' is-leaving' : ''}${listening ? ' is-muted' : ''}`} inert={listening || undefined}>
+      {topics.map((t, i) => (
+        <button
+          key={t.id}
+          type="button"
+          className="noor-topic"
+          data-topic={t.id}
+          style={{ '--i': i }}
+          aria-disabled={blocked || undefined}
+          onClick={() => send(t.message)}
+        >
+            <span className="noor-topic__art" aria-hidden="true">
+              <TopicArt id={t.id} />
+            </span>
+          <span className="noor-topic__text">
+            <span className="noor-topic__label">{t.label}</span>
+            <span className="noor-topic__desc">{t.description}</span>
+          </span>
+          <span className="noor-topic__go" aria-hidden="true">
+            <ChatIcon name="arrowUpRight" size={14} weight={1.8} />
+          </span>
+        </button>
+      ))}
     </div>
   );
-  const pose = started ? persona.poses.selection : persona.poses.greeting;
-  const blocked = busy || leaving;
-  const placeholder = attachments.length ? ui.attach.placeholder : app.awaiting?.placeholder ?? (statusAwait ? statusCheck.placeholder : awaiting ? ui.input.answer : started ? ui.input.conversation : ui.input.welcome);
-
-  return (
-    <div className="noor">
-      <button
-        ref={launcherRef}
-        type="button"
-        className="noor-launcher"
-        aria-label={ui.launcher.label}
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        hidden={open}
-        onClick={() => setOpen(true)}
-      >
-        <NoorAvatar src={persona.avatar} size={48} />
-        <span className="noor-launcher__text">
-          <span className="noor-launcher__title">{ui.launcher.title}</span>
-          <span className="noor-launcher__sub">{ui.launcher.subtitle}</span>
-        </span>
-      </button>
-
-      {open && <div className={`noor-scrim${closing ? ' is-closing' : ''}`} aria-hidden="true" />}
-
-      {open && (
-        <div className={`noor-shell${expanded ? ' is-expanded' : ''}${closing ? ' is-closing' : ''}`}>
-          <div className="noor-pose" aria-hidden="true">
-            <ImageSlot file={pose} decorative fit="contain" />
-          </div>
-          <div
-            className="noor-panel"
-            role="dialog"
-            aria-label={ui.panelLabel}
-            onKeyDown={(e) => {
-              if (e.key === 'Escape') close();
-            }}
-          >
-            <div className="visually-hidden" aria-live="polite" aria-atomic="true">
-              {announcement}
-            </div>
-
-            <header className="noor-header">
-              <NoorAvatar src={persona.avatar} size={44} state={avatarState} />
-              <div className="noor-header__text">
-                <p className="noor-header__name">{persona.name}</p>
-                <p className="noor-header__sub">{persona.subtitle}</p>
-              </div>
-              <button
-                type="button"
-                className="noor-icon-btn noor-expand"
-                aria-label={expanded ? ui.actions.collapse : ui.actions.expand}
-                aria-expanded={expanded}
-                onClick={toggleExpanded}
-              >
-                <ChatIcon name={expanded ? 'collapse' : 'expand'} size={16} />
-              </button>
-              {started ? (
-                <button type="button" className="noor-icon-btn" aria-label={ui.actions.restart} onClick={restart}>
-                  <ChatIcon name="refresh" size={16} />
-                </button>
-              ) : (
-                <button type="button" className="noor-icon-btn" aria-label={ui.actions.minimize} onClick={close}>
-                  <ChatIcon name="minus" size={16} />
-                </button>
-              )}
-              <button type="button" className="noor-icon-btn" aria-label={ui.actions.close} onClick={close}>
-                <ChatIcon name="close" size={16} />
-              </button>
-            </header>
-
-            {stage && (
-              <nav className="noor-strip" aria-label={eligibility.stepsLabel}>
-                <ol className="noor-stepper">
-                  {eligibility.steps.map((label, i) => {
-                    const state = stepState(stage, i);
-                    return (
-                      <li key={label} className={`is-${state}`} aria-current={state === 'active' ? 'step' : undefined}>
-                        <span className="noor-stepper__n">
-                          {state === 'done' ? <ChatIcon name="check" size={12} /> : i + 1}
-                        </span>
-                        <span className="noor-stepper__label">{label}</span>
-                        {state === 'done' && <span className="visually-hidden"> (complete)</span>}
-                      </li>
-                    );
-                  })}
-                </ol>
-              </nav>
-            )}
-
-            <div className="noor-stage">
-            {started ? (
-              <div key="log" className={`noor-log${listening ? ' is-covered' : ''}`} ref={logRef} role="log" aria-live="off" aria-label="Conversation">
-                <div className="noor-log__inner" ref={innerRef}>
-                  <p className="noor-log__day">{ui.today}</p>
-                  {messages.map((m) =>
-                    m.role === 'user' ? (
-                      <div className="noor-msg noor-msg--user" key={m.id}>
-                        <div className="noor-bubble noor-bubble--user">
-                          <span className="visually-hidden">{ui.announce.youSaid}</span>
-                          {m.thumb && <img className="noor-bubble__thumb" src={m.thumb} alt="" />}
-                          {m.text}
-                        </div>
-                      </div>
-                    ) : (
-                      <NoorMessage
-                        key={m.id}
-                        msgId={m.id}
-                        scenario={m.scenario}
-                        avatar={persona.avatar}
-                        labels={ui.announce}
-                        chosen={m.chosen}
-                        onStage={(st, sc) => onStage(st, sc, m.id)}
-                        onAction={(event, payload) => onAction(event, payload, m.id)}
-                      />
-                    ),
-                  )}
-                </div>
-              </div>
-            ) : (
-              welcomeView
-            )}
-            {/* Mid-conversation, voice mode shows the same avatar and heading over the (still mounted) chat. */}
-            {started && listening && welcomeView}
-            </div>
-
-            {listening && <VoiceGlow />}
-
-            <footer className="noor-footer">
-              {!started && (
-                <div className={`noor-topics${leaving ? ' is-leaving' : ''}${listening ? ' is-muted' : ''}`} inert={listening || undefined}>
-                  {topics.map((t, i) => (
-                    <button
-                      key={t.id}
-                      type="button"
-                      className="noor-topic"
-                      data-topic={t.id}
-                      style={{ '--i': i }}
-                      aria-disabled={blocked || undefined}
-                      onClick={() => send(t.message)}
-                    >
-                      <span className="noor-topic__art" aria-hidden="true">
-                        <TopicArt id={t.id} />
-                      </span>
-                      <span className="noor-topic__text">
-                        <span className="noor-topic__label">{t.label}</span>
-                        <span className="noor-topic__desc">{t.description}</span>
-                      </span>
-                      <span className="noor-topic__go" aria-hidden="true">
-                        <ChatIcon name="arrowUpRight" size={14} weight={1.8} />
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              )}
-
+  const composer = (
+    <>
               {attachments.map((attachment) => (
                 <div className="noor-attach" key={attachment.url}>
                   <span className="noor-attach__thumb" aria-hidden="true">
@@ -820,6 +772,229 @@ export function Assistant({ content }) {
                   </>
                 )}
               </form>
+    </>
+  );
+  // Variation 2: the three services are small quick-starts under the message box, not the main thing on screen.
+  const quickEl = (
+    <div className={`noor-quick${leaving ? ' is-leaving' : ''}${listening ? ' is-muted' : ''}`} inert={listening || undefined}>
+      <p className="noor-quick__label">{welcomeCopy.quickLabel}</p>
+      <div className="noor-quick__row">
+        {topics.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            className="noor-quick__btn"
+            data-topic={t.id}
+            aria-disabled={blocked || undefined}
+            onClick={() => send(t.message)}
+          >
+            <ChatIcon name={t.icon} size={16} weight={1.5} />
+            {t.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+  const heroEl = (
+    <div className="noor-welcome__hero">
+      {!v2view && <span className="noor-welcome__glow" aria-hidden="true" />}
+      <NoorAvatar src={persona.avatar} size={v2view ? 56 : 76} ring={!v2view} state={avatarState} className="noor-welcome__avatar" />
+    </div>
+  );
+  const titleEl = (
+    <h2 className="noor-welcome__title" key={listening ? 'listening' : 'idle'}>
+      {listening ? ui.listening : welcomeCopy.title}
+    </h2>
+  );
+  const subEl = <p className="noor-welcome__sub">{listening ? ui.listeningHint : welcomeCopy.subtitle}</p>;
+  const welcomeView = (
+    <div key="welcome" className={`noor-welcome${v2view ? ' noor-welcome--v2' : ''}${leaving ? ' is-leaving' : ''}${started ? ' is-over-log' : ''}`}>
+      {!v2view && <div className="noor-welcome__dots" aria-hidden="true" />}
+      {!v2view && (
+        <div className="noor-welcome__aurora" aria-hidden="true">
+          <i /><i /><i />
+        </div>
+      )}
+      {v2view ? (
+        // Variation 2: the greeting reads left to right, the message box sits right under it, then the quick-starts.
+        <div className="noor-welcome__body">
+          {heroEl}
+          {titleEl}
+          {subEl}
+          {!started && composer}
+          {!started && quickEl}
+        </div>
+      ) : (
+        <>
+          {heroEl}
+          {titleEl}
+          {subEl}
+        </>
+      )}
+    </div>
+  );
+
+  return (
+    <div className={`noor${v2 ? ' noor--v2' : ''}`} data-variant={variant}>
+      <button
+        ref={launcherRef}
+        type="button"
+        className="noor-launcher"
+        aria-label={ui.launcher.label}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        hidden={open}
+        onClick={() => setOpen(true)}
+      >
+        <NoorAvatar src={persona.avatar} size={48} />
+        <span className="noor-launcher__text">
+          <span className="noor-launcher__title">{ui.launcher.title}</span>
+          <span className="noor-launcher__sub">{ui.launcher.subtitle}</span>
+        </span>
+      </button>
+
+      {open && <div className={`noor-scrim${closing ? ' is-closing' : ''}`} aria-hidden="true" />}
+
+      {open && (
+        <div className={`noor-shell${expanded ? ' is-expanded' : ''}${closing ? ' is-closing' : ''}`}>
+          <div className="noor-pose" aria-hidden="true">
+            <ImageSlot file={pose} decorative fit="contain" />
+          </div>
+          <div
+            className="noor-panel"
+            role="dialog"
+            aria-label={ui.panelLabel}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') close();
+            }}
+          >
+            <div className="visually-hidden" aria-live="polite" aria-atomic="true">
+              {announcement}
+            </div>
+
+            <header className="noor-header">
+              <NoorAvatar src={persona.avatar} size={44} state={avatarState} />
+              <div className="noor-header__text">
+                <p className="noor-header__name">{persona.name}</p>
+                <p className="noor-header__sub">{persona.subtitle}</p>
+              </div>
+              <button
+                type="button"
+                className="noor-icon-btn noor-expand"
+                aria-label={expanded ? ui.actions.collapse : ui.actions.expand}
+                aria-expanded={expanded}
+                onClick={toggleExpanded}
+              >
+                <ChatIcon name={expanded ? 'collapse' : 'expand'} size={16} />
+              </button>
+              {started ? (
+                <button type="button" className="noor-icon-btn" aria-label={ui.actions.restart} onClick={restart}>
+                  <ChatIcon name="refresh" size={16} />
+                </button>
+              ) : (
+                <button type="button" className="noor-icon-btn" aria-label={ui.actions.minimize} onClick={close}>
+                  <ChatIcon name="minus" size={16} />
+                </button>
+              )}
+              <button type="button" className="noor-icon-btn" aria-label={ui.actions.close} onClick={close}>
+                <ChatIcon name="close" size={16} />
+              </button>
+            </header>
+
+            <ButtonsSwitch on={buttonsInside} onChange={onButtonsInside} label={ui.proto.buttons} hint={ui.proto.label} />
+
+            {stage && (
+              <nav className="noor-strip" aria-label={eligibility.stepsLabel}>
+                <ol className="noor-stepper">
+                  {eligibility.steps.map((label, i) => {
+                    const state = stepState(stage, i);
+                    return (
+                      <li key={label} className={`is-${state}`} aria-current={state === 'active' ? 'step' : undefined}>
+                        <span className="noor-stepper__n">
+                          {state === 'done' ? <ChatIcon name="check" size={12} /> : i + 1}
+                        </span>
+                        <span className="noor-stepper__label">{label}</span>
+                        {state === 'done' && <span className="visually-hidden"> (complete)</span>}
+                      </li>
+                    );
+                  })}
+                </ol>
+              </nav>
+            )}
+
+            <div className="noor-stage">
+            {started ? (
+              <div key="log" className="noor-log" ref={logRef} role="log" aria-live="off" aria-label="Conversation">
+                <div className="noor-log__inner" ref={innerRef}>
+                  <p className="noor-log__day">{ui.today}</p>
+                  {messages.map((m) =>
+                    m.role === 'user' ? (
+                      <div className="noor-msg noor-msg--user" key={m.id}>
+                        <div className="noor-bubble noor-bubble--user">
+                          <span className="visually-hidden">{ui.announce.youSaid}</span>
+                          {m.thumb && <img className="noor-bubble__thumb" src={m.thumb} alt="" />}
+                          {m.text}
+                        </div>
+                      </div>
+                    ) : (
+                      <NoorMessage
+                        key={m.id}
+                        msgId={m.id}
+                        scenario={m.scenario}
+                        avatar={persona.avatar}
+                        labels={ui.announce}
+                        chosen={m.chosen}
+                        tray={!buttonsInside}
+                        onStage={(st, sc) => onStage(st, sc, m.id)}
+                        onAction={(event, payload) => onAction(event, payload, m.id)}
+                      />
+                    ),
+                  )}
+                </div>
+              </div>
+            ) : (
+              welcomeView
+            )}
+            </div>
+
+            {listening && <VoiceGlow overChat={started} />}
+
+            {trayNow.length > 0 && (
+              <div className="noor-tray">
+                <div className="noor-tray__row" role="group" aria-label={ui.tray.label}>
+                {trayNow.map((it, i) => {
+                  const act = () => onAction(it.event, it.payload, lastMessage.id);
+                  if (it.kind === 'link') return <LinkButton key={`l${i}`} link={it.link} solid={false} />;
+                  if (it.kind === 'uaepass') return <UaePassButton key={`u${i}`} label={it.label} onClick={act} />;
+                  if (it.kind === 'option')
+                    return (
+                      <button key={`o${i}`} type="button" className="noor-tray__opt" onClick={act}>
+                        <span className="noor-tray__opt-title">{it.label}</span>
+                        {it.hint && <span className="noor-tray__opt-hint">{it.hint}</span>}
+                      </button>
+                    );
+                  if (it.kind === 'chip')
+                    return (
+                      <button key={`c${i}`} type="button" className="noor-suggest__btn" onClick={act}>
+                        {it.label}
+                      </button>
+                    );
+                  const cls = it.variant === 'primary' ? 'noor-btn' : it.variant === 'secondary' ? 'noor-btn noor-btn--outline' : 'noor-btn noor-btn--text';
+                  return (
+                    <button key={`b${i}`} type="button" className={cls} onClick={act}>
+                      {it.icon && <ChatIcon name={it.icon} size={16} />}
+                      {it.label}
+                    </button>
+                  );
+                })}
+                </div>
+              </div>
+            )}
+
+            <footer className="noor-footer">
+              {!started && !v2 && topicsEl}
+
+              {(!v2view || started) && composer}
               <p className="noor-footer__note">{ui.footer}</p>
             </footer>
           </div>

@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { home } from './content/home.en.js';
+import { VariantSwitch } from './components/PrototypeSwitches.jsx';
 import { Navbar } from './components/Navbar.jsx';
 import { RegistrationBanner } from './components/RegistrationBanner.jsx';
 import { HeroSlider } from './components/HeroSlider.jsx';
@@ -19,6 +21,10 @@ const knowledge = { services: knowledgeServices, serviceMeta, topics: knowledgeT
 const assistant = { ...assistantCopy, eligibility, application, intake, knowledge };
 
 export function App() {
+  // Testing controls: which chatbot design, and whether the buttons sit inside or outside the replies.
+  const [variant, setVariant] = useState('1');
+  const [buttonsInside, setButtonsInside] = useState(true);
+  const [chatOpen, setChatOpen] = useState(false);
   return (
     <>
       <Navbar content={home.nav} />
@@ -32,7 +38,9 @@ export function App() {
         <ContactSection content={home.contact} />
       </main>
       <Footer content={home.footer} />
-      <Assistant content={assistant} />
+      <VariantSwitch value={variant} onChange={setVariant} />
+      {/* Keyed by design: switching starts a fresh conversation in the new design (and keeps the chat open if it was open). */}
+      <Assistant key={variant} content={assistant} variant={variant} defaultOpen={chatOpen} onOpenChange={setChatOpen} buttonsInside={buttonsInside} onButtonsInside={setButtonsInside} />
     </>
   );
 }

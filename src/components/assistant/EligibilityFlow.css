@@ -1092,3 +1092,6 @@
 /* A little more space under "What happens next". */
 .noor-sub__next .noor-done__label { margin-block-end: 12px; }
 .noor-sub__next .noor-steps { margin-block-start: 12px; }
+
+/* With the buttons outside the reply the outcome card has no action row, so the list closes the card: keep the same room under it as at its sides. */
+.noor-done.is-tray { padding-block-end: 12px; }

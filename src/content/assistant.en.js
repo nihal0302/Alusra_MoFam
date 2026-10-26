@@ -20,9 +20,13 @@ export const ui = {
   launcher: { title: 'Ask Mira', subtitle: 'Virtual assistant', label: 'Ask Mira, virtual assistant. Opens chat.' },
   panelLabel: 'Chat with Mira, the MoFam virtual assistant',
   welcome: { title: 'How can I help you today?', subtitle: 'Choose a task, or just tell me in your own words.' },
+  // Variation 2: a plainer starting screen that points to the microphone.
+  welcomeV2: { title: 'How can I help you?', subtitle: 'Type, or tap the microphone and speak.', quickLabel: 'Quick start' },
   today: 'Today',
   footer: 'Mira gives general guidance about MoFam services.',
-  input: { answer: 'Type or speak your answer…', welcome: 'Describe how I can help you…', conversation: 'Type your message to Mira…' },
+  input: { answer: 'Type or speak your answer…', welcome: 'Describe how I can help you…', welcomeV2: 'Ask your question…', conversation: 'Type your message to Mira…' },
+  tray: { label: 'Choose a reply' },
+  proto: { label: 'Testing', buttons: 'Buttons in reply' },
   listening: 'Listening…',
   listeningHint: 'Speak naturally, then press stop',
   attach: {
@@ -60,7 +64,8 @@ export const topics = [
 
 // Voice is simulated: the mic shows a listening state, then "hears" this utterance.
 export const voice = {
-  transcript: 'My son needs a POD card, where do I start?',
+  // The starting screen "hears" one complete sentence, so a single message carries the whole check end to end.
+  transcript: 'I am an Emirati citizen and I want to apply for the People of Determination card for myself. I have a medical report from a government hospital.',
   listeningMs: 2400,
 };
 

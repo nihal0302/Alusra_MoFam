@@ -86,7 +86,7 @@ function InfoTip({ text, label }) {
   );
 }
 
-function LinkButton({ link, solid }) {
+export function LinkButton({ link, solid }) {
   const external = link.href.startsWith('http');
   return (
     <a
@@ -282,7 +282,7 @@ function SubmittedCard({ card, style }) {
 
 // Cards under a Mira bubble. `chosen` is set once the user has acted on a card, which locks it.
 // Non-POD services are guidance + link out only; nothing here submits anything without a confirm.
-export function ActionCard({ card, index = 0, onAction, chosen }) {
+export function ActionCard({ card, index = 0, onAction, chosen, tray = false }) {
   const style = { '--card-delay': `${index * 80}ms` };
   const locked = chosen !== undefined;
 
@@ -295,14 +295,16 @@ export function ActionCard({ card, index = 0, onAction, chosen }) {
         </div>
         <div className="noor-card__foot">
           <span className="noor-card__note">{card.note}</span>
-          <button
-            type="button"
-            className="noor-btn"
-            disabled={locked}
-            onClick={() => onAction?.(card.action.event, card.action)}
-          >
-            {card.action.label}
-          </button>
+          {!tray && (
+            <button
+              type="button"
+              className="noor-btn"
+              disabled={locked}
+              onClick={() => onAction?.(card.action.event, card.action)}
+            >
+              {card.action.label}
+            </button>
+          )}
         </div>
       </section>
     );
@@ -310,6 +312,7 @@ export function ActionCard({ card, index = 0, onAction, chosen }) {
 
   // One tap answers, just like typing or speaking the same thing.
   if (card.type === 'question') {
+    if (tray) return null; // the options sit above the message box, so the reply stays one message
     return (
       <section className="noor-card noor-q" style={style} aria-label={card.label}>
         <div className="noor-q__head">
@@ -321,6 +324,7 @@ export function ActionCard({ card, index = 0, onAction, chosen }) {
             <p className="noor-q__hint">{card.hint}</p>
           </div>
         </div>
+        {!tray && (
         <div className="noor-opts" role="group" aria-label={card.label}>
           {card.options.map((o, i) => {
             const isChosen = chosen === o.value;
@@ -348,6 +352,7 @@ export function ActionCard({ card, index = 0, onAction, chosen }) {
             );
           })}
         </div>
+        )}
       </section>
     );
   }
@@ -421,14 +426,16 @@ export function ActionCard({ card, index = 0, onAction, chosen }) {
         </div>
         <div className="noor-card__foot">
           <span className="noor-card__note">{card.note}</span>
-          <button
-            type="button"
-            className="noor-btn"
-            disabled={locked}
-            onClick={() => onAction?.(card.confirm.event, card.confirm)}
-          >
-            {card.confirm.label}
-          </button>
+          {!tray && (
+            <button
+              type="button"
+              className="noor-btn"
+              disabled={locked}
+              onClick={() => onAction?.(card.confirm.event, card.confirm)}
+            >
+              {card.confirm.label}
+            </button>
+          )}
         </div>
       </section>
     );
@@ -452,7 +459,7 @@ export function ActionCard({ card, index = 0, onAction, chosen }) {
       </button>
     );
     return (
-      <section className={`noor-card noor-done is-${card.tone}`} style={style} aria-label={card.title}>
+      <section className={`noor-card noor-done is-${card.tone}${tray ? ' is-tray' : ''}`} style={style} aria-label={card.title}>
         <div className="noor-done__top">
           <span className="noor-done__halo" aria-hidden="true" />
           {card.tone === 'success' ? (
@@ -481,17 +488,19 @@ export function ActionCard({ card, index = 0, onAction, chosen }) {
             ))}
           </ul>
         </div>
-        <div className="noor-done__foot">
-          <div className="noor-done__quiet">{quiet.map((a) => act(a, 'noor-btn--text'))}</div>
-          <div className="noor-done__main">
-            {/* Same order as the success card: secondary first, the main action last on the right */}
-            {[...card.links].reverse().map((l, i) => (
-              <LinkButton key={l.href} link={l} solid={i === card.links.length - 1} />
-            ))}
-            {outlined.map((a) => act(a, 'noor-btn--outline'))}
-            {primary && act(primary, '')}
+        {!tray && (
+          <div className="noor-done__foot">
+            <div className="noor-done__quiet">{quiet.map((a) => act(a, 'noor-btn--text'))}</div>
+            <div className="noor-done__main">
+              {/* Same order as the success card: secondary first, the main action last on the right */}
+              {[...card.links].reverse().map((l, i) => (
+                <LinkButton key={l.href} link={l} solid={i === card.links.length - 1} />
+              ))}
+              {outlined.map((a) => act(a, 'noor-btn--outline'))}
+              {primary && act(primary, '')}
+            </div>
           </div>
-        </div>
+        )}
       </section>
     );
   }
@@ -504,13 +513,15 @@ export function ActionCard({ card, index = 0, onAction, chosen }) {
           <h3 className="noor-card__title">{card.title}</h3>
           <p className="noor-card__text">{card.description}</p>
         </div>
-        <div className="noor-pass__cta">
-          <UaePassButton
-            label={card.action.label}
-            disabled={locked}
-            onClick={() => onAction?.(card.action.event, card.action)}
-          />
-        </div>
+        {!tray && (
+          <div className="noor-pass__cta">
+            <UaePassButton
+              label={card.action.label}
+              disabled={locked}
+              onClick={() => onAction?.(card.action.event, card.action)}
+            />
+          </div>
+        )}
       </section>
     );
   }
@@ -547,7 +558,103 @@ export function ActionCard({ card, index = 0, onAction, chosen }) {
     );
   }
 
+  // Just a button: answer by voice instead of typing.
+  if (card.type === 'voice') {
+    if (tray) return null; // it sits above the message box instead
+    return (
+      <div className="noor-voice-row" style={style}>
+        <button type="button" className="noor-btn noor-btn--outline" disabled={locked} onClick={() => onAction?.('startVoice', {})}>
+          <ChatIcon name="mic" size={16} />
+          {card.label}
+        </button>
+      </div>
+    );
+  }
+
+  // The eligibility questions, numbered, to be answered together in one message (typed or spoken).
+  if (card.type === 'batch') {
+    return (
+      <section className="noor-card noor-batch" style={style} aria-label={card.title}>
+        <div className="noor-card__body">
+          <h3 className="noor-card__title">{card.title}</h3>
+          <ol className="noor-batch__list">
+            {card.items.map((it) => (
+              <li key={it.n} value={it.n}>
+                {it.text}
+              </li>
+            ))}
+          </ol>
+          <p className="noor-batch__example">
+            <strong>{card.exampleLabel}</strong> {card.example}
+          </p>
+        </div>
+        {!tray && (
+          <div className="noor-card__foot noor-card__foot--links">
+            <button type="button" className="noor-btn noor-btn--outline" disabled={locked} onClick={() => onAction?.('startVoice', {})}>
+              <ChatIcon name="mic" size={16} />
+              {card.voice}
+            </button>
+          </div>
+        )}
+      </section>
+    );
+  }
+
+  // Details from UAE PASS, kept out of the way: a single line that opens the full list.
+  if (card.type === 'details') {
+    return (
+      <section className="noor-card noor-det" style={style} aria-label={card.title}>
+        <details>
+          <summary className="noor-det__sum">{card.title}</summary>
+          <dl className="noor-det__rows">
+            {card.rows.map((r) => (
+              <div key={r.id}>
+                <dt>{r.label}</dt>
+                <dd>{r.value}</dd>
+              </div>
+            ))}
+          </dl>
+          <p className="noor-det__note">{card.note}</p>
+        </details>
+      </section>
+    );
+  }
+
+  // Which of the two documents have arrived. The files themselves are attached to the chat.
+  if (card.type === 'docs') {
+    return (
+      <section className="noor-card noor-docs" style={style} aria-label={card.title}>
+        <div className="noor-card__body">
+          <h3 className="noor-card__title">{card.title}</h3>
+          <ul className="noor-docs__list">
+            {card.items.map((it) => (
+              <li key={it.id} className={it.done ? 'is-done' : ''}>
+                <span className="noor-docs__mark" aria-hidden="true">
+                  {it.done && <ChatIcon name="check" size={12} />}
+                </span>
+                <span className="noor-docs__text">
+                  <span className="noor-docs__label">{it.label}</span>
+                  <span className="noor-docs__hint">{it.hint}</span>
+                </span>
+                {it.done && <span className="visually-hidden"> (received)</span>}
+              </li>
+            ))}
+          </ul>
+        </div>
+        {!tray && (
+          <div className="noor-card__foot noor-card__foot--links">
+            <button type="button" className="noor-btn noor-btn--outline" disabled={locked} onClick={() => onAction?.('pickFiles', {})}>
+              <ChatIcon name="attach" size={16} />
+              {card.button}
+            </button>
+          </div>
+        )}
+      </section>
+    );
+  }
+
   if (card.type === 'choices') {
+    if (tray) return null; // the choices sit above the message box instead
     return (
       <section className="noor-card" style={style} aria-label={card.label}>
         <div className="noor-card__body">
@@ -610,14 +717,16 @@ export function ActionCard({ card, index = 0, onAction, chosen }) {
         ))}
         <div className="noor-arev__foot">
           <p className="noor-arev__consent">{card.consent}</p>
-          <button
-            type="button"
-            className="noor-btn noor-btn--wide"
-            disabled={locked}
-            onClick={() => onAction?.(card.submit.event, card.submit)}
-          >
-            {card.submit.label}
-          </button>
+          {!tray && (
+            <button
+              type="button"
+              className="noor-btn noor-btn--wide"
+              disabled={locked}
+              onClick={() => onAction?.(card.submit.event, card.submit)}
+            >
+              {card.submit.label}
+            </button>
+          )}
           <p className="noor-done__note">{card.note}</p>
         </div>
       </section>
@@ -646,6 +755,7 @@ export function ActionCard({ card, index = 0, onAction, chosen }) {
   }
 
   if (card.type === 'suggestions') {
+    if (tray) return null; // the suggestions sit above the message box instead
     return (
       <section className="noor-card" style={style} aria-label={card.title}>
         <div className="noor-card__body">
@@ -669,11 +779,13 @@ export function ActionCard({ card, index = 0, onAction, chosen }) {
           <h3 className="noor-card__title">{card.title}</h3>
           <p className="noor-card__text">{card.description}</p>
         </div>
-        <div className="noor-card__foot noor-card__foot--links">
-          {card.links.map((l) => (
-            <LinkButton key={l.href} link={l} />
-          ))}
-        </div>
+        {!tray && (
+          <div className="noor-card__foot noor-card__foot--links">
+            {card.links.map((l) => (
+              <LinkButton key={l.href} link={l} />
+            ))}
+          </div>
+        )}
       </section>
     );
   }

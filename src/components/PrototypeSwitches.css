@@ -1,0 +1,90 @@
+/* Testing controls (see PrototypeSwitches.jsx). Plain and neutral on purpose: they are not part of either design. */
+.proto-bar {
+  position: fixed;
+  inset-block-end: 16px;
+  inset-inline-start: 16px;
+  z-index: 1100; /* over the chat and its blurred backdrop, so the design can be switched while the chat is open */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px 6px 12px;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  font-size: 13px;
+  color: var(--c-body);
+  background: var(--c-white);
+  border: 1px solid var(--c-line);
+  border-radius: 999px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+}
+
+.proto-bar__label { font-weight: 600; }
+
+.proto-seg { display: inline-flex; padding: 2px; background: var(--c-slot); border-radius: 999px; }
+
+.proto-seg__btn {
+  padding: 5px 12px;
+  font: inherit;
+  color: var(--c-body);
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.proto-seg__btn.is-on { color: var(--c-white); background: var(--c-green); font-weight: 600; }
+.proto-seg__btn:focus-visible { outline: 2px solid var(--c-green); outline-offset: 2px; }
+
+/* Inside the chatbot: a thin strip under the header. */
+.proto-chat {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 14px;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  font-size: 13px;
+  color: var(--c-muted);
+  background: var(--c-surface-soft);
+  border-block-end: 1px solid var(--c-line);
+}
+
+.proto-switch { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+.proto-switch__label { color: var(--c-body); }
+
+.proto-switch__track {
+  position: relative;
+  inline-size: 36px;
+  block-size: 20px;
+  padding: 0;
+  background: var(--c-slot-stripe);
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 160ms ease;
+}
+
+.proto-switch__track.is-on { background: var(--c-green); }
+.proto-switch__track:focus-visible { outline: 2px solid var(--c-green); outline-offset: 2px; }
+
+.proto-switch__thumb {
+  position: absolute;
+  inset-block-start: 2px;
+  inset-inline-start: 2px;
+  inline-size: 16px;
+  block-size: 16px;
+  background: var(--c-white);
+  border-radius: 50%;
+  transition: transform 160ms ease;
+}
+
+.proto-switch__track.is-on .proto-switch__thumb { transform: translateX(16px); }
+
+[dir='rtl'] .proto-switch__track.is-on .proto-switch__thumb { transform: translateX(-16px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .proto-switch__track, .proto-switch__thumb { transition: none; }
+}
+
+@media (max-width: 600px) {
+  .proto-bar__label { display: none; }
+}
