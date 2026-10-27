@@ -225,3 +225,4 @@ Deviations from Figma: no "Apply service" (scope), "a few quick questions" (adap
 - The disability confirmation starts with the label "Disability type" (it said "Below is your disability type."), the same for someone else.
 - In the disability confirmation, "Disability type" and the type sit together, with a clear gap (about 20px) before "Do you confirm this, or would you like to change it?", so the question reads as its own part.
 - Variation 1: "Disability type" and the type in bold are one bubble, and "Do you confirm this, or would you like to change it?" is the next bubble.
+- The returning visitor's question now reads: "Welcome back." (the line with the info icon), then in bold "You started an application earlier. Would you like to continue from where you stopped, or start again from the beginning?", then "You stopped at the documents step. Your earlier answers have been kept."

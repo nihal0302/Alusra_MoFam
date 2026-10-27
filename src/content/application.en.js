@@ -340,8 +340,8 @@ export const application = {
   // Someone who comes back to an application they did not finish (the "returning" testing scenario, see demo.en.js): Mira asks
   // whether to continue or start again; on "continue" she shows what was entered earlier, then asks the next question.
   resume: {
-    ack: 'Welcome back. You started an application earlier and did not finish it.',
-    question: 'Would you like to continue from where you stopped, or start again from the beginning?',
+    ack: 'Welcome back.',
+    question: 'You started an application earlier. Would you like to continue from where you stopped, or start again from the beginning?',
     how: 'You stopped at the {stage} step. Your earlier answers have been kept.',
     continue: 'Continue where I stopped',
     again: 'Start again',
