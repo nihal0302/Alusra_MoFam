@@ -203,14 +203,15 @@ export const conv = {
 
   docs: {
     text: 'Please attach {your} personal photograph and the medical or psychological report.',
-    how: 'You can send both together using the paperclip. The requirements for each are listed below.',
+    how: 'Upload each document below, or send both together using the paperclip. I will continue once both are uploaded.',
     one: 'I still require {your} {missing}.',
-    oneHow: 'You can attach it using the paperclip.',
+    oneHow: 'Upload it below, or attach it using the paperclip.',
     names: { photo: 'photograph', report: 'report' },
     yourNames: { photo: 'the photograph', report: 'the report' },
     card: {
       title: 'Documents',
-      button: 'Attach files',
+      uploadLabel: 'Upload', // the button on each document's row
+      removeLabel: 'Remove', // the delete icon, for screen readers: "Remove Personal photograph"
       items: {
         photo: { label: 'Personal photograph', hint: 'Recent passport-size photograph, white background, 2 × 6 cm · JPG or PNG' },
         report: { label: 'Medical or psychological report', hint: 'From an accredited authority · PDF or JPG' },

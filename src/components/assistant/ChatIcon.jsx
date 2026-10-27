@@ -36,6 +36,7 @@ import {
   SecurityCheckIcon,
   StopIcon,
   Tick02Icon,
+  Delete02Icon,
   Building03Icon,
   UserGroupIcon,
   UserIcon,
@@ -45,6 +46,7 @@ import {
 // Same names the assistant has always used, so content files keep working.
 const ICONS = {
   check: Tick02Icon,
+  trash: Delete02Icon,
   checkCircle: CheckmarkCircle02Icon,
   xCircle: CancelCircleIcon,
   close: Cancel01Icon,
@@ -113,6 +115,23 @@ const LEGACY = {
   ),
 };
 
+// Plain outline thumbs (a cuff and a hand), drawn on a 24 grid like the rest. The thumb's outline is the same path whether
+// the icon is empty or filled; the short line between the cuff and the hand is its own path so it can stay visible on a fill.
+const THUMBS = {
+  thumbUp: (
+    <>
+      <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z" />
+      <path className="noor-icon-cuff" d="M7 10v12" />
+    </>
+  ),
+  thumbDown: (
+    <>
+      <path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88Z" />
+      <path className="noor-icon-cuff" d="M17 14V2" />
+    </>
+  ),
+};
+
 // Small icons get a heavier stroke so they stay readable (a 1.5 stroke on a 24 grid is ~0.7px at 11px).
 const weightFor = (size) => (size <= 14 ? 2.6 : size <= 18 ? 1.9 : 1.6);
 
@@ -121,6 +140,13 @@ export function ChatIcon({ name, size = 18, weight, className }) {
     return (
       <svg className={className} viewBox="0 0 256 256" width={size} height={size} aria-hidden="true" focusable="false">
         {LEGACY[name]}
+      </svg>
+    );
+  }
+  if (THUMBS[name]) {
+    return (
+      <svg className={className} viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth={weight ?? 1.6} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+        {THUMBS[name]}
       </svg>
     );
   }

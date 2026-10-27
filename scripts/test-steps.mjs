@@ -3,6 +3,7 @@
 // `npm run steps:test`  (exits 1 if an expectation fails)
 import { application } from '../src/content/application.en.js';
 import { resolveHints } from '../src/lib/hints.js';
+import { readFeedback, recordFeedback } from '../src/lib/feedback.js';
 import { buildReviewSteps, buildStepPrompt, nextStep, readStepAnswer, STEPS } from '../src/lib/stepwise.js';
 
 let bad = 0;
@@ -109,6 +110,17 @@ check('later replies leave it out, and the sentence still reads', later.had && !
 check('a line that is only the reminder disappears', (() => { const r = resolveHints(hinted('emirate'), false); return r.scenario.text[0].how === undefined && r.scenario.text[0].question.includes('emirate'); })());
 check('a reply without the reminder is left as it is', (() => { const p = hinted('photo'); return resolveHints(p, false).scenario === p && !resolveHints(p, false).had; })());
 check('no marker is ever shown', STEPS.every((s) => !/[‹›]/.test(JSON.stringify(resolveHints(hinted(s.id, 'other'), true).scenario)) && !/[‹›]/.test(JSON.stringify(resolveHints(hinted(s.id, 'other'), false).scenario))));
+
+// ---- Thumbs up / down on a reply: one rating per reply, changeable, and removable
+const fb = (rating, messageId = 3) => recordFeedback({ rating, variant: '2', conversation: 0, messageId, replyId: 'app:emirate', reply: 'Which emirate?' });
+fb('up');
+check('a thumbs up is kept', readFeedback().length === 1 && readFeedback()[0].rating === 'up' && readFeedback()[0].replyId === 'app:emirate');
+fb('down');
+check('rating the same reply again replaces it', readFeedback().length === 1 && readFeedback()[0].rating === 'down');
+fb('up', 5);
+check('another reply is a separate entry', readFeedback().length === 2);
+fb(null);
+check('taking a rating back removes it', readFeedback().length === 1 && readFeedback()[0].messageId === 5);
 
 console.log(bad ? `\n${bad} unexpected` : '\nall as expected');
 process.exit(bad ? 1 : 0);

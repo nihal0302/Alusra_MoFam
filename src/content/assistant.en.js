@@ -24,8 +24,10 @@ export const ui = {
   welcomeV2: { title: 'How can I help you?', titleAccent: 'help you?', subtitle: 'Tap the microphone to speak, or type your question.', quickLabel: 'Quick start' },
   // The pop-up over the microphone when the chat opens on its starting screen.
   micPop: { title: 'Voice input available', text: 'Tap the mic and give your inputs.', close: 'Close this message' },
+  // The thumbs under a reply (labels for screen readers and tooltips).
+  feedback: { label: 'Rate this response', up: 'Helpful response', down: 'Not helpful' },
   today: 'Today',
-  footer: 'Mira gives general guidance about MoFam services.',
+  footer: 'Mira is your AI virtual assistant to guide you about MoFam services. It can make mistakes.',
   input: { answer: 'Speak or type your answer…', welcome: 'Describe how I can help you…', welcomeV2: 'Tap the microphone to speak, or type…', conversation: 'Speak or type your message to Mira…' },
   tray: { label: 'Choose a reply' },
   listening: 'Listening…',
@@ -275,7 +277,10 @@ export const statusCheck = {
     primary: 'Application {id} is currently at the “{stage}” step.',
     sample: 'This is sample data for the prototype.',
   },
-  card: { title: 'Application {id}', summary: '{done} of {total} steps complete', submittedLabel: 'Submitted', emailNote: 'You will receive an email once a decision is taken.' },
+  card: { title: 'Application {id}', summary: '{done} of {total} steps complete', submittedLabel: 'Submitted', emailNote: 'You will receive an email once a decision is taken.',
+    // APPROX: the account page (where the applicant sees their applications and anything more that is needed) is not built yet; this address is a placeholder. It opens in a new tab so the chat stays where it is.
+    account: { label: 'Go to my account', href: '/account', newTab: true },
+  },
   steps: ['Eligibility check', 'Submitted', 'Documents under review', 'Decision'],
   states: { done: 'Done', current: 'In progress', pending: 'Pending' },
   // One line per sample stage, in the order the steps are reached.

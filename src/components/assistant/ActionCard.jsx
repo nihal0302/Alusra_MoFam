@@ -90,7 +90,7 @@ function InfoTip({ text, label }) {
 }
 
 export function LinkButton({ link, solid }) {
-  const external = link.href.startsWith('http');
+  const external = link.href.startsWith('http') || Boolean(link.newTab); // opens in a new tab, so the chat stays where it is
   return (
     <a
       className={`noor-btn${solid ? '' : ' noor-btn--outline'}`}
@@ -117,6 +117,138 @@ function Ticks({ items, delay }) {
         </li>
       ))}
     </ul>
+  );
+}
+
+// ---- The documents step (Variation 2): a row for each document, like a file list ---------------------------------------------------
+// Left: a thumbnail (the picture, or a document icon). Middle: the document's name and what it needs, or the file that is in.
+// Right: an "Upload" button; while the file "uploads" a small spinner; when it is in, a delete icon. Nothing is said to Mira until
+// both documents are in (the card tells the hook as each one arrives; the hook answers when it has both).
+const UPLOAD_MS = 1200; // the simulated upload; nothing leaves the device
+function DocRow({ item, locked, onStore, onRemove }) {
+  const reduced = usePrefersReducedMotion();
+  const u = item.upload;
+  const [file, setFile] = useState(item.file); // { name, type, url } when a document is in
+  const [busy, setBusy] = useState(false);
+  const [pct, setPct] = useState(0); // how far the simulated upload has got, 0 to 100
+  const [error, setError] = useState('');
+  const [drag, setDrag] = useState(false);
+  const inputRef = useRef(null);
+  const timer = useRef(null);
+  useEffect(() => () => clearInterval(timer.current), []);
+
+  const pick = (f) => {
+    if (!f || locked || busy || file) return;
+    if (!u.types.includes(f.type)) {
+      setError(u.errors.type.replace('{types}', u.typeNames));
+      return;
+    }
+    if (f.size > u.maxMb * 1024 * 1024) {
+      setError(u.errors.size);
+      return;
+    }
+    setError('');
+    const finish = () => {
+      setFile({ name: f.name, type: f.type, url: URL.createObjectURL(f) });
+      setBusy(false);
+      onStore(f);
+    };
+    if (reduced) {
+      finish();
+      return;
+    }
+    const t0 = Date.now();
+    setPct(0);
+    setBusy(true);
+    timer.current = setInterval(() => {
+      const p = Math.min(100, Math.round(((Date.now() - t0) / UPLOAD_MS) * 100));
+      setPct(p);
+      if (p >= 100) {
+        clearInterval(timer.current);
+        finish();
+      }
+    }, 50);
+  };
+
+  const remove = () => {
+    if (file?.url && file.url !== item.file?.url) URL.revokeObjectURL(file.url);
+    setFile(null);
+    setError('');
+    onRemove();
+  };
+
+  return (
+    <div
+      className={`noor-docrow${drag ? ' is-drag' : ''}`}
+      onDragOver={(e) => {
+        e.preventDefault();
+        if (!file && !busy) setDrag(true);
+      }}
+      onDragLeave={() => setDrag(false)}
+      onDrop={(e) => {
+        e.preventDefault();
+        setDrag(false);
+        pick(e.dataTransfer.files?.[0]);
+      }}
+    >
+      <span className="noor-docrow__thumb" aria-hidden="true">
+        {file?.type?.startsWith('image/') && file.url ? <img src={file.url} alt="" /> : <ChatIcon name="file" size={26} weight={1.4} />}
+      </span>
+      <span className="noor-docrow__text">
+        <span className="noor-docrow__label">{item.label}</span>
+        <span className="noor-docrow__sub">
+          {file ? (
+            <>
+              <ChatIcon name="checkCircle" size={18} />
+              <span className="noor-docrow__name">{file.name}</span>
+            </>
+          ) : busy ? (
+            'Uploading…'
+          ) : (
+            item.hintEmpty
+          )}
+        </span>
+        {error && (
+          <span className="noor-up__error" role="alert">
+            {error}
+          </span>
+        )}
+      </span>
+      <span className="noor-docrow__action">
+        {busy ? (
+          <>
+            <span className="noor-docrow__pct" aria-hidden="true">
+              {pct}%
+            </span>
+            <span className="noor-docrow__spin" role="progressbar" aria-label="Uploading" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} />
+          </>
+        ) : file ? (
+          !locked && (
+            <button type="button" className="noor-docrow__remove" aria-label={`${u.remove} ${item.label}`} title={u.remove} onClick={remove}>
+              <ChatIcon name="trash" size={20} />
+            </button>
+          )
+        ) : (
+          <>
+            <input
+              ref={inputRef}
+              className="visually-hidden"
+              type="file"
+              accept={u.accept}
+              tabIndex={-1}
+              onChange={(e) => {
+                pick(e.target.files?.[0]);
+                e.target.value = '';
+              }}
+            />
+            <button type="button" className="noor-btn noor-btn--outline" disabled={locked} onClick={() => inputRef.current?.click()}>
+              <ChatIcon name="upload" size={16} />
+              {u.button}
+            </button>
+          </>
+        )}
+      </span>
+    </div>
   );
 }
 
@@ -686,33 +818,11 @@ export function ActionCard({ card, index = 0, onAction, chosen, tray = false }) 
   // Which of the two documents have arrived. The files themselves are attached to the chat.
   if (card.type === 'docs') {
     return (
-      <section className="noor-card noor-docs" style={style} aria-label={card.title}>
-        <div className="noor-card__body">
-          <h3 className="noor-card__title">{card.title}</h3>
-          <ul className="noor-docs__list">
-            {card.items.map((it) => (
-              <li key={it.id} className={it.done ? 'is-done' : ''}>
-                <span className="noor-docs__mark" aria-hidden="true">
-                  {it.done && <ChatIcon name="check" size={12} />}
-                </span>
-                <span className="noor-docs__text">
-                  <span className="noor-docs__label">{it.label}</span>
-                  <span className="noor-docs__hint">{it.hint}</span>
-                </span>
-                {it.done && <span className="visually-hidden"> (received)</span>}
-              </li>
-            ))}
-          </ul>
-        </div>
-        {!tray && (
-          <div className="noor-card__foot noor-card__foot--links">
-            <button type="button" className="noor-btn noor-btn--outline" disabled={locked} onClick={() => onAction?.('pickFiles', {})}>
-              <ChatIcon name="attach" size={16} />
-              {card.button}
-            </button>
-          </div>
-        )}
-      </section>
+      <div className="noor-docrows" style={style} role="group" aria-label={card.title}>
+        {card.items.map((it) => (
+          <DocRow key={it.id} item={it} locked={locked} onStore={(file) => onAction?.('docStore', { field: it.id, file })} onRemove={() => onAction?.('docRemove', { field: it.id })} />
+        ))}
+      </div>
     );
   }
 
@@ -905,6 +1015,11 @@ export function ActionCard({ card, index = 0, onAction, chosen, tray = false }) 
           <p className="noor-sub__email">
             <span>{card.emailNote}</span>
           </p>
+        )}
+        {card.account && !tray && (
+          <div className="noor-card__foot noor-card__foot--links">
+            <LinkButton link={card.account} solid />
+          </div>
         )}
       </section>
     );

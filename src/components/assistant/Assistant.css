@@ -2252,3 +2252,30 @@
   --noor-chip: var(--c-surface-soft);
 }
 .noor:not(.noor--v2) .noor-bubble--noor { background: var(--noor-chip); }
+
+/* ---------- Thumbs up / down under a reply ---------- */
+.noor-fb { display: flex; gap: 2px; margin-block-start: -2px; transition: opacity var(--dur-2) var(--ease-out); }
+.noor-fb__btn {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 34px;
+  block-size: 34px;
+  padding: 0;
+  color: var(--noor-muted);
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color var(--dur-1) var(--ease-out), color var(--dur-1) var(--ease-out);
+}
+.noor-fb__btn:hover { color: var(--noor-ink); background: var(--noor-chip); }
+/* a rated thumb is filled in the neutral grey (not the accent colour) */
+.noor-fb__btn.is-on { color: var(--noor-muted); }
+.noor-fb__btn.is-on svg path { fill: currentColor; }
+.noor-fb__btn.is-on svg .noor-icon-cuff { stroke: var(--c-white); } /* the cuff line stays visible on the fill */
+/* older, unrated replies: the thumbs appear when the reply is hovered or has keyboard focus */
+.noor-fb:not(.is-latest):not(.is-rated) { opacity: 0; }
+.noor-msg--noor:hover .noor-fb,
+.noor-fb:focus-within { opacity: 1; }
+@media (hover: none) { .noor-fb { opacity: 1 !important; } }
+@media (prefers-reduced-motion: reduce) { .noor-fb, .noor-fb__btn { transition: none; } }

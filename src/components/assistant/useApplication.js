@@ -240,6 +240,28 @@ export function useApplication(app, api, { conv = false } = {}) {
         store(payload.field, payload.value);
         afterAnswer([payload.field]);
         return true;
+      case 'docStore': {
+        // A file uploaded on one document's own row (Variation 2): it is kept without a word from Mira. Only when both documents
+        // are in does she answer (the person can type, or ask something, at any time before that).
+        const { field, file } = payload;
+        const info = { name: file.name, size: file.size, type: file.type, url: URL.createObjectURL(file) };
+        store(field, info);
+        const d = ref.current.data;
+        if (d.photo && d.report) {
+          api.lock(msgId, 'received');
+          api.pushUser(`${d.photo.name}, ${d.report.name}`, ['photo', 'report'].map((k) => ({ url: d[k].type.startsWith('image/') ? d[k].url : undefined })));
+          convNext({ docs: ['photo', 'report'] });
+        }
+        return true;
+      }
+      case 'docRemove': {
+        // The delete icon on a document's row: it is taken back out (before both are in, nothing was said, so nothing is unsaid).
+        const old = ref.current.data[payload.field];
+        if (old?.url) URL.revokeObjectURL(old.url);
+        const { [payload.field]: _gone, ...rest } = ref.current.data;
+        ref.current.data = rest;
+        return true;
+      }
       case 'choiceSet': {
         // Independent questions in one card: each chip is stored as it is picked; once all are answered they go in as one reply.
         store(payload.field, payload.value);

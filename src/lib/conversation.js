@@ -499,6 +499,19 @@ const docItems = (app, data) =>
     label: app.conv.docs.card.items[k].label,
     hint: data[k] ? data[k].name : app.conv.docs.card.items[k].hint,
     done: Boolean(data[k]),
+    // the file already in (sent earlier in the chat), for its thumbnail and name
+    file: data[k] ? { name: data[k].name, type: data[k].type, url: data[k].url } : null,
+    hintEmpty: app.conv.docs.card.items[k].hint,
+    // what the document's own row accepts (the same rules as Variation 1's upload boxes)
+    upload: {
+      accept: app.steps[k].upload.accept,
+      types: app.steps[k].upload.types,
+      typeNames: app.steps[k].upload.typeNames,
+      maxMb: app.upload.maxMb,
+      errors: app.upload.errors,
+      button: app.conv.docs.card.uploadLabel,
+      remove: app.conv.docs.card.removeLabel,
+    },
   }));
 
 export function buildDocsAsk(app, { who, data, noted = [], docs = [], prefix = '' }) {
@@ -512,7 +525,7 @@ export function buildDocsAsk(app, { who, data, noted = [], docs = [], prefix = '
     id: 'app:docs',
     tool: null,
     text: [{ lead: first ? c.lead : ack(app, data, noted, docs), plainLead: true, primary: prefix || undefined, question: text, how }],
-    cards: [{ type: 'docs', title: c.card.title, items: docItems(app, data), button: c.card.button, spoken: `${c.card.title}. ${missing.map((k) => c.names[k]).join(' and ')} still needed.` }],
+    cards: [{ type: 'docs', title: c.card.title, items: docItems(app, data), spoken: `${c.card.title}. ${missing.map((k) => c.names[k]).join(' and ')} still needed.` }],
   };
 }
 

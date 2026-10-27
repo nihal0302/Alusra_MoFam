@@ -13,7 +13,7 @@ const PARTS = ['lead', 'primary', 'tag', 'secondary', 'note', 'example'];
 // Stages: thinking → tool → stream → done. Reduced motion skips straight to done.
 // Screen readers: the streaming text is hidden from them and the finished reply is announced
 // once through the panel's live region (see Assistant.jsx), so they never hear it word by word.
-export function NoorMessage({ msgId, scenario, avatar, onStage, onAction, labels, chosen, tray = false }) {
+export function NoorMessage({ msgId, scenario, avatar, onStage, onAction, labels, chosen, tray = false, feedback, rating, onRate, latest = false }) {
   const reduced = usePrefersReducedMotion();
   const hasTool = Boolean(scenario.tool);
   const [stage, setStage] = useState(reduced ? 'done' : 'thinking');
@@ -182,6 +182,18 @@ export function NoorMessage({ msgId, scenario, avatar, onStage, onAction, labels
           scenario.cards.filter((card) => !beforeCards.includes(card)).map((card, i) => (
             <ActionCard key={i} card={card} index={i} onAction={onAction} chosen={chosen} tray={tray} />
           ))}
+        {stage === 'done' && onRate && (
+          // Thumbs up / down on the reply. Always shown on the latest reply; on older ones they show when the reply is hovered or
+          // focused, and stay once a rating has been given.
+          <div className={`noor-fb${rating ? ' is-rated' : ''}${latest ? ' is-latest' : ''}`} role="group" aria-label={feedback.label}>
+            <button type="button" className={`noor-fb__btn${rating === 'up' ? ' is-on' : ''}`} aria-pressed={rating === 'up'} aria-label={feedback.up} title={feedback.up} onClick={() => onRate(rating === 'up' ? null : 'up')}>
+              <ChatIcon name="thumbUp" size={18} />
+            </button>
+            <button type="button" className={`noor-fb__btn${rating === 'down' ? ' is-on' : ''}`} aria-pressed={rating === 'down'} aria-label={feedback.down} title={feedback.down} onClick={() => onRate(rating === 'down' ? null : 'down')}>
+              <ChatIcon name="thumbDown" size={18} />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

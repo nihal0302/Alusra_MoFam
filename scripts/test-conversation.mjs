@@ -9,6 +9,7 @@ import {
   findEid,
   findPhone,
   matchOption,
+  buildDocsAsk,
   buildEditAsk,
   buildGroupAsk,
   chipOptions,
@@ -178,6 +179,13 @@ check('the two support questions are one card, each with Yes and No, and a Skip 
 check('the support card has no list, how-to or example (it is all in the card)', (() => { const p = buildGroupAsk(app, 'support', { who: 'self', data: {} }).text[0]; return p.question === 'Please answer the following.' && !p.items && !p.how && !p.example; })());
 check('with one of them already answered, only the other is asked, as chips', chipsOf(buildGroupAsk(app, 'support', { who: 'self', data: { specialSupport: 'No' } })) === 'shadowTeacher:2');
 check('the optional groups keep their Skip button next to the chips', buildGroupAsk(app, 'employment', { who: 'self', data: {} }).cards.map((x) => x.type).join() === 'choices,voice');
+
+// ---- The documents step: a box for each document
+const docs2 = buildDocsAsk(app, { who: 'self', data: {} }).cards[0];
+check('documents: a row for each, with its own Upload button and the right file types', docs2.items.length === 2 && docs2.items.every((i) => i.upload.button === 'Upload' && !i.file) && docs2.items[0].upload.types.join() === 'image/jpeg,image/png' && docs2.items[1].upload.types.includes('application/pdf'));
+check('documents: no single "Attach files" button any more', docs2.button === undefined);
+const docs1 = buildDocsAsk(app, { who: 'self', data: { photo: { name: 'photo.jpg', size: 1 } }, docs: ['photo'] }).cards[0];
+check('documents: a document already sent is shown by name, the other waits', docs1.items[0].done && docs1.items[0].file.name === 'photo.jpg' && !docs1.items[1].done);
 
 console.log(bad ? `\n${bad} failed` : '\nall as expected');
 process.exit(bad ? 1 : 0);

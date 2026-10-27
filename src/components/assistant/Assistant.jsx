@@ -5,6 +5,7 @@ import { LandingBackdrop } from './LandingBackdrop.jsx';
 import { MicOrb } from './MicOrb.jsx';
 import { makeSampleFile } from '../../lib/sampleFiles.js';
 import { resolveHints } from '../../lib/hints.js';
+import { recordFeedback } from '../../lib/feedback.js';
 import { TopicArt } from './TopicArt.jsx';
 import { ImageSlot } from '../ImageSlot.jsx';
 import { NoorAvatar } from './NoorAvatar.jsx';
@@ -71,6 +72,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
   const [statusAwait, setStatusAwait] = useState(false); // Mira has asked for an application ID
   const [micShine, setMicShine] = useState(true); // the mic lights up once when the chat opens (both variations), and once more for the first question (Variation 2 only), then rests
   const [shineRun, setShineRun] = useState(0); // counts the runs, so a new question restarts the effect
+  const [ratings, setRatings] = useState({}); // thumbs up / down given to Mira's replies, by message id
   const [transcript, setTranscript] = useState(''); // what is being heard while the microphone is on (shown in the message box as it comes)
   const heard = useRef(''); // the same, readable the moment the stop button is pressed
   const recRef = useRef(null); // the browser's speech recognition, when there is one
@@ -731,6 +733,13 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
     if (vtextRef.current) vtextRef.current.scrollTop = vtextRef.current.scrollHeight;
   }, [transcript]);
 
+  // Thumbs up / down on a reply (null takes the rating back). Kept by lib/feedback.js.
+  const rate = (m, rating) => {
+    setRatings((r) => ({ ...r, [m.id]: rating }));
+    recordFeedback({ rating, variant, conversation: session, messageId: m.id, replyId: m.scenario.id, reply: spokenReply(m.scenario).slice(0, 300) });
+  };
+  const lastNoorId = [...messages].reverse().find((x) => x.role === 'noor')?.id;
+
   const restart = () => {
     timers.current.forEach(clearTimeout);
     flowRef.current = { answers: {}, awaiting: null };
@@ -755,6 +764,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
     setMicPop(true);
     questionShone.current = false;
     askCounts.current = {};
+    setRatings({});
     micHinted.current = false;
     setSession((n) => n + 1);
     anchorRef.current = null;
@@ -1172,6 +1182,10 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
                         labels={ui.announce}
                         chosen={m.chosen}
                         tray={!buttonsInside}
+                        feedback={ui.feedback}
+                        rating={ratings[m.id]}
+                        latest={m.id === lastNoorId}
+                        onRate={(rating) => rate(m, rating)}
                         onStage={(st, sc) => onStage(st, sc, m.id)}
                         onAction={(event, payload) => onAction(event, payload, m.id)}
                       />

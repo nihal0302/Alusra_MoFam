@@ -37,6 +37,7 @@ export function buildStatusReply(copy, id) {
         summary: copy.card.summary.replace('{done}', done).replace('{total}', copy.steps.length),
         meta: [{ label: copy.card.submittedLabel, value: when }],
         emailNote: copy.card.emailNote,
+        account: copy.card.account,
         spoken: title,
         steps,
       },

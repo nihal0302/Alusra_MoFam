@@ -330,3 +330,67 @@
 /* The briefer run, for the first question of Variation 2 (about 6.75 s). */
 .noor-mic.is-shine.is-brief { animation-duration: 5.85s; }
 .noor-mic.is-brief .noor-mic__orb { animation-duration: 5.85s; }
+
+/* ---------- The documents step: a row for each document ---------- */
+.noor-docrows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  inline-size: 100%;
+  max-inline-size: var(--noor-bubble-max);
+  animation: noor-msg-in var(--dur-3) var(--ease-out) var(--card-delay, 0ms) both;
+}
+.noor-docrow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--c-white);
+  border: 1px solid var(--noor-line-strong);
+  border-radius: 16px;
+  transition: border-color var(--dur-1) var(--ease-out), background-color var(--dur-2) var(--ease-out);
+}
+.noor-docrow.is-drag { border-color: var(--noor-gold); background: color-mix(in srgb, var(--noor-gold) 6%, var(--c-white)); }
+.noor-docrow__thumb {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 56px;
+  block-size: 56px;
+  overflow: hidden;
+  color: var(--noor-ink);
+  background: var(--noor-chip);
+  border-radius: 12px;
+}
+.noor-docrow__thumb img { inline-size: 100%; block-size: 100%; object-fit: cover; }
+.noor-docrow__text { flex: 1; min-inline-size: 0; display: flex; flex-direction: column; gap: 2px; }
+.noor-docrow__label { font-size: 16px; line-height: 24px; font-weight: 600; color: var(--noor-ink); }
+.noor-docrow__sub { display: flex; align-items: flex-start; gap: 6px; font-size: 16px; line-height: 22px; color: var(--noor-muted); overflow-wrap: anywhere; }
+.noor-docrow__sub svg { flex: none; margin-block-start: 2px; color: var(--noor-ink); }
+.noor-docrow__name { min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--noor-ink); }
+.noor-docrow__action { flex: none; display: inline-flex; align-items: center; justify-content: flex-end; gap: 10px; min-inline-size: 44px; }
+.noor-docrow__pct { min-inline-size: 3.2ch; font-size: 16px; line-height: 24px; font-variant-numeric: tabular-nums; text-align: end; color: var(--noor-muted); }
+.noor-docrow__action .noor-btn { min-block-size: 44px; }
+.noor-docrow__spin {
+  inline-size: 24px;
+  block-size: 24px;
+  border: 2.5px solid var(--noor-line-strong);
+  border-block-start-color: var(--noor-gold);
+  border-radius: 50%;
+  animation: noor-spin 700ms linear infinite;
+}
+.noor-docrow__remove {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 40px;
+  block-size: 40px;
+  padding: 0;
+  color: var(--noor-muted);
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.noor-docrow__remove:hover { color: var(--noor-ink); background: var(--noor-chip); }
+@media (prefers-reduced-motion: reduce) { .noor-docrow { transition: none; } .noor-docrow__spin { animation-duration: 2.4s; } }
