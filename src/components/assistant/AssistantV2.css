@@ -394,3 +394,384 @@
 }
 .noor-docrow__remove:hover { color: var(--noor-ink); background: var(--noor-chip); }
 @media (prefers-reduced-motion: reduce) { .noor-docrow { transition: none; } .noor-docrow__spin { animation-duration: 2.4s; } }
+
+/* ---------- Replies as the Mira card (from the team's Mira POD Assistant prototype) ----------
+   One reply is one white card of sections divided by hairlines: what Mira understood (icon and line), what she asks (a bold
+   question, its numbered list and helper lines, an example that opens), then the cards of the reply (details, documents, contacts,
+   buttons). Above the card: Mira's name and the time (once for each run of her replies); while she works: a ringed avatar and
+   "Mira is thinking".
+   The assistant is drawn at 0.8 scale (zoom on .noor), so a reply is drawn at 1.25 to cancel it: its sizes are then the
+   prototype's own (15px text, 16px padding, em scale), copied value for value. Only the colours come from our tokens. */
+.noor--v2 .noor-log__inner { gap: 20px; }
+
+.noor--v2 .noor-turn {
+  zoom: 1.25;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--noor-ink);
+}
+.noor--v2 .noor-turn__head { display: flex; align-items: center; gap: 8px; font-size: 0.8em; color: var(--noor-placeholder); }
+.noor--v2 .noor-turn__head b { font-weight: 600; color: var(--noor-ink); }
+
+.noor--v2 .noor-block {
+  inline-size: 100%;
+  overflow: hidden;
+  background: var(--noor-surface);
+  border-radius: 18px;
+  box-shadow:
+    0 0 0 1px var(--noor-line),
+    0 1px 2px color-mix(in srgb, var(--noor-ink) 4%, transparent),
+    0 6px 18px -10px color-mix(in srgb, var(--noor-ink) 14%, transparent);
+}
+.noor--v2 .noor-block > * { animation: noor-sec-in 500ms var(--ease-out) both; }
+.noor--v2 .noor-block > :nth-child(3) { animation-delay: 80ms; }
+.noor--v2 .noor-block > :nth-child(4) { animation-delay: 160ms; }
+.noor--v2 .noor-block > :nth-child(5) { animation-delay: 240ms; }
+.noor--v2 .noor-block > :nth-child(6) { animation-delay: 320ms; }
+.noor--v2 .noor-block > :nth-child(n + 7) { animation-delay: 400ms; }
+.noor--v2 .noor-block > * + * { border-top: 1px solid var(--noor-line); }
+.noor--v2 .noor-block > .visually-hidden + * { border-top: 0; }
+@keyframes noor-sec-in { from { opacity: 0; transform: translateY(6px); } }
+
+/* the cards of a reply become sections of the card: no frame of their own */
+.noor--v2 .noor-block > .noor-card {
+  inline-size: auto;
+  max-inline-size: none;
+  margin: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.noor--v2 .noor-sec { padding: 16px; }
+
+/* what Mira understood, or cannot do */
+.noor--v2 .noor-sec--ack { display: flex; align-items: flex-start; gap: 8px; padding: 12px 16px; font-size: 0.9em; line-height: 1.5; color: var(--c-body); }
+.noor--v2 .noor-sec--ack > svg { flex: none; inline-size: 16px; block-size: 16px; margin-block-start: 2px; color: var(--noor-muted); }
+.noor--v2 .noor-sec--ack p { margin: 0; }
+
+/* what she asks, or says */
+.noor--v2 .noor-sec--ask { display: grid; gap: 6px; }
+.noor--v2 .noor-ask__lead { margin: 0 0 2px; font-size: 0.9em; color: var(--noor-muted); }
+.noor--v2 .noor-ask__q { margin: 0; font-size: 1.1em; line-height: 1.4; font-weight: 600; color: var(--noor-ink); letter-spacing: -0.01em; text-wrap: pretty; }
+.noor--v2 .noor-ask__tag { font-weight: 400; color: var(--noor-muted); }
+.noor--v2 .noor-ask__text { margin: 0; line-height: 1.5; color: var(--c-body); }
+.noor--v2 .noor-ask__helper { margin: 0; font-size: 0.933em; line-height: 1.5; color: var(--c-body); }
+.noor--v2 .noor-ask__list { display: grid; gap: 10px; margin: 8px 0 2px; padding: 0; list-style: none; counter-reset: noor-q; }
+.noor--v2 .noor-ask__list li { display: grid; grid-template-columns: 24px 1fr; gap: 10px; align-items: start; font-weight: 500; line-height: 1.45; color: var(--noor-ink); counter-increment: noor-q; }
+.noor--v2 .noor-ask__list li::before {
+  content: counter(noor-q);
+  display: grid;
+  place-items: center;
+  inline-size: 24px;
+  block-size: 24px;
+  font-size: 0.8em;
+  font-weight: 600;
+  color: var(--noor-muted);
+  border: 1px solid var(--c-slot-stripe);
+  border-radius: 50%;
+}
+.noor--v2 .noor-ask__list li[data-n]::before { content: attr(data-n); }
+.noor--v2 .noor-ask__list + .noor-ask__helper { margin-block-start: 6px; }
+
+/* an example that opens */
+.noor--v2 .noor-sec--ex { padding: 0; }
+.noor--v2 .noor-sec--ex summary { display: flex; align-items: center; gap: 8px; padding: 10px 16px; font-size: 0.867em; font-weight: 500; color: var(--noor-muted); list-style: none; cursor: pointer; }
+.noor--v2 .noor-sec--ex summary::-webkit-details-marker { display: none; }
+.noor--v2 .noor-sec--ex summary > svg:first-child { inline-size: 15px; block-size: 15px; }
+.noor--v2 .noor-sec--ex .noor-fold__chev { margin-inline-start: auto; }
+.noor--v2 .noor-sec--ex details p { margin: 0; padding: 0 16px 12px 39px; font-size: 0.9em; line-height: 1.5; color: var(--c-body); }
+
+/* the eligibility result */
+.noor--v2 .noor-result { display: flex; align-items: center; gap: 12px; }
+.noor--v2 .noor-result__ic { display: grid; flex: none; place-items: center; inline-size: 36px; block-size: 36px; color: var(--c-white); background: var(--c-green); border-radius: 50%; }
+.noor--v2 .noor-result__ic svg { inline-size: 18px; block-size: 18px; }
+.noor--v2 .noor-result:not(.is-success) .noor-result__ic { color: var(--noor-gold); background: var(--c-surface-cream); }
+.noor--v2 .noor-result h3 { margin: 0; font-size: 1.133em; font-weight: 600; letter-spacing: -0.01em; }
+.noor--v2 .noor-result p { margin: 2px 0 0; font-size: 0.933em; line-height: 1.45; color: var(--c-body); }
+
+.noor--v2 .noor-fold summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 0.933em; font-weight: 600; color: var(--noor-ink); list-style: none; cursor: pointer; }
+.noor--v2 .noor-fold summary::-webkit-details-marker { display: none; }
+.noor--v2 .noor-fold__chev { flex: none; color: var(--noor-muted); transition: transform var(--dur-2) var(--ease-out); }
+.noor--v2 details[open] > summary > .noor-fold__chev { transform: rotate(180deg); }
+
+.noor--v2 .noor-rows { display: grid; margin: 6px 0 0; }
+.noor--v2 .noor-row { display: grid; grid-template-columns: minmax(0, 40%) minmax(0, 1fr) auto; gap: 12px; align-items: baseline; padding: 10px 0; }
+.noor--v2 .noor-row + .noor-row { border-top: 1px solid var(--noor-line); }
+.noor--v2 .noor-row dt { font-size: 0.867em; color: var(--noor-muted); }
+.noor--v2 .noor-row dd { margin: 0; font-size: 0.933em; font-weight: 500; color: var(--noor-ink); overflow-wrap: anywhere; }
+.noor--v2 .noor-lnk { padding: 0; font: inherit; font-size: 0.867em; font-weight: 600; color: var(--c-green); background: none; border: 0; text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--c-green) 25%, var(--c-white)); text-underline-offset: 3px; cursor: pointer; }
+.noor--v2 .noor-lnk:hover:not(:disabled) { text-decoration-color: var(--c-green); }
+.noor--v2 .noor-lnk:disabled { opacity: 0.5; cursor: default; }
+.noor--v2 .noor-shell:not(.is-expanded) .noor-row { grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; padding: 8px 0; }
+.noor--v2 .noor-shell:not(.is-expanded) .noor-row dt,
+.noor--v2 .noor-shell:not(.is-expanded) .noor-row dd { grid-column: 1; }
+.noor--v2 .noor-shell:not(.is-expanded) .noor-row > :last-child { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
+
+.noor--v2 .noor-subh { margin: 0 0 12px; font-size: 0.933em; font-weight: 600; color: var(--noor-ink); }
+.noor--v2 .noor-needs { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.noor--v2 .noor-need { display: flex; align-items: center; gap: 12px; }
+.noor--v2 .noor-need__ic { display: grid; flex: none; place-items: center; inline-size: 36px; block-size: 36px; background: var(--noor-chip); border-radius: 10px; }
+.noor--v2 .noor-need__ic svg { inline-size: 18px; block-size: 18px; }
+.noor--v2 .noor-need > span:last-child { display: grid; gap: 2px; }
+.noor--v2 .noor-need b { font-size: 0.933em; font-weight: 600; }
+.noor--v2 .noor-need span span { font-size: 0.867em; color: var(--noor-muted); }
+
+/* buttons: fixed proportions, two share the row equally, one fills it */
+.noor--v2 .noor-sec--actions { display: grid; grid-template-columns: repeat(var(--n, 2), minmax(0, 1fr)); gap: 8px; }
+.noor--v2 .noor-block .noor-btn {
+  block-size: 44px;
+  min-block-size: 44px;
+  padding: 0 16px;
+  font-size: 0.933em;
+  font-weight: 600;
+  border-radius: 12px;
+  justify-content: center;
+}
+.noor--v2 .noor-block .noor-btn--outline { color: var(--noor-ink); background: var(--noor-surface); box-shadow: inset 0 0 0 1px var(--c-slot-stripe); }
+.noor--v2 .noor-block .noor-btn--outline:hover:not(:disabled) { color: var(--noor-ink); background: var(--noor-surface); box-shadow: inset 0 0 0 1px var(--noor-ink); }
+.noor--v2 .noor-block > .noor-card.noor-actions { padding: 16px; }
+.noor--v2 .noor-block .noor-btn { white-space: normal; line-height: 1.25; }
+
+/* the contacts of a reply that cannot answer */
+.noor--v2 .noor-support__row { padding: 10px 12px; }
+.noor--v2 .noor-support__row > svg { inline-size: 18px; block-size: 18px; }
+.noor--v2 .noor-support__text small { font-size: 0.8em; }
+.noor--v2 .noor-support__text b { font-size: 0.933em; }
+.noor--v2 .noor-support__copy { font-size: 0.8em; color: var(--c-green); }
+.noor--v2 .noor-support__hours { font-size: 0.833em; }
+.noor--v2 .noor-fb__thanks { font-size: 0.8em; }
+
+/* "Mira is thinking": the avatar inside a turning gold ring, and a line of text with a gold sheen that changes halfway */
+@property --noor-a { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+@keyframes noor-ring { to { --noor-a: 360deg; } }
+@keyframes noor-sheen-text { from { background-position: 120% 0; } to { background-position: -120% 0; } }
+.noor--v2 .noor-think { display: flex; align-items: center; gap: 12px; }
+.noor--v2 .noor-think__av { position: relative; display: grid; flex: none; place-items: center; inline-size: 34px; block-size: 34px; }
+.noor--v2 .noor-think__av::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(from var(--noor-a, 0deg), transparent 0 40%, var(--c-gold) 70%, var(--noor-glow-core) 85%, transparent 100%);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1.5px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1.5px));
+  animation: noor-ring 1400ms linear infinite;
+}
+.noor--v2 .noor-think__tx { display: grid; gap: 2px; }
+.noor--v2 .noor-think__tx b {
+  font-size: 0.933em;
+  font-weight: 600;
+  color: transparent;
+  background: linear-gradient(90deg, var(--noor-ink) 0%, var(--noor-ink) 35%, var(--c-gold) 50%, var(--noor-ink) 65%, var(--noor-ink) 100%);
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: noor-sheen-text 2s linear infinite;
+}
+.noor--v2 .noor-think__tx span { min-block-size: 1.2em; font-size: 0.833em; color: var(--noor-muted); }
+
+@media (prefers-reduced-motion: reduce) {
+  .noor--v2 .noor-block > * { animation: none; }
+  .noor--v2 .noor-think__av::before { animation: none; }
+  .noor--v2 .noor-think__tx b { animation: none; color: var(--noor-ink); background: none; }
+  .noor--v2 .noor-fold__chev { transition: none; }
+}
+
+/* ---------- The remaining screens of the Mira card, as the prototype draws them ---------- */
+.noor--v2 .noor-note { margin: 0 0 6px; font-size: 0.9em; line-height: 1.5; color: var(--c-body); }
+.noor--v2 .noor-subrow { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-block-end: 4px; }
+.noor--v2 .noor-subrow .noor-subh { margin: 0; }
+.noor--v2 .noor-srctag { display: inline-flex; align-items: center; gap: 4px; font-size: 0.8em; font-weight: 600; color: var(--c-green); }
+.noor--v2 .noor-srctag svg { inline-size: 13px; block-size: 13px; }
+
+/* chips */
+.noor--v2 .noor-chiplbl { margin: 0 0 8px; font-size: 0.867em; color: var(--c-body); }
+.noor--v2 .noor-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.noor--v2 .noor-chip {
+  padding: 8px 14px;
+  font: inherit;
+  font-size: 0.9em;
+  font-weight: 500;
+  color: var(--noor-ink);
+  background: var(--noor-chip);
+  border: 0;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px var(--noor-line);
+  cursor: pointer;
+  transition: all 150ms;
+}
+.noor--v2 .noor-chip:hover:not(:disabled) { background: var(--noor-surface); box-shadow: inset 0 0 0 1px var(--noor-ink); }
+.noor--v2 .noor-chip.is-sel { color: var(--c-white); background: var(--noor-ink); box-shadow: none; }
+.noor--v2 .noor-chip:disabled:not(.is-sel) { opacity: 0.4; cursor: default; }
+.noor--v2 .noor-chip:disabled.is-sel { cursor: default; }
+.noor--v2 .noor-chipdiv { block-size: 1px; margin: 16px 0 12px; background: var(--noor-line); }
+
+/* the application review: a tinted heading for each part, the rows under it */
+.noor--v2 .noor-rv { padding: 0; }
+.noor--v2 .noor-rv__h { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 16px; background: var(--noor-chip); border-block-end: 1px solid var(--noor-line); }
+.noor--v2 .noor-rv__h h4 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 0.933em; font-weight: 600; }
+.noor--v2 .noor-rv__h h4 svg { inline-size: 17px; block-size: 17px; color: var(--noor-muted); }
+.noor--v2 .noor-rv .noor-rows { margin: 0; padding: 2px 16px 6px; }
+.noor--v2 .noor-consent { margin: 0; font-size: 0.867em; line-height: 1.55; color: var(--c-body); }
+.noor--v2 .noor-consent b { color: var(--noor-ink); }
+
+/* the application number, and what happens next */
+.noor--v2 .noor-appno { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; background: var(--noor-chip); border-radius: 14px; }
+.noor--v2 .noor-appno small { display: block; font-size: 0.8em; color: var(--noor-muted); }
+.noor--v2 .noor-appno b { font-size: 1.2em; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.noor--v2 .noor-appno .noor-btn { block-size: 36px; min-block-size: 36px; padding: 0 12px; }
+.noor--v2 .noor-tl { display: grid; margin: 0; padding: 0; list-style: none; }
+.noor--v2 .noor-tl li { position: relative; display: grid; grid-template-columns: 20px 1fr; gap: 12px; padding-block-end: 12px; }
+.noor--v2 .noor-tl li:last-child { padding-block-end: 0; }
+.noor--v2 .noor-tl li::after { content: ''; position: absolute; inset-inline-start: 9.5px; inset-block: 22px 0; inline-size: 1px; background: var(--c-slot-stripe); }
+.noor--v2 .noor-tl li:last-child::after { display: none; }
+.noor--v2 .noor-tl__dot { display: grid; place-items: center; inline-size: 20px; block-size: 20px; margin-block-start: 1px; background: var(--noor-surface); border-radius: 50%; box-shadow: inset 0 0 0 1px var(--c-slot-stripe); }
+.noor--v2 .noor-tl__dot svg { inline-size: 11px; block-size: 11px; }
+.noor--v2 .noor-tl li.is-done .noor-tl__dot { color: var(--c-white); background: var(--c-green); box-shadow: none; }
+.noor--v2 .noor-tl li.is-done::after { background: var(--c-green); }
+.noor--v2 .noor-tl li.is-cur .noor-tl__dot { box-shadow: inset 0 0 0 1.5px var(--c-gold); }
+.noor--v2 .noor-tl li.is-cur .noor-tl__dot::before { content: ''; inline-size: 7px; block-size: 7px; background: var(--c-gold); border-radius: 50%; }
+.noor--v2 .noor-tl b { display: block; font-size: 0.933em; font-weight: 600; line-height: 1.35; }
+.noor--v2 .noor-tl span:not(.noor-tl__dot) { font-size: 0.867em; line-height: 1.4; color: var(--noor-muted); }
+.noor--v2 .noor-pill { display: inline-flex; align-items: center; padding: 4px 10px; font-size: 0.8em; font-weight: 600; color: var(--noor-gold); background: var(--c-surface-cream); border-radius: 999px; white-space: nowrap; }
+.noor--v2 .noor-statushead { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-variant-numeric: tabular-nums; }
+.noor--v2 .noor-statushead__sub { margin-block-start: 4px; }
+.noor--v2 .noor-why { display: grid; gap: 6px; margin: 0; padding: 0 0 0 18px; font-size: 0.933em; line-height: 1.5; color: var(--c-body); }
+
+/* the documents: a row for each, as the prototype's upload rows */
+.noor--v2 .noor-block > .noor-docrows { display: grid; gap: 8px; padding: 16px; }
+.noor--v2 .noor-block .noor-docrow { gap: 12px; padding: 12px; background: var(--noor-surface); border: 0; border-radius: 14px; box-shadow: inset 0 0 0 1px var(--c-slot-stripe); }
+.noor--v2 .noor-block .noor-docrow__thumb { inline-size: 44px; block-size: 44px; background: var(--noor-chip); border-radius: 10px; }
+.noor--v2 .noor-block .noor-docrow__label { font-size: 0.933em; line-height: 1.5; }
+.noor--v2 .noor-block .noor-docrow__sub { font-size: 0.867em; line-height: 1.5; }
+.noor--v2 .noor-block .noor-docrow__sub svg { inline-size: 14px; block-size: 14px; margin-block-start: 0; color: var(--c-green); }
+.noor--v2 .noor-block .noor-docrow__pct { font-size: 0.867em; font-weight: 600; color: var(--noor-gold); }
+.noor--v2 .noor-block .noor-docrow__action .noor-btn { block-size: 34px; min-block-size: 34px; padding: 0 12px; font-size: 0.867em; border-radius: 10px; }
+.noor--v2 .noor-block > .noor-voice-row { padding: 16px; }
+
+/* ---------- The message box: the attachment on the far left; the microphone and send on the right ---------- */
+.noor--v2 .noor-input .noor-attach-btn { order: -1; }
+/* The message box is as wide as the replies above it (the same side padding and the same widest width), and the attachment button
+   sits close to the box's left edge. */
+.noor--v2 .noor-footer { padding-inline: 20px; }
+.noor--v2 .noor-footer > * { max-inline-size: 780px; }
+.noor--v2 .noor-input { padding-inline: 6px; }
+
+/* ---------- The three stages under the header, as the prototype draws them ----------
+   A small numbered circle and a label for each stage, joined by a hairline that turns green once the stage before it is done. The
+   current stage has a gold circle with a soft ring; a finished one a green circle with a tick. Drawn at 1.25 inside the 0.8 scale,
+   so the prototype's own sizes apply. */
+.noor--v2 .noor-strip { zoom: 1.25; padding: 10px 16px; font-size: 15px; background: var(--noor-surface); }
+.noor--v2 .noor-stepper { display: flex; flex-wrap: nowrap; align-items: center; gap: 8px; max-inline-size: 624px; margin-inline: auto; }
+.noor--v2 .noor-stepper li { flex: none; gap: 8px; padding: 0; font-size: 0.833em; font-weight: 500; color: var(--noor-placeholder); white-space: nowrap; border-radius: 0; }
+.noor--v2 .noor-stepper li:not(:last-child) { flex: 1 1 auto; }
+.noor--v2 .noor-stepper li:not(:last-child)::after { content: ''; flex: 1; min-inline-size: 10px; block-size: 1px; background: var(--c-slot-stripe); }
+.noor--v2 .noor-stepper li.is-done:not(:last-child)::after { background: var(--c-green); }
+.noor--v2 .noor-stepper__n { inline-size: 20px; block-size: 20px; font-size: 0.85em; font-weight: 600; color: inherit; background: var(--noor-surface); border: 1px solid var(--c-slot-stripe); border-radius: 50%; transition: all 300ms; }
+.noor--v2 .noor-stepper__n svg { inline-size: 12px; block-size: 12px; }
+.noor--v2 .noor-stepper .is-active { color: var(--noor-ink); font-weight: 500; }
+.noor--v2 .noor-stepper .is-active .noor-stepper__n { color: var(--c-white); background: var(--c-gold); border-color: var(--c-gold); box-shadow: 0 0 0 3px var(--c-surface-cream); }
+.noor--v2 .noor-stepper .is-done { color: var(--c-green); font-weight: 500; }
+.noor--v2 .noor-stepper .is-done .noor-stepper__n { color: var(--c-white); background: var(--c-green); border-color: var(--c-green); }
+
+/* The stages are not stretched across the panel: the lines between them are short and fixed, and the three sit together in the middle. */
+.noor--v2 .noor-stepper { justify-content: center; }
+.noor--v2 .noor-stepper li:not(:last-child) { flex: none; }
+.noor--v2 .noor-stepper li:not(:last-child)::after { flex: none; inline-size: 32px; min-inline-size: 0; }
+/* ...and they stay on the left, whatever the width of the panel. */
+.noor--v2 .noor-stepper { justify-content: flex-start; margin-inline: 0; max-inline-size: none; }
+
+/* ---------- The splash and the starting screen, as the team's Mira POD Assistant prototype draws them ----------
+   Splash: a gold ring draws itself round Mira's picture, then "Hello, I'm Mira", a line about her, and a pill about voice; it
+   fades after about four seconds or on a tap. Starting screen: Mira's picture, a greeting for the time of day, "How can I help you
+   today?", and a list of three options, on soft drifting colour with a faint diamond pattern. The text is drawn at 1.25 inside the
+   assistant's 0.8 scale, so the prototype's own sizes apply. */
+.noor--v2 .noor-panel.is-landing .noor-stage { background: var(--c-surface-soft); }
+.noor--v2 .noor-welcome--v2 { align-items: stretch; justify-content: flex-start; padding: 0; background: transparent; overflow: hidden; text-align: start; }
+
+/* the drifting colour (behind both) */
+.noor-mesh { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+.noor-mesh i { position: absolute; border-radius: 50%; filter: blur(64px); opacity: 0.6; animation: noor-drift 28s ease-in-out infinite alternate; }
+.noor-mesh i:nth-child(1) { inline-size: 70%; block-size: 55%; inset-inline-start: -22%; inset-block-start: -14%; background: color-mix(in srgb, var(--noor-glow-green) 60%, var(--c-white)); }
+.noor-mesh i:nth-child(2) { inline-size: 62%; block-size: 50%; inset-inline-end: -24%; inset-block-start: 4%; background: color-mix(in srgb, var(--noor-glow-core) 55%, var(--c-white)); animation-duration: 34s; animation-delay: -8s; }
+.noor-mesh i:nth-child(3) { inline-size: 60%; block-size: 42%; inset-inline-start: 18%; inset-block-end: -20%; background: color-mix(in srgb, var(--c-indigo) 8%, var(--c-white)); opacity: 0.5; animation-duration: 40s; animation-delay: -14s; }
+@keyframes noor-drift { 50% { transform: translate(8%, 6%) scale(1.08); } 100% { transform: translate(-6%, 10%) scale(0.96); } }
+
+/* the starting screen */
+.noor-home { position: relative; flex: 1; min-block-size: 0; overflow-y: auto; }
+.noor-home__pattern {
+  position: absolute;
+  inset: 0 0 auto;
+  block-size: 60%;
+  z-index: 0;
+  pointer-events: none;
+  background: var(--c-green);
+  opacity: 0.05;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Cg fill='none' stroke='%23000' stroke-width='1'%3E%3Cpath d='M28 6l6 16 16 6-16 6-6 16-6-16-16-6 16-6z'/%3E%3Ccircle cx='28' cy='28' r='4'/%3E%3C/g%3E%3C/svg%3E"), linear-gradient(180deg, #000, rgba(0, 0, 0, 0.35) 45%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Cg fill='none' stroke='%23000' stroke-width='1'%3E%3Cpath d='M28 6l6 16 16 6-16 6-6 16-6-16-16-6 16-6z'/%3E%3Ccircle cx='28' cy='28' r='4'/%3E%3C/g%3E%3C/svg%3E"), linear-gradient(180deg, #000, rgba(0, 0, 0, 0.35) 45%, transparent);
+  mask-composite: intersect;
+}
+.noor-home__wrap { position: relative; z-index: 1; zoom: 1.25; display: flex; flex-direction: column; gap: 24px; max-inline-size: 576px; margin-inline: auto; padding: 32px 20px 24px; font-size: 15px; line-height: 1.5; color: var(--noor-ink); }
+.noor-home__avatar { box-shadow: 0 0 0 5px color-mix(in srgb, var(--c-white) 85%, transparent), 0 8px 20px -8px color-mix(in srgb, var(--noor-ink) 30%, transparent); border-radius: 50%; }
+.noor-home__greet { display: grid; gap: 8px; }
+.noor-home__k { font-size: 0.933em; font-weight: 500; color: color-mix(in srgb, var(--c-gold) 55%, var(--noor-ink)); }
+.noor-home__greet h2 { margin: 0; font-size: 1.867em; font-weight: 600; line-height: 1.15; letter-spacing: -0.02em; text-wrap: balance; }
+.noor-home__greet p { max-inline-size: 36ch; margin: 0; line-height: 1.55; color: var(--c-body); }
+.noor-home__list { display: grid; gap: 8px; }
+.noor-home__item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  font: inherit;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+  background: color-mix(in srgb, var(--c-white) 90%, transparent);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border: 0;
+  border-radius: 16px;
+  box-shadow: 0 0 0 1px var(--noor-line), 0 1px 2px color-mix(in srgb, var(--noor-ink) 3%, transparent);
+  transition: box-shadow 200ms, transform 200ms;
+}
+.noor-home__item:hover { transform: translateY(-1px); box-shadow: 0 0 0 1px var(--c-slot-stripe), 0 8px 20px -12px color-mix(in srgb, var(--noor-ink) 25%, transparent); }
+.noor-home__item[aria-disabled='true'] { opacity: 0.6; cursor: default; }
+.noor-home__ic { display: grid; flex: none; place-items: center; inline-size: 40px; block-size: 40px; background: var(--noor-chip); border-radius: 12px; }
+.noor-home__tx { flex: 1; min-inline-size: 0; display: grid; gap: 2px; }
+.noor-home__tx b { font-weight: 600; }
+.noor-home__tx span { font-size: 0.867em; color: var(--noor-muted); }
+.noor-home__item > svg:last-child { flex: none; color: var(--noor-placeholder); }
+
+/* the splash */
+.noor-splash { position: absolute; inset: 0; z-index: 40; display: grid; place-items: center; padding: 0; font: inherit; color: var(--noor-ink); text-align: center; cursor: pointer; background: var(--c-surface-soft); border: 0; }
+.noor-splash .noor-mesh i { opacity: 0.85; }
+.noor-splash__inner { position: relative; z-index: 1; zoom: 1.25; display: grid; justify-items: center; gap: 4px; padding: 0 24px; }
+.noor-splash__av { position: relative; display: grid; place-items: center; inline-size: 124px; block-size: 124px; margin-block-end: 20px; }
+.noor-splash__av > .noor-avatar { animation: noor-splash-pop 800ms var(--ease-out) both; }
+.noor-splash__av svg { position: absolute; inset: 0; inline-size: 124px; block-size: 124px; transform: rotate(-90deg); }
+.noor-splash__av circle { fill: none; stroke-width: 2; stroke-linecap: round; }
+.noor-splash__av .r1 { stroke: var(--c-slot-stripe); }
+.noor-splash__av .r2 { stroke: var(--c-gold); stroke-dasharray: 364; stroke-dashoffset: 364; animation: noor-ring-draw 3s 200ms cubic-bezier(0.65, 0, 0.35, 1) forwards; }
+@keyframes noor-ring-draw { to { stroke-dashoffset: 0; } }
+@keyframes noor-splash-pop { from { opacity: 0; transform: scale(0.85); } }
+@keyframes noor-splash-up { from { opacity: 0; transform: translateY(10px); } }
+.noor-splash__hello { font-size: 16px; font-weight: 500; color: var(--noor-muted); animation: noor-splash-up 700ms 400ms var(--ease-out) both; }
+.noor-splash__name { font-size: 44px; font-weight: 600; line-height: 1.05; letter-spacing: -0.02em; animation: noor-splash-up 700ms 550ms var(--ease-out) both; }
+.noor-splash__sub { max-inline-size: 28ch; margin-block-start: 8px; font-size: 15.5px; line-height: 1.45; color: var(--c-body); animation: noor-splash-up 700ms 800ms var(--ease-out) both; }
+.noor-splash__voice { display: inline-flex; align-items: center; gap: 8px; margin-block-start: 24px; padding: 8px 14px 8px 12px; font-size: 13.5px; font-weight: 500; background: var(--noor-surface); border-radius: 999px; box-shadow: 0 1px 2px color-mix(in srgb, var(--noor-ink) 4%, transparent), 0 6px 18px -10px color-mix(in srgb, var(--noor-ink) 14%, transparent); animation: noor-splash-up 700ms 1200ms var(--ease-out) both; }
+.noor-splash__voice svg { color: var(--c-gold); }
+.noor-splash__skip { position: absolute; inset-inline: 0; inset-block-end: 22px; z-index: 1; font-size: 12.5px; color: var(--noor-placeholder); }
+.noor-splash.is-leaving { animation: noor-splash-out 400ms cubic-bezier(0.65, 0, 0.35, 1) forwards; }
+@keyframes noor-splash-out { to { opacity: 0; visibility: hidden; } }
+@media (prefers-reduced-motion: reduce) {
+  .noor-mesh i, .noor-splash__av > .noor-avatar, .noor-splash__hello, .noor-splash__name, .noor-splash__sub, .noor-splash__voice { animation: none; }
+  .noor-splash__av .r2 { animation: none; stroke-dashoffset: 0; }
+  .noor-splash.is-leaving { animation: none; opacity: 0; }
+}

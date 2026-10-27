@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ChatIcon } from './ChatIcon.jsx';
 import { VoiceGlow } from './VoiceGlow.jsx';
-import { LandingBackdrop } from './LandingBackdrop.jsx';
 import { MicOrb } from './MicOrb.jsx';
 import { makeSampleFile } from '../../lib/sampleFiles.js';
 import { resolveHints } from '../../lib/hints.js';
@@ -10,6 +9,7 @@ import { TopicArt } from './TopicArt.jsx';
 import { ImageSlot } from '../ImageSlot.jsx';
 import { NoorAvatar } from './NoorAvatar.jsx';
 import { NoorMessage } from './NoorMessage.jsx';
+import { MiraMessage } from './MiraMessage.jsx';
 import { resolveScenario } from '../../lib/noor.js';
 import { buildQuestion, buildResult, buildReview, nextStep, parseAnswer, pathOf, purge } from '../../lib/eligibility.js';
 import { CONV_KINDS, batchExample, buildApplyConv, buildBatch, buildNudgeConv, looksLikeQuestion, readBatch } from '../../lib/conversation.js';
@@ -34,7 +34,7 @@ const FOLLOW_MS = 350; // pause before the first question follows its intro
 
 // What a screen reader hears once a reply has finished: the words, then the card titles.
 function spokenReply(scenario) {
-  const words = scenario.text.flatMap((b) => [b.lead, b.primary, b.question, b.tag, ...(b.items ?? []), b.how, b.secondary, b.note, b.example]).filter(Boolean).join(' ');
+  const words = scenario.text.flatMap((b) => [b.lead, b.primary, b.ack, b.question, b.tag, ...(b.items ?? []).map((i) => i.text ?? i), b.how, b.secondary, b.note, b.example]).filter(Boolean).join(' ');
   const cards = scenario.cards
     .map((c) => c.spoken ?? [c.title, c.items?.map((i) => i.title ?? i).join('. ')].filter(Boolean).join('. '))
     .filter(Boolean)
@@ -51,7 +51,7 @@ function stepState(stage, i) {
 }
 
 export function Assistant({ content, variant = '1', buttonsInside = true, defaultOpen = false, onOpenChange, scenario = 'free' }) {
-  const { persona, ui, topics, voice, scenarios, fallback, afterCheck, eligibility, application, intake, statusCheck, eligibilityCard, knowledge, demo } = content;
+  const { persona, ui, topics, voice, scenarios, fallback, fallbackGap, afterCheck, eligibility, application, intake, statusCheck, eligibilityCard, knowledge, demo } = content;
   // Search over the Ministry's published information (see src/lib/knowledge.js). The service we were just discussing is
   // remembered so a follow-up like "and the fees?" knows what it is about.
   const kb = useMemo(() => createKnowledge({ ...knowledge, extras: { eligibilityCard } }), [knowledge, eligibilityCard]);
@@ -67,6 +67,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
   const [thinking, setThinking] = useState(false);
   const [listening, setListening] = useState(false);
   const [announcement, setAnnouncement] = useState('');
+  const [sizeIdx, setSizeIdx] = useState(0); // the text size: 0 normal, 1 large, 2 extra large
   const [stage, setStage] = useState(null); // stepper: null | check | checkDone | docs | review | complete
   const [awaiting, setAwaiting] = useState(false); // a question is waiting for an answer
   const [statusAwait, setStatusAwait] = useState(false); // Mira has asked for an application ID
@@ -144,18 +145,41 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
   };
 
   const started = messages.length > 0;
+  // Variation 2: the splash (Mira's name inside a drawing gold ring) shows once, when the chat is first opened. A tap or a key skips it.
+  const splashSeen = useRef(false);
+  const [splash, setSplash] = useState(false);
+  const [splashLeaving, setSplashLeaving] = useState(false);
+  useEffect(() => {
+    if (!open || variant !== '2' || splashSeen.current) return;
+    splashSeen.current = true;
+    setSplash(true);
+  }, [open, variant]);
+  const endSplash = () => {
+    if (splashLeaving) return;
+    setSplashLeaving(true);
+    setTimeout(() => {
+      setSplash(false);
+      setSplashLeaving(false);
+    }, reduced ? 0 : 400);
+  };
+  useEffect(() => {
+    if (!splash) return undefined;
+    const t = setTimeout(endSplash, reduced ? 1500 : 3800);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [splash]);
   // The one-time orb is over after about 7 seconds; if the browser never reports the end of its animation (a hidden tab), end it anyway.
   useEffect(() => {
-    if (!micShine || !open) return undefined;
+    if (!micShine || !open || splash) return undefined;
     // On the starting screen the orb lasts as long as the pop-up does by default (10 s, MIC_PROMPT_MS); for the first question it is briefer.
     const t = setTimeout(() => setMicShine(false), shineRun === 0 ? MIC_PROMPT_MS + 500 : 8000);
     return () => clearTimeout(t);
-  }, [micShine, shineRun, open]);
+  }, [micShine, shineRun, open, splash]);
   useEffect(() => {
-    if (!micPop || !open) return undefined;
+    if (!micPop || !open || splash) return undefined;
     const t = setTimeout(() => setMicPop(false), MIC_PROMPT_MS);
     return () => clearTimeout(t);
-  }, [micPop, open, session]);
+  }, [micPop, open, session, splash]);
   const later = (fn, ms) => {
     const id = setTimeout(fn, ms);
     timers.current.push(id);
@@ -419,6 +443,11 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
       case 'ask':
         send(payload);
         break;
+      case 'say':
+        // A button that says something for the person (Variation 2's reply buttons): it is used once.
+        lock(msgId, 'said');
+        send(payload);
+        break;
       case 'pickFiles':
         fileRef.current?.click();
         break;
@@ -446,19 +475,33 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
   // Which reply a typed or spoken message gets. A service named in the question is answered from the knowledge base;
   // the scripted flows (start the check, track an application) keep their own phrases; other general questions use the
   // knowledge base; anything else falls back to the scripted answers, then to "I could not find that".
+  // When nothing fits, the reply depends on the message: about the Ministry (the information has no answer: point to the support
+  // team) or not (say what Mira can help with).
+  const isFallback = (scenario) => scenario === fallback || scenario === fallbackGap;
+  // The words of the buttons (the starting screen's options, and those on a reply that could not answer) are commands: they go
+  // to the scripted flow, not to the knowledge base.
+  const commands = useMemo(
+    () => new Set([...ui.landing.items.map((i) => i.label), ...[fallback, fallbackGap, afterCheck.later].flatMap((s) => s.cards.filter((x) => x.type === 'actions').flatMap((x) => x.buttons.map((b) => b.label)))]),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
   const replyFor = (text) => {
     const scripted = resolveScenario(text, scenarios, fallback);
+    if (commands.has(text.trim()) && scripted !== fallback) {
+      kbService.current = null;
+      return scripted;
+    }
     const hit = kb.answer(text, { service: kbService.current });
     let scenario = scripted;
     if (hit && (hit.kind === 'smalltalk' || (hit.kind === 'service' && hit.strength >= 2))) scenario = hit.scenario;
-    else if (['apply', 'track', 'ask'].includes(scripted.id)) scenario = scripted;
+    else if (['apply', 'track', 'ask', 'askElse'].includes(scripted.id)) scenario = scripted;
     else if (hit && hit.strength >= 2) scenario = hit.scenario;
     else if (scripted === fallback && hit) scenario = hit.scenario;
     if (hit && scenario === hit.scenario) {
       if (hit.kind === 'service') kbService.current = hit.serviceId;
       else if (hit.kind !== 'clarify') kbService.current = null;
     } else kbService.current = null;
-    return scenario;
+    return scenario === fallback && fallbackGap.related.test(text) ? fallbackGap : scenario;
   };
 
   const send = useCallback(
@@ -500,13 +543,13 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
         }
         if (conv && waiting?.batch) {
           // The numbered questions are open: read the reply as answers to them, unless it is a question of its own.
-          const aside = looksLikeQuestion(text) && scenario !== fallback;
+          const aside = looksLikeQuestion(text) && !isFallback(scenario);
           const got = aside ? {} : readBatch(text, waiting.qids, eligibility);
           if (Object.keys(got).length || files.length) {
             runIntake(text, files, got);
             return;
           }
-          if (!aside && scenario === fallback) {
+          if (!aside && isFallback(scenario)) {
             pushUser(text);
             pushNoor(buildNudgeConv(eligibility.batch.nudgeLead, eligibility.batch.nudge, batchExample(eligibility, waiting.qids), eligibility.batch.exampleLabel));
             return;
@@ -527,7 +570,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
             pushNoor(buildStatusReply(statusCheck, id));
             return;
           }
-          if (scenario === fallback) {
+          if (isFallback(scenario)) {
             pushUser(text);
             pushNoor(buildNudge(statusCheck.invalid));
             return;
@@ -536,12 +579,17 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
           statusRef.current = false;
           setStatusAwait(false);
         }
-        if (app.handleText(text, { known: scenario !== fallback })) return;
+        if (app.handleText(text, { known: !isFallback(scenario) })) return;
         if (option) {
           answer(waiting.msgId, waiting.qid, option.value, text);
           return;
         }
         pushUser(text);
+        if (conv && scenario.then === 'startEligibility') {
+          // Variation 2: the questions open with their own line ("Let us check your eligibility first…"), so no intro before them.
+          startEligibility();
+          return;
+        }
         // A question asked in the middle of the application is answered, then Mira brings the person back to it.
         const midway = conv && !scenario.then && (waiting?.batch || CONV_KINDS.includes(appRef.current?.awaiting?.kind));
         pushNoor(midway ? { ...scenario, then: 'resume' } : scenario);
@@ -653,9 +701,9 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
   };
 
   // ---- Voice: speech to text, streamed into the message box as it is heard ------------------------------------------------
-  // The browser's own speech recognition is used when it has one (Chrome, Edge, Safari; the person is asked for the microphone).
-  // When it has not, or is not allowed, the sample answer for the question that is open is streamed word by word instead, so the
-  // prototype behaves the same everywhere. Nothing is sent anywhere by this code.
+  // Nobody has to speak: pressing the microphone writes out the sample answer for the question that is open, word by word, as if it
+  // were being said (as the team's prototype does), then listening ends and the text waits in the message box. The browser's own
+  // speech recognition is not used and no microphone is asked for. Nothing is sent anywhere by this code.
   const sampleSaid = () => {
     const waiting = flowRef.current.awaiting;
     return app.voiceSample ?? (statusRef.current ? statusCheck.voiceSample : waiting?.batch ? eligibility.batch.voiceSample : waiting ? eligibility.questions[waiting.qid].voiceSample : voice.transcript);
@@ -674,7 +722,11 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
     simRef.current = setInterval(() => {
       i += 1;
       showHeard(words.slice(0, i).join(' '));
-      if (i >= words.length) clearInterval(simRef.current);
+      if (i >= words.length) {
+        // The answer is complete: a moment later listening ends by itself and the text waits in the message box.
+        clearInterval(simRef.current);
+        simRef.current = setTimeout(() => stopListening(), 1100);
+      }
     }, 260);
   };
 
@@ -692,27 +744,8 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
     setMicPop(false);
     showHeard('');
     simUsed.current = false;
-    setListening(true); // runs until the person presses stop
-    const Recognition = typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition);
-    if (!Recognition) {
-      startSimulated();
-      return;
-    }
-    try {
-      const rec = new Recognition();
-      rec.lang = 'en-US';
-      rec.continuous = true;
-      rec.interimResults = true;
-      rec.onresult = (e) => showHeard(Array.from(e.results, (r) => r[0].transcript).join(' ').trim());
-      // not allowed, no microphone, no network: carry on with the simulated stream instead of leaving a silent box
-      rec.onerror = (e) => {
-        if (e.error !== 'no-speech' && e.error !== 'aborted' && !heard.current) startSimulated();
-      };
-      rec.start();
-      recRef.current = rec;
-    } catch {
-      startSimulated();
-    }
+    setListening(true); // ends by itself once the sample answer has been written out, or when the person presses stop
+    startSimulated();
   };
 
   // Whenever listening ends (stop, close, restart), the recognition and the simulated stream end with it.
@@ -874,6 +907,12 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
                   {attachError}
                 </p>
               )}
+              {listening && (
+                <p className="noor-listen" role="status">
+                  <span className="noor-listen__dot" aria-hidden="true" />
+                  {ui.listeningStatus.replace('{name}', persona.name)}
+                </p>
+              )}
               <form
                 className={`noor-input${listening ? ' is-listening' : ''}`}
                 onSubmit={(e) => {
@@ -945,7 +984,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
                           aria-disabled={blocked || undefined}
                           onClick={() => !blocked && fileRef.current?.click()}
                         >
-                          <ChatIcon name="attach" size={20} weight={1.6} />
+                          <ChatIcon name={v2 ? 'clip' : 'attach'} size={20} weight={v2 ? 1.5 : 1.6} />
                         </button>
                       </>
                     )}
@@ -967,15 +1006,16 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
                             </span>
                           )}
                         </span>
-                        {micShine && !reduced && <MicOrb key={shineRun} />}
+                        {micShine && !reduced && !splash && <MicOrb key={shineRun} />}
                       </button>
-                      {micPop && !started && (
-                        <div className="noor-mic-pop" role="status">
-                          <strong>{ui.micPop.title}</strong>
-                          <span>{ui.micPop.text}</span>
-                          <button type="button" className="noor-mic-pop__close" aria-label={ui.micPop.close} onClick={() => setMicPop(false)}>
-                            <ChatIcon name="close" size={14} />
-                          </button>
+                      {micPop && !started && !splash && (
+                        <div className="noor-mic-pop" role="status" style={{ '--pop-ms': `${MIC_PROMPT_MS - 600}ms` }}>
+                          <p>
+                            <strong>{ui.micPop.title}</strong> {ui.micPop.text}
+                          </p>
+                          <span className="noor-mic-pop__bar" aria-hidden="true">
+                            <i />
+                          </span>
                         </div>
                       )}
                     </span>
@@ -1012,6 +1052,8 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
       </div>
     </div>
   );
+  const hour = new Date().getHours();
+  const greeting = ui.landing.greetings[hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening'];
   const heroEl = (
     <div className="noor-welcome__hero">
       {!v2view && <span className="noor-welcome__glow" aria-hidden="true" />}
@@ -1044,11 +1086,33 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
       )}
       {v2view ? (
         // Variation 2: the greeting reads left to right, with the quick-starts right under it (the message box stays at the bottom).
-        <div className="noor-welcome__body">
-          {heroEl}
-          {titleEl}
-          {subEl}
-          {!started && quickEl}
+        <div className="noor-home">
+          <div className="noor-mesh" aria-hidden="true">
+            <i /><i /><i />
+          </div>
+          <div className="noor-home__pattern" aria-hidden="true" />
+          <div className="noor-home__wrap">
+            <NoorAvatar src={persona.avatar} size={60} state={avatarState} className="noor-home__avatar" />
+            <div className="noor-home__greet">
+              <div className="noor-home__k">{greeting}</div>
+              <h2>{ui.landing.title}</h2>
+              <p>{ui.landing.subtitle}</p>
+            </div>
+            <div className="noor-home__list" role="group" aria-label={ui.landing.title}>
+              {ui.landing.items.map((it) => (
+                <button key={it.id} type="button" className="noor-home__item" aria-disabled={blocked || undefined} onClick={() => send(it.label)}>
+                  <span className="noor-home__ic">
+                    <ChatIcon name={it.icon} size={21} weight={1.5} />
+                  </span>
+                  <span className="noor-home__tx">
+                    <b>{it.label}</b>
+                    <span>{it.description}</span>
+                  </span>
+                  <ChatIcon name="arrowRight" size={18} weight={1.5} />
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       ) : (
         <>
@@ -1082,7 +1146,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
       {open && <div className={`noor-scrim${closing ? ' is-closing' : ''}`} aria-hidden="true" />}
 
       {open && (
-        <div className={`noor-shell${expanded ? ' is-expanded' : ''}${closing ? ' is-closing' : ''}`}>
+        <div className={`noor-shell${expanded ? ' is-expanded' : ''}${closing ? ' is-closing' : ''}`} style={{ '--noor-text-scale': ui.textSize.scales[sizeIdx] }}>
           <div className="noor-pose" aria-hidden="true">
             <ImageSlot file={pose} decorative fit="contain" />
           </div>
@@ -1098,12 +1162,44 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
               {announcement}
             </div>
 
+            {splash && (
+              <button type="button" className={`noor-splash${splashLeaving ? ' is-leaving' : ''}`} onClick={endSplash} aria-label={ui.splash.skip}>
+                <span className="noor-mesh" aria-hidden="true">
+                  <i /><i /><i />
+                </span>
+                <span className="noor-splash__inner">
+                  <span className="noor-splash__av">
+                    <svg viewBox="0 0 124 124" aria-hidden="true">
+                      <circle className="r1" cx="62" cy="62" r="58" />
+                      <circle className="r2" cx="62" cy="62" r="58" />
+                    </svg>
+                    <NoorAvatar src={persona.avatar} size={100} />
+                  </span>
+                  <span className="noor-splash__hello">{ui.splash.hello}</span>
+                  <span className="noor-splash__name">{persona.name}</span>
+                  <span className="noor-splash__sub">{ui.splash.sub}</span>
+                  <span className="noor-splash__voice">
+                    <ChatIcon name="mic" size={16} weight={1.6} />
+                    {ui.splash.voice}
+                  </span>
+                </span>
+                <span className="noor-splash__skip">{ui.splash.skip}</span>
+              </button>
+            )}
             <header className="noor-header">
               <NoorAvatar src={persona.avatar} size={44} state={avatarState} />
               <div className="noor-header__text">
                 <p className="noor-header__name">{persona.name}</p>
                 <p className="noor-header__sub">{persona.subtitle}</p>
               </div>
+              <button
+                type="button"
+                className="noor-icon-btn noor-aa"
+                aria-label={ui.textSize.label.replace('{size}', ui.textSize.sizes[sizeIdx])}
+                onClick={() => setSizeIdx((i) => (i + 1) % ui.textSize.scales.length)}
+              >
+                {ui.textSize.button}
+              </button>
               <button
                 type="button"
                 className="noor-icon-btn noor-expand"
@@ -1147,12 +1243,11 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
             )}
 
             <div className="noor-stage">
-              {v2 && !started && <LandingBackdrop />}
             {started ? (
               <div key="log" className="noor-log" ref={logRef} role="log" aria-live="off" aria-label="Conversation">
                 <div className="noor-log__inner" ref={innerRef}>
                   <p className="noor-log__day">{ui.today}</p>
-                  {messages.map((m) =>
+                  {messages.map((m, mi) =>
                     m.role === 'user' ? (
                       <div className="noor-msg noor-msg--user" key={m.id}>
                         <div className="noor-bubble noor-bubble--user">
@@ -1173,6 +1268,25 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
                           {m.text}
                         </div>
                       </div>
+                    ) : v2 ? (
+                      <MiraMessage
+                        key={m.id}
+                        msgId={m.id}
+                        scenario={m.scenario}
+                        avatar={persona.avatar}
+                        name={persona.name}
+                        head={messages[mi - 1]?.role !== m.role}
+                        labels={ui.announce}
+                        copy={{ thinking: ui.thinking, example: ui.example, answers: ui.answers }}
+                        chosen={m.chosen}
+                        tray={!buttonsInside}
+                        feedback={ui.feedback}
+                        rating={ratings[m.id]}
+                        latest={m.id === lastNoorId}
+                        onRate={(rating) => rate(m, rating)}
+                        onStage={(st, sc) => onStage(st, sc, m.id)}
+                        onAction={(event, payload) => onAction(event, payload, m.id)}
+                      />
                     ) : (
                       <NoorMessage
                         key={m.id}
@@ -1198,7 +1312,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
             )}
             </div>
 
-            {listening && <VoiceGlow overChat={started} />}
+            {listening && <VoiceGlow overChat={started} said={transcript} />}
 
             {trayNow.length > 0 && (
               <div className="noor-tray">

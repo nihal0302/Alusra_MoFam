@@ -74,6 +74,14 @@ export function buildSubmitted(app, reference) {
         reference,
         ...s.card,
         emailNote: s.card.emailNote,
+        mira: {
+          ...s.mira,
+          subtitle: fill(s.mira.subtitle, {
+            first: app.signIn.profile.first,
+            date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
+          }),
+          confirm: fill(s.mira.confirm, { email: app.signIn.profile.rows.find((r) => r.id === 'email')?.value ?? '', mobile: app.signIn.profile.rows.find((r) => r.id === 'mobile')?.value ?? '' }),
+        },
         spoken: `${s.card.title}. Application number: ${reference}.`,
       },
       { type: 'suggestions', title: 'Need anything else?', items: [s.suggestion] },

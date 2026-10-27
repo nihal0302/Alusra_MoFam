@@ -25,16 +25,17 @@ export const eligibility = {
   },
   // Variation 2: the questions are asked together, numbered, and answered in one message (typed or spoken).
   batch: {
-    // No opener of its own: the message before it ("Certainly, let us begin the eligibility check") already says it.
-    primary: 'Please answer the questions below in one message.',
-    how: '‹mic›Use the microphone or type your answers.‹/mic›',
+    // As in the team's Mira POD Assistant prototype: one line of what is happening, then the four questions, numbered.
+    intro: 'Let’s check your eligibility first. Nothing is submitted at this stage.',
+    primary: 'Please answer these four questions',
+    how: 'You can answer all four together in one message.',
     title: 'Please provide',
     numbers: { who: 1, status: 2, report: 3, accredited: 4 },
     items: {
       who: 'Who is the card for: yourself, or someone else?',
-      status: 'Is the applicant an Emirati citizen or a legal UAE resident?',
-      report: 'Is there a medical or psychological report confirming the disability?',
-      accredited: 'If so, was it issued by an accredited official authority, such as a government hospital?',
+      status: 'Is the applicant an Emirati citizen or a UAE resident?',
+      report: 'Do you have a medical or psychological report confirming the disability?',
+      accredited: 'Was the report issued by a government hospital or another accredited authority?',
     },
     // Pieces of one sentence, joined to show how a reply could read (only for the questions being asked).
     examples: { who: 'it is for myself', status: 'I am an Emirati citizen', report: 'I have a medical report', accredited: 'it is from a government hospital' },
@@ -122,8 +123,33 @@ export const eligibility = {
       actions: { review: 'Review answers', later: 'I’ll apply later', apply: 'Yes, I want to apply' },
       // The next step, asked in its own bubble under the checklist (the buttons follow it).
       next: { question: 'Would you like to continue with your application now?', hint: 'You will sign in with UAE PASS next. Nothing is submitted until you confirm.' },
+      // Variation 2 words the result as the team's Mira POD Assistant prototype does (contractions written out).
+      mira: {
+        title: 'You’re eligible to apply',
+        subtitle: { self: 'You can apply for a People of Determination card.', other: 'The person you’re applying for can apply for a People of Determination card.' },
+        listLabel: 'To apply, you’ll upload two documents',
+        // what each document line says before a file has been sent (by the icon of the checklist line)
+        itemTexts: { camera: 'Recent, white background · JPG or PNG', file: 'The report you mentioned · PDF or JPG' },
+        next: { question: 'Would you like to start your application now?', hint: 'You’ll sign in with UAE PASS so I can fill in your personal details.' },
+        actions: { later: 'I’ll apply later', apply: 'Start application' },
+      },
     },
     notEligible: {
+      // Variation 2 words the result as the team's Mira POD Assistant prototype does.
+      mira: {
+        title: 'You can’t apply yet',
+        subtitle: 'Based on your answers, the application can’t go ahead right now.',
+        listLabel: 'Why',
+        reasons: {
+          status: 'The card is for Emirati citizens and UAE residents.',
+          report: 'A medical or psychological report confirming the disability is required.',
+          accredited: 'The report must come from a government hospital or another accredited authority.',
+        },
+        actions: [
+          { label: 'Ask a question', event: 'say', variant: 'outline' },
+          { label: 'Change my answers', event: 'restartCheck', variant: 'primary' },
+        ],
+      },
       title: 'Not eligible yet',
       lead: 'Thank you for checking before applying.',
       reasons: {

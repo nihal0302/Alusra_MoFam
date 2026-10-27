@@ -30,7 +30,7 @@ export function NoorMessage({ msgId, scenario, avatar, onStage, onAction, labels
         // The question, then on separate lines how to answer it (`how`) and anything else worth knowing (`note`), then an example.
         if (b0.question) {
           return [
-            ...(b0.lead || b0.primary ? [{ lead: b0.lead, plainLead: b0.plainLead, primary: b0.primary }] : []),
+            ...(b0.lead || b0.primary || b0.ack ? [{ lead: b0.lead, plainLead: b0.plainLead, primary: b0.primary ?? b0.ack }] : []),
             { primary: b0.question, tag: b0.tag, plainQuestion: b0.plainQuestion, items: b0.items, secondary: b0.how, note: b0.note, example: b0.example, exampleLabel: b0.exampleLabel, ask: true },
           ];
         }

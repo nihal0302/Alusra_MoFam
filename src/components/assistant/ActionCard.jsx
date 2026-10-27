@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { ChatIcon } from './ChatIcon.jsx';
 import { UaePassButton } from './UaePassButton.jsx';
 import { usePrefersReducedMotion } from '../../lib/usePrefersReducedMotion.js';
@@ -24,8 +25,14 @@ function Arc({ step, total }) {
   );
 }
 
-// The simulated UAE PASS approval: a progress bar over the whole wait, with the current step highlighted.
-function SigningCard({ card, style }) {
+// The simulated UAE PASS approval, as in the team's prototype: a window over the conversation, which is blurred behind it, with the
+// steps ticked off one by one. It closes when the wait is over; the message that opened it stays in the chat.
+function SigningCard({ card }) {
+  const anchor = useRef(null);
+  const [host, setHost] = useState(null);
+  useEffect(() => {
+    setHost(anchor.current?.closest('.noor-stage') ?? null);
+  }, []);
   const [elapsed, setElapsed] = useState(0);
   useEffect(() => {
     const t0 = Date.now();
@@ -36,7 +43,13 @@ function SigningCard({ card, style }) {
   const active = Math.min(card.steps.length - 1, Math.floor(elapsed / per));
   const finished = elapsed >= card.ms;
   return (
-    <section className="noor-card noor-signing" style={style} aria-label={card.title}>
+    <>
+      <span ref={anchor} hidden />
+      {host &&
+        !finished &&
+        createPortal(
+          <div className="noor-modal" role="dialog" aria-modal="true" aria-label={card.title}>
+    <section className="noor-card noor-signing noor-signing--modal">
       <div className="noor-card__body">
         <div className="noor-card__headrow">
           <h3 className="noor-card__title">{card.title}</h3>
@@ -61,6 +74,10 @@ function SigningCard({ card, style }) {
         {finished ? card.done : card.note}
       </p>
     </section>
+          </div>,
+          host,
+        )}
+    </>
   );
 }
 
@@ -86,6 +103,28 @@ function InfoTip({ text, label }) {
         {text}
       </span>
     </span>
+  );
+}
+
+// A small "Copy" button beside a contact detail; it says "Copied" for a moment.
+function CopyText({ value, copy, copied }) {
+  const [done, setDone] = useState(false);
+  const timer = useRef(null);
+  useEffect(() => () => clearTimeout(timer.current), []);
+  const click = async () => {
+    try {
+      await navigator.clipboard.writeText(value);
+    } catch {
+      /* clipboard can be blocked; the detail is still on screen */
+    }
+    setDone(true);
+    clearTimeout(timer.current);
+    timer.current = setTimeout(() => setDone(false), 1800);
+  };
+  return (
+    <button type="button" className="noor-support__copy" onClick={click}>
+      {done ? copied : copy}
+    </button>
   );
 }
 
@@ -717,7 +756,7 @@ export function ActionCard({ card, index = 0, onAction, chosen, tray = false }) 
   }
 
   // Details arriving from UAE PASS, one row at a time.
-  if (card.type === 'signing') return <SigningCard card={card} style={style} />;
+  if (card.type === 'signing') return <SigningCard card={card} />;
 
   if (card.type === 'fetch') {
     const total = card.rows.length * FETCH_STEP_MS;
@@ -957,6 +996,46 @@ export function ActionCard({ card, index = 0, onAction, chosen, tray = false }) 
             ))}
           </div>
         </div>
+      </section>
+    );
+  }
+
+  if (card.type === 'support') {
+    return (
+      <section className="noor-card noor-support" style={style} aria-label={card.title}>
+        <div className="noor-card__body">
+          {card.title && <h3 className="noor-card__title">{card.title}</h3>}
+          {card.rows.map((r) => (
+            <div className="noor-support__row" key={r.label}>
+              <ChatIcon name={r.icon} size={18} />
+              <div className="noor-support__text">
+                <small>{r.label}</small>
+                <b>{r.value}</b>
+              </div>
+              <CopyText value={r.value} copy={card.copy} copied={card.copied} />
+            </div>
+          ))}
+          {card.hours && <p className="noor-support__hours">{card.hours}</p>}
+        </div>
+      </section>
+    );
+  }
+
+  if (card.type === 'actions') {
+    if (tray) return null; // the buttons sit above the message box instead
+    return (
+      <section className="noor-card noor-actions" style={{ ...style, '--n': card.buttons.length }} aria-label={card.title}>
+        {card.buttons.map((b) => (
+          <button
+            key={b.label}
+            type="button"
+            className={`noor-btn${b.variant === 'primary' ? '' : ' noor-btn--outline'}`}
+            disabled={locked}
+            onClick={() => onAction?.('say', b.label)}
+          >
+            {b.label}
+          </button>
+        ))}
       </section>
     );
   }

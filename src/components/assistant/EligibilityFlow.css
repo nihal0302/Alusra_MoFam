@@ -1193,3 +1193,70 @@
   margin-inline-start: 6px;
   white-space: nowrap;
 }
+
+/* ---------- Replies that cannot answer: the Ministry's contact details, and the buttons that offer a way on ---------- */
+.noor-support .noor-card__body { display: grid; gap: 8px; }
+.noor-support__row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: var(--noor-chip); border-radius: 12px; }
+.noor-support__row > svg { flex: none; color: var(--noor-muted); }
+.noor-support__text { flex: 1; min-inline-size: 0; display: grid; gap: 1px; }
+.noor-support__text small { font-size: 13px; color: var(--noor-muted); }
+.noor-support__text b { font-size: 15px; font-weight: 600; color: var(--noor-ink); user-select: all; overflow-wrap: anywhere; }
+.noor-support__copy { padding: 6px 8px; font: inherit; font-size: 13px; font-weight: 600; color: var(--noor-cta); background: transparent; border: 0; border-radius: 8px; cursor: pointer; }
+.noor-support__copy:hover { background: var(--noor-surface); }
+.noor-support__hours { margin: 4px 0 0; font-size: 13px; line-height: 1.5; color: var(--noor-muted); }
+
+/* the buttons share the row equally: two side by side, one filling it */
+.noor-card.noor-actions {
+  display: grid;
+  grid-template-columns: repeat(var(--n, 2), minmax(0, 1fr));
+  gap: 8px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+.noor-actions .noor-btn { min-block-size: 44px; justify-content: center; text-align: center; line-height: 1.25; white-space: normal; }
+
+/* the line after a rating: comes up from below, and after a few seconds leaves through the top */
+@keyframes noor-thanks-in { from { opacity: 0; transform: translateY(10px); } }
+@keyframes noor-thanks-out { to { opacity: 0; transform: translateY(-10px); } }
+.noor-fb__thanks { align-self: center; margin-inline-start: 6px; font-size: 13px; color: var(--noor-muted); animation: noor-thanks-in 350ms var(--ease-out) both; }
+.noor-fb__thanks.is-out { animation: noor-thanks-out 400ms var(--ease-out) forwards; }
+@media (prefers-reduced-motion: reduce) { .noor-fb__thanks, .noor-fb__thanks.is-out { animation: none; } .noor-fb__thanks.is-out { opacity: 0; } }
+
+/* ---------- The UAE PASS wait: a window over the conversation, which is blurred behind it ---------- */
+@keyframes noor-modal-in { from { opacity: 0; } }
+.noor-modal {
+  position: absolute;
+  inset: 0;
+  z-index: 15;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: color-mix(in srgb, var(--noor-surface) 90%, transparent);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  animation: noor-modal-in 300ms both;
+}
+.noor-modal .noor-signing--modal {
+  inline-size: 100%;
+  max-inline-size: 420px;
+  margin: 0;
+  background: var(--c-white);
+  border-radius: 20px;
+  box-shadow: var(--shadow-noor-panel);
+}
+
+/* ---------- The text-size button in the header ---------- */
+.noor-aa { font: inherit; font-size: calc(16px * var(--noor-text-scale, 1)); font-weight: 600; line-height: 1; }
+/* A larger text size makes the conversation (and the starting screen's text) bigger; the panel keeps its size. */
+.noor .noor-log__inner,
+.noor .noor-welcome__body,
+.noor .noor-tray__row { zoom: var(--noor-text-scale, 1); }
+@media (prefers-reduced-motion: reduce) { .noor-modal { animation: none; } }
+
+/* ---------- The label above the message box while the microphone is on: a pulsing dot and "Mira is listening…" ---------- */
+@keyframes noor-listen-pulse { 70% { box-shadow: 0 0 0 7px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
+.noor-listen { display: flex; align-items: center; gap: 8px; margin: 0; padding-inline: 4px; min-block-size: 20px; font-size: 13px; font-weight: 600; color: color-mix(in srgb, var(--c-gold) 55%, var(--noor-ink)); }
+.noor-listen__dot { inline-size: 8px; block-size: 8px; background: var(--c-gold); border-radius: 50%; box-shadow: 0 0 0 0 color-mix(in srgb, var(--c-gold) 60%, transparent); animation: noor-listen-pulse 1400ms infinite; }
+@media (prefers-reduced-motion: reduce) { .noor-listen__dot { animation: none; } }

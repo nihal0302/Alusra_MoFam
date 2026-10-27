@@ -302,6 +302,21 @@ export const application = {
       ],
     },
     suggestion: 'Check application status',
+    // As the team's Mira POD Assistant prototype shows it (Variation 2).
+    mira: {
+      subtitle: 'Thank you, {first}. We received it on {date}.',
+      confirm: 'A confirmation has been sent to {email} and by SMS to {mobile}.',
+      next: 'What happens next',
+      copy: 'Copy',
+      copied: 'Copied',
+      timeline: [
+        ['Submitted', 'Application received'],
+        ['Under review', 'Documents checked by the Ministry'],
+        ['Decision', 'You’ll be notified by email and SMS'],
+        ['Card issued', 'Delivered to your residential address'],
+      ],
+      actions: { status: 'Check status', apps: 'View my applications' },
+    },
   },
 
   nudges: {

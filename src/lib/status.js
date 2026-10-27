@@ -38,6 +38,7 @@ export function buildStatusReply(copy, id) {
         meta: [{ label: copy.card.submittedLabel, value: when }],
         emailNote: copy.card.emailNote,
         account: copy.card.account,
+        mira: copy.mira,
         spoken: title,
         steps,
       },

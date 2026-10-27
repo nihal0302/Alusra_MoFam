@@ -453,9 +453,9 @@ export function buildSignInConv(app, { who, data, group }) {
   return {
     id: 'app:signin',
     tool: { working: s.working, done: s.done },
-    text: [{ lead: fill(s.lead, { first: s.profile.first }), primary: c.signIn.primary[who], question: parts.question, tag: parts.tag, items: parts.items, how: parts.how, note: parts.note, example: parts.example, exampleLabel: parts.example ? c.exampleLabel : undefined }],
+    text: [{ lead: c.signIn.mira.lead, question: parts.question, tag: parts.tag, items: parts.items, how: parts.how, note: parts.note, example: parts.example, exampleLabel: parts.example ? c.exampleLabel : undefined }],
     // the UAE PASS details (open) come right under the acknowledgement and before the question; the answers sit under the question
-    cards: [{ type: 'details', before: true, open: true, title: c.signIn.title, rows, note: s.card.note, spoken: `${c.signIn.title}.` }, ...parts.cards],
+    cards: [{ type: 'details', before: true, open: true, title: c.signIn.title, rows, note: s.card.note, mira: { ...c.signIn.mira, welcome: fill(c.signIn.mira.welcome, { first: s.profile.first }) }, spoken: `${c.signIn.title}.` }, ...parts.cards],
   };
 }
 
@@ -464,7 +464,7 @@ export function buildApplyConv(app, base, who) {
   const a = app.conv.apply[who === 'other' ? 'other' : 'self'];
   return {
     ...base,
-    text: [{ lead: a.lead, primary: `${a.primary} ${a.secondary}`, question: a.question, plainQuestion: true }], // a request, not a question to answer: regular text
+    text: [{ lead: a.lead, question: a.question, how: a.description }],
     cards: base.cards.map((card) => (card.type === 'uaepass' ? { ...card, description: a.description } : card)),
   };
 }
@@ -520,7 +520,9 @@ export function buildDocsAsk(app, { who, data, noted = [], docs = [], prefix = '
   const missing = ['photo', 'report'].filter((k) => !data[k]);
   const first = !noted.length && !docs.length && missing.length === 2;
   const text = missing.length === 2 ? fill(c.text, sub) : fill(c.one, { ...sub, missing: c.names[missing[0]] });
-  const how = missing.length === 2 ? c.how : c.oneHow;
+  const dis = data.disability;
+  const kind = /intellectual|autism|psychiatric|adhd|learning|communication/i.test(dis ?? '') ? c.mira.psychological : c.mira.medical;
+  const how = missing.length === 2 ? (dis ? (dis === 'Multiple' ? c.mira.multiple : fill(c.mira.report, { disability: dis.toLowerCase(), kind })) : c.how) : c.oneHow;
   return {
     id: 'app:docs',
     tool: null,
@@ -550,6 +552,7 @@ export function reviewGroups(app, { who, data }) {
   const compact = (rows) => rows.filter(Boolean);
   const groups = [
     {
+      key: 'applicant',
       title: c.groups.applicant,
       // For someone else only the applicant's name, mobile and email are used; the rest of their UAE PASS is not part of the form.
       rows: compact([
@@ -557,21 +560,25 @@ export function reviewGroups(app, { who, data }) {
         ...app.conv.profileRows[who].map((id) => row(id, profile[id], 'uaepass')),
       ]),
     },
-    ...(other ? [{ title: c.groups.cardholder, rows: compact([row('cardholderEid', data.cardholderEid, 'you', 'cardholderEid'), row('cardholderDob', data.cardholderDob, 'you', 'cardholderDob')]) }] : []),
+    ...(other ? [{ key: 'cardholder', title: c.groups.cardholder, rows: compact([row('cardholderEid', data.cardholderEid, 'you', 'cardholderEid'), row('cardholderDob', data.cardholderDob, 'you', 'cardholderDob')]) }] : []),
     {
+      key: 'request',
       title: c.groups.request,
       rows: compact([row('emirate', data.emirate, 'you', 'emirate'), row('address', data.address, 'you', 'address'), row('deliveryMobile', data.deliveryMobile, 'you', 'deliveryMobile')]),
     },
-    { title: c.groups.disability, rows: compact([row('disability', data.disability, 'you', 'disability')]) },
+    { key: 'disability', title: c.groups.disability, rows: compact([row('disability', data.disability, 'you', 'disability')]) },
     {
+      key: 'docs',
       title: c.groups.docs,
       rows: compact([row('photo', file(data.photo), 'you', 'photo'), row('report', file(data.report), 'you', 'report'), row('additional', (data.additional ?? []).map((f) => f.name).join(', '), 'you')]),
     },
     {
+      key: 'optional',
       title: c.groups.optional,
       rows: compact([row('altMobile', data.altMobile, 'you', 'altMobile'), row('eidExpiry', data.eidExpiry, 'you', 'eidExpiry')]),
     },
     {
+      key: 'work',
       title: c.groups.work,
       // Answers that no longer apply (the employment status was changed afterwards) are left out.
       rows: compact(
@@ -593,7 +600,7 @@ export function buildReviewConv(app, { who, data, updated = [] }) {
   return {
     id: 'app:review',
     tool: null,
-    text: [again ? { lead: fill(c.updated, { list: joinList(updated) }), plainLead: true, primary: c.intro } : { lead: c.lead, primary: c.intro }],
+    text: [again ? { lead: fill(c.updated, { list: joinList(updated) }), question: c.mira.question, how: c.mira.how } : { question: c.mira.question, how: c.mira.how }],
     cards: [
       {
         type: 'appReview',
@@ -603,6 +610,7 @@ export function buildReviewConv(app, { who, data, updated = [] }) {
         consent: r.consent,
         note: r.note,
         submit: { label: r.submit, event: 'submit' },
+        mira: { consent: c.mira.consent, submit: c.mira.submit, icons: c.mira.icons },
         groups: reviewGroups(app, { who, data }),
         spoken: 'Review your application. The details are listed in groups, with a Change option where you can edit them. Reply yes to submit, or say what you would like to change.',
       },
@@ -676,17 +684,16 @@ export function buildBatch(eligibility, qids, first) {
   return {
     id: first ? 'check:batch' : 'check:batchMore',
     tool: null,
-    text: [first ? { question: b.primary, how: b.how } : { question: fill(b.more, { what }), how: b.moreHow }],
-    cards: [
+    // The questions are part of the message (numbered as they are on the form, so "2. yes" still points at the right one).
+    text: [
       {
-        type: 'batch',
-        title: b.title,
+        ...(first ? { ack: b.intro, question: b.primary, how: b.how } : { question: fill(b.more, { what }), how: b.moreHow }),
         items,
-        exampleLabel: b.exampleLabel,
         example: batchExample(eligibility, qids),
-        spoken: `${b.title}. ${items.map((i) => `${i.n}. ${i.text}`).join(' ')}`,
+        exampleLabel: b.exampleLabel,
       },
     ],
+    cards: [],
   };
 }
 

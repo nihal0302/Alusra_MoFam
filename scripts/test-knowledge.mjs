@@ -3,6 +3,7 @@
 import site from '../src/content/knowledge/site.json' with { type: 'json' };
 import { createKnowledge } from '../src/lib/knowledge.js';
 import { knowledgeCopy, resolutionEntries, serviceMeta, topics } from '../src/content/knowledge.en.js';
+import { fallback, fallbackGap } from '../src/content/assistant.en.js';
 
 const kb = createKnowledge({
   services: site.services,
@@ -104,5 +105,25 @@ for (const q of ['and the fees?', 'what documents do I need?', 'how long does it
   console.log(`${ok ? 'ok  ' : 'FAIL'} follow-up: ${q.padEnd(54)} -> ${r?.serviceId ?? 'none'} [${r?.intents?.join(',') ?? ''}]`);
 }
 
-console.log(`\n${cases.length + 4 - bad}/${cases.length + 4} as expected`);
+// A message nothing can answer gets one of two replies: off topic or gibberish (what Mira can help with), or about the Ministry
+// but not in the published information (the support team). The same rule as replyFor in Assistant.jsx.
+const gaps = [
+  ['I want to order a pizza', 'off'],
+  ['asdfgh qwerty', 'off'],
+  ['what is the weather today', 'off'],
+  ['Does the ministry offer scholarships for university students?', 'gap'],
+];
+for (const [q, want] of gaps) {
+  const got = kb.answer(q) !== null ? 'answered' : fallbackGap.related.test(q) ? 'gap' : 'off';
+  const ok = got === want;
+  if (!ok) bad++;
+  console.log(`${ok ? 'ok  ' : 'FAIL'} fallback: ${q.padEnd(58)} -> ${got}`);
+}
+const shape = (s) => s.text.some((b) => b.ack && b.question) && s.cards.some((x) => x.type === 'actions');
+const shapeOk = shape(fallback) && shape(fallbackGap) && fallbackGap.cards.some((x) => x.type === 'support');
+if (!shapeOk) bad++;
+console.log(`${shapeOk ? 'ok  ' : 'FAIL'} both fallback replies carry an acknowledgement, a question and buttons (the gap one also the contacts)`);
+
+const total = cases.length + 4 + gaps.length + 1;
+console.log(`\n${total - bad}/${total} as expected`);
 process.exit(bad ? 1 : 0);

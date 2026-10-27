@@ -23,6 +23,8 @@ export const conv = {
     other: ['name', 'mobile', 'email'],
   },
   signIn: {
+    // As the team's Mira POD Assistant prototype shows it: a welcome, then the details from UAE PASS, then the next question.
+    mira: { welcome: 'Welcome, {first}', signedIn: 'You’re signed in with UAE PASS.', heading: 'Your details', tag: 'From UAE PASS', note: 'These are filled in for you from your UAE PASS account.', lead: 'I just need a few more details from you.' },
     title: 'Your details from UAE PASS',
     primary: {
       self: 'I have filled in your details from UAE PASS (name, Emirates ID, nationality, mobile and email), so you do not need to enter them again.',
@@ -33,16 +35,18 @@ export const conv = {
   // Just before the UAE PASS button: what is shared depends on who the card is for.
   apply: {
     self: {
-      question: 'To continue, please sign in with UAE PASS.',
+      lead: 'Great, let’s begin your application.',
+      question: 'Please sign in with UAE PASS',
       primary: 'To fill in your details for you, I will ask you to sign in with UAE PASS.',
       secondary: 'Your name, Emirates ID, nationality, mobile and email are filled in for you.',
-      description: 'UAE PASS shares your name, Emirates ID, nationality, mobile and email. You will review everything before anything is submitted.',
+      description: 'UAE PASS shares your name, date of birth, Emirates ID, nationality, mobile number and email. You’ll see everything before anything is submitted.',
     },
     other: {
-      question: 'To continue, please sign in with UAE PASS.',
+      lead: 'Great, let’s begin your application.',
+      question: 'Please sign in with UAE PASS',
       primary: 'You will sign in as the applicant, so I will use UAE PASS for your own details.',
       secondary: 'Your name, mobile and email are filled in for you. Their Emirates ID and date of birth are not part of your UAE PASS, so I will ask you for those next.',
-      description: 'UAE PASS shares your name, mobile and email. Their details are not shared, so you’ll enter them yourself. You will review everything before anything is submitted.',
+      description: 'UAE PASS shares your name, mobile number and email. Their details are not shared, so you’ll enter them yourself. You’ll see everything before anything is submitted.',
     },
   },
 
@@ -202,7 +206,14 @@ export const conv = {
   editVoiceSample: 'Sharjah',
 
   docs: {
-    text: 'Please attach {your} personal photograph and the medical or psychological report.',
+    text: 'Please upload {your} documents',
+    // As the team's Mira POD Assistant prototype says it: the line under the question names the report the disability needs.
+    mira: {
+      report: 'For {disability} disability, a {kind} report is needed.',
+      multiple: 'Upload the report that covers all the disabilities.',
+      medical: 'medical',
+      psychological: 'psychological',
+    },
     how: 'Upload each document below, or send both together using the paperclip. I will continue once both are uploaded.',
     one: 'I still require {your} {missing}.',
     oneHow: 'Upload it below, or attach it using the paperclip.',
@@ -213,7 +224,7 @@ export const conv = {
       uploadLabel: 'Upload', // the button on each document's row
       removeLabel: 'Remove', // the delete icon, for screen readers: "Remove Personal photograph"
       items: {
-        photo: { label: 'Personal photograph', hint: 'Recent passport-size photograph, white background, 2 × 6 cm · JPG or PNG' },
+        photo: { label: 'Personal photograph', hint: 'Recent, white background · JPG or PNG' },
         report: { label: 'Medical or psychological report', hint: 'From an accredited authority · PDF or JPG' },
       },
     },
@@ -230,6 +241,14 @@ export const conv = {
   },
 
   review: {
+    // As the team's Mira POD Assistant prototype shows it.
+    mira: {
+      question: 'Please review your application',
+      how: 'Change anything that isn’t right before you submit.',
+      consent: 'By tapping {submit}, you confirm the information is correct and agree to the Ministry of Family processing it for this application.',
+      submit: 'Submit application',
+      icons: { applicant: 'user', cardholder: 'user', request: 'home', disability: 'info', docs: 'file', optional: 'phone', work: 'briefcase' },
+    },
     lead: 'That is everything I require.',
     // The line under the opener. (The confirmation in the card above the submit button is `review.consent` in application.en.js.)
     intro: 'Below are all the details I have recorded so far.',

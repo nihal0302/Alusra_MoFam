@@ -52,6 +52,9 @@ export function trayItems(scenario) {
       case 'link':
         for (const l of card.links) items.push({ kind: 'link', link: l });
         break;
+      case 'actions':
+        for (const b of card.buttons) items.push({ kind: 'button', variant: b.variant, label: b.label, event: 'say', payload: b.label });
+        break;
       default:
     }
   }

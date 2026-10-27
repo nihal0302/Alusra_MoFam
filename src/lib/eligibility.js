@@ -61,6 +61,7 @@ export function evaluate(copy, answers) {
     const n = res.notEligible;
     return {
       kind: 'notEligible',
+      failures: ['status', 'report', 'accredited'].filter((q) => path.includes(q) && (answers[q] === 'neither' || answers[q] === 'no')),
       tone: 'info',
       title: n.title,
       subtitle: fill(n.reasons[failed], who),
@@ -167,9 +168,10 @@ export function buildResult(copy, answers) {
           subtitle: result.subtitle,
           listLabel: result.listLabel,
           items: result.items,
+          ...(result.kind === 'notEligible' ? { mira: { ...res.notEligible.mira, reasons: result.failures.map((q) => res.notEligible.mira.reasons[q]) } } : {}),
           metaLabel: res.metaLabel,
           // An eligible result asks what to do next inside the card, just above its buttons.
-          ...(result.kind === 'eligible' ? { next: res.eligible.next } : {}),
+          ...(result.kind === 'eligible' ? { next: res.eligible.next, mira: { ...res.eligible.mira, subtitle: res.eligible.mira.subtitle[answers.who === 'other' ? 'other' : 'self'] } } : {}),
           actions,
           links: result.kind === 'eligible' ? [] : res.links,
         },

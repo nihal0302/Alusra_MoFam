@@ -11,26 +11,47 @@ const SERVICE_BASE = 'https://www.alusra.gov.ae/en/services/';
 // Persona is config, not code: Suhail (male) and Mira (female) may follow.
 export const persona = {
   name: 'Mira',
-  subtitle: 'MoFam virtual assistant',
+  subtitle: 'Your personal assistant',
   avatar: 'noor-avatar.png',
   poses: { greeting: 'noor-greeting.png', selection: 'noor-selection.png' },
 };
 
 export const ui = {
-  launcher: { title: 'Ask Mira', subtitle: 'Virtual assistant', label: 'Ask Mira, virtual assistant. Opens chat.' },
+  launcher: { title: 'Ask Mira', subtitle: 'Your personal assistant', label: 'Ask Mira, your personal assistant. Opens chat.' },
   panelLabel: 'Chat with Mira, the MoFam virtual assistant',
   welcome: { title: 'How can I help you today?', subtitle: 'Choose a task, or describe your request in your own words.' },
   // Variation 2: a plainer starting screen that points to the microphone.
   welcomeV2: { title: 'How can I help you?', titleAccent: 'help you?', subtitle: 'Tap the microphone to speak, or type your question.', quickLabel: 'Quick start' },
+  // Variation 2: the splash when the chat is first opened, and the starting screen, as in the team's Mira POD Assistant prototype.
+  splash: { hello: 'Hello, I’m', sub: 'Your personal assistant for Ministry of Family services', voice: 'Speak or type, whichever is easier', skip: 'Tap anywhere to skip' },
+  landing: {
+    greetings: { morning: 'Good morning', afternoon: 'Good afternoon', evening: 'Good evening' },
+    title: 'How can I help you today?',
+    subtitle: 'Choose an option, or tap the microphone and tell me in your own words.',
+    items: [
+      { id: 'apply', label: 'Apply for a POD card', description: 'Check eligibility first. About 1 minute.', icon: 'card' },
+      { id: 'status', label: 'Check application status', description: 'You’ll need your application number.', icon: 'clock' },
+      { id: 'ask', label: 'Ask a question', description: 'About the card, documents or services.', icon: 'chat' },
+    ],
+  },
   // The pop-up over the microphone when the chat opens on its starting screen.
-  micPop: { title: 'Voice input available', text: 'Tap the mic and give your inputs.', close: 'Close this message' },
+  micPop: { title: 'Voice mode.', text: 'Tap the mic to speak your answers instead of typing.' }, // as in the team's prototype
   // The thumbs under a reply (labels for screen readers and tooltips).
-  feedback: { label: 'Rate this response', up: 'Helpful response', down: 'Not helpful' },
+  feedback: { label: 'Rate this response', up: 'Helpful response', down: 'Not helpful', thanksUp: 'Thank you for the feedback.', thanksDown: 'Thank you. This helps us improve Mira.' },
+  // Variation 2: the line under "Mira is thinking" while a reply is prepared (a second line follows halfway), by kind of reply.
+  thinking: {
+    title: 'Mira is thinking',
+    default: ['Reading your message', 'Preparing a reply'],
+    search: ['Searching Ministry of Family information', 'Checking the sources'],
+  },
+  example: 'Example', // the label of the fold that opens to an example answer (Variation 2)
+  answers: 'Your answers', // the heading of the fold that lists the eligibility answers, with Change (Variation 2)
   today: 'Today',
   footer: 'Mira is your AI virtual assistant to guide you about MoFam services. It can make mistakes.',
   input: { answer: 'Speak or type your answer…', welcome: 'Describe how I can help you…', welcomeV2: 'Tap the microphone to speak, or type…', conversation: 'Speak or type your message to Mira…' },
   tray: { label: 'Choose a reply' },
   listening: 'Listening…',
+  listeningStatus: '{name} is listening…', // the label above the message box while the microphone is on
   listeningHint: 'Speak naturally, then press stop',
   attach: {
     label: 'Attach a file',
@@ -47,6 +68,8 @@ export const ui = {
     },
   },
   announce: { thinking: 'Mira is typing', expanded: 'Chat expanded', collapsed: 'Chat returned to compact size', youSaid: 'You said: ', noorSaid: 'Mira said: ' },
+  // The text-size button in the header: each press moves to the next size (normal, large, extra large) and back.
+  textSize: { label: 'Text size: {size}. Change text size', sizes: ['normal', 'large', 'extra large'], scales: [1, 1.15, 1.3], button: 'Aa' },
   actions: {
     minimize: 'Minimise chat',
     close: 'Close chat',
@@ -88,6 +111,14 @@ export const eligibilityCard = {
 // Matched in order; first hit wins. Keep specific intents above general ones.
 export const scenarios = [
   {
+    // The "Ask something else" button on a reply that could not answer: Mira simply asks again.
+    id: 'askElse',
+    match: ['ask something else'],
+    tool: null,
+    text: [{ question: 'What else would you like to know?' }],
+    cards: [],
+  },
+  {
     id: 'replacement',
     match: ['damaged', 'lost', 'replace', 'broken'],
     tool: { working: 'Looking up the replacement service…', done: 'Service card · POD replacement' },
@@ -128,9 +159,10 @@ export const scenarios = [
     tool: null,
     text: [
       {
-        lead: 'Happy to help you check your application.',
-        primary: 'The application ID starts with POD- and is in the confirmation you received after submitting, for example POD-1042.',
-        question: 'Please share your application ID‹mic›, using the microphone or by typing‹/mic›.',
+        question: 'What is your application number?',
+        how: 'You’ll find it in your confirmation email. It starts with POD.',
+        example: '“POD-1042”',
+        exampleLabel: 'Example',
       },
     ],
     cards: [],
@@ -236,12 +268,7 @@ export const scenarios = [
     id: 'ask',
     match: ['ask a question', 'i have a question', 'question'],
     tool: null,
-    text: [
-      {
-        lead: 'Of course. I am glad to help.',
-        primary: 'You can ask me about the Ministry’s services, fees, documents and how to apply. Use the microphone or type in your own words, or select one of these.',
-      },
-    ],
+    text: [{ question: 'What would you like to know?', how: 'For example, who can apply, which documents are needed, or how long it takes.' }],
     cards: [
       {
         type: 'suggestions',
@@ -277,9 +304,11 @@ export const statusCheck = {
     primary: 'Application {id} is currently at the “{stage}” step.',
     sample: 'This is sample data for the prototype.',
   },
+  // As the team's Mira POD Assistant prototype shows it (Variation 2).
+  mira: { ask: 'Check another number', note: 'You’ll get an email and SMS when the status changes.', apps: 'View my applications' },
   card: { title: 'Application {id}', summary: '{done} of {total} steps complete', submittedLabel: 'Submitted', emailNote: 'You will receive an email once a decision is taken.',
     // APPROX: the account page (where the applicant sees their applications and anything more that is needed) is not built yet; this address is a placeholder. It opens in a new tab so the chat stays where it is.
-    account: { label: 'Go to my account', href: '/account', newTab: true },
+    account: { label: 'View my applications', href: '/account', newTab: true },
   },
   steps: ['Eligibility check', 'Submitted', 'Documents under review', 'Decision'],
   states: { done: 'Done', current: 'In progress', pending: 'Pending' },
@@ -287,26 +316,63 @@ export const statusCheck = {
   stages: ['Your documents are being reviewed.', 'Your application is awaiting its final decision.'],
 };
 
-// Off-topic or unrecognised: redirect gracefully and offer a person.
+// A message Mira cannot use comes in two kinds, answered as in the team's Mira POD Assistant prototype (wording made formal):
+//   fallback     off topic or not understood (gibberish, "I want to order a pizza"): Mira says what she can help with.
+//   fallbackGap  about the Ministry, but nothing in the published information answers it: Mira points to the support team.
+// Both are used by Variation 1 and Variation 2; Variation 2 draws them as a Mira card.
 export const fallback = {
   id: 'fallback',
   tool: null,
   text: [
     {
-      lead: 'Thank you for asking.',
-      primary: 'I could not find that in the Ministry’s published information, so I would rather not guess.',
-      secondary: 'You can rephrase your question, try one of these, or reach the team directly.',
+      ack: 'I can only help with Ministry of Family services, so I can’t help with that request.',
+      ackIcon: 'shield',
+      question: 'Here’s what I can help you with',
+      how: 'Applying for a People of Determination card, tracking an application, or questions about Ministry of Family services.',
     },
   ],
   cards: [
-    { type: 'suggestions', title: 'You could try', items: ['What services do you offer?', 'What documents are needed for the POD card?', 'How can I contact the Ministry?'] },
     {
-      type: 'link',
-      title: 'Talk to the Ministry',
-      description: 'Our team can help with questions I can’t answer.',
-      links: [
-        { label: 'Call 800 114', href: 'tel:800114' },
-        { label: 'Email us', href: 'mailto:info@alusra.gov.ae' },
+      type: 'actions',
+      buttons: [
+        { label: 'Apply for a POD card', variant: 'primary' },
+        { label: 'Check application status', variant: 'secondary' },
+      ],
+    },
+  ],
+};
+
+export const fallbackGap = {
+  id: 'fallback:gap',
+  tool: null,
+  think: 'search',
+  // Words that make a message about the Ministry (so it is a gap in the information, not an off-topic request). Taken from the
+  // prototype's list, plus the Ministry's other services. APPROX: a real service would classify the message.
+  related:
+    /\b(card|pod|disab\w*|determination|ministry|family|mofam|alusra|al usra|discount\w*|benefit\w*|renew\w*|replace\w*|lost|cent(re|er)s?|rehab\w*|school|marriage|grant|certificate|parking|service\w*|fee|fees|cost|price|deliver\w*|document\w*|report|status|uae ?pass|emirates id|issued?|wedding|counsel\w*|application|apply|eligib\w*|how long|shelter|elderly|child\w*|licen[sc]e\w*|advert\w*|sponsor\w*|volunteer\w*)\b/i,
+  text: [
+    {
+      ack: 'I couldn’t find a reliable answer to this in the Ministry of Family information I use, so I don’t want to guess.',
+      question: 'Our support team can help you with this',
+    },
+  ],
+  cards: [
+    {
+      type: 'support',
+      // The Ministry's published contact details (the same as in the knowledge base).
+      rows: [
+        { icon: 'mail', label: 'Email', value: 'info@alusra.gov.ae' },
+        { icon: 'phone', label: 'Call', value: '800 114' },
+      ],
+      hours: 'Monday to Thursday, 7:30 AM to 3:30 PM · Friday, 7:30 AM to 12:00 PM',
+      copy: 'Copy',
+      copied: 'Copied',
+    },
+    {
+      type: 'actions',
+      buttons: [
+        { label: 'Ask something else', variant: 'secondary' },
+        { label: 'Apply for a POD card', variant: 'primary' },
       ],
     },
   ],
@@ -317,8 +383,21 @@ export const afterCheck = {
   later: {
     id: 'check:later',
     tool: null,
-    text: [{ lead: 'Understood.', primary: 'Nothing has been submitted. Whenever you’re ready, I can run the check again.' }],
-    cards: [eligibilityCard],
+    text: [
+      {
+        ack: 'No problem. You can come back and apply at any time. I’ll ask the eligibility questions again next time.',
+        question: 'Is there anything else I can help with?',
+      },
+    ],
+    cards: [
+      {
+        type: 'actions',
+        buttons: [
+          { label: 'Check application status', variant: 'secondary' },
+          { label: 'Start application now', variant: 'primary' },
+        ],
+      },
+    ],
   },
   close: {
     id: 'check:close',

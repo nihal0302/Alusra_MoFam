@@ -1,15 +1,29 @@
 import { useEffect, useRef } from 'react';
 import { usePrefersReducedMotion } from '../../lib/usePrefersReducedMotion.js';
 
-// A soft, blurred colour field behind the panel while Mira is listening. Its glow follows the
-// loudness of the microphone: the level is read on the device only (nothing is recorded or sent)
-// and written to the CSS variable --level, so the blobs swell and brighten as someone speaks and
-// settle when they pause. If the microphone is unavailable or blocked, a slow idle pulse takes over.
-// Under reduced motion the glow is still and the microphone is not used.
-// `overChat`: in the middle of a conversation only the colour rises from the bottom; the chat itself is left as it is.
-export function VoiceGlow({ overChat = false }) {
+// A soft, blurred colour field behind the panel while Mira is listening. Its glow pulses with the loudness of the voice, written to
+// the CSS variable --level, so the colour swells and brightens on each word and settles in the pauses.
+// Nobody speaks and no microphone is opened (the answer is simulated, see Assistant.jsx), so the loudness is simulated from the words
+// as they appear: every new word gives a pulse of its own strength, some louder than others, and between words the glow settles to a
+// calm, uneven breath.
+// Under reduced motion the glow is still.
+// `said`: the words heard so far. `overChat`: in the middle of a conversation only the colour rises from the bottom; the chat itself is left as it is.
+export function VoiceGlow({ overChat = false, said = '' }) {
   const box = useRef(null);
   const reduced = usePrefersReducedMotion();
+  const voice = useRef({ words: 0, until: 0, loud: 0 });
+
+  // A new word: a pulse (about as long as the word), louder or softer at random.
+  useEffect(() => {
+    const n = said.trim() ? said.trim().split(/\s+/).length : 0;
+    const v = voice.current;
+    if (n > v.words) {
+      v.until = performance.now() + 380;
+      // mostly medium, now and then a loud word
+      v.loud = Math.random() < 0.25 ? 0.9 + Math.random() * 0.1 : 0.45 + Math.random() * 0.35;
+    }
+    v.words = n;
+  }, [said]);
 
   useEffect(() => {
     const el = box.current;
@@ -18,67 +32,29 @@ export function VoiceGlow({ overChat = false }) {
     const panel = el.closest('.noor-panel');
     let stopped = false;
     let raf = 0;
-    let stream = null;
-    let ctx = null;
-    let analyser = null;
-    let data = null;
     let level = 0;
     const t0 = performance.now();
 
     const tick = (now) => {
       if (stopped) return;
-      let target;
-      if (analyser) {
-        analyser.getByteTimeDomainData(data);
-        let sum = 0;
-        for (let i = 0; i < data.length; i++) {
-          const v = (data[i] - 128) / 128;
-          sum += v * v;
-        }
-        const rms = Math.sqrt(sum / data.length);
-        // sqrt curve: quiet and normal speech already register strongly, shouting simply tops out
-        target = Math.min(1, Math.sqrt(Math.max(0, (rms - 0.008) * 16)));
-      } else {
-        // Idle: a calm, uneven breath.
-        const s = (now - t0) / 1000;
-        target = 0.22 + 0.14 * Math.sin(s / 1.6) + 0.07 * Math.sin(s / 0.7);
-      }
-      // Quick to rise, slower to settle, so it feels alive without flickering.
-      level += (target - level) * (target > level ? 0.38 : 0.07);
-      const v = level.toFixed(3);
-      el.style.setProperty('--level', v);
-      panel?.style.setProperty('--level', v);
+      const s = (now - t0) / 1000;
+      // Between words: a calm, uneven breath.
+      const idle = 0.18 + 0.1 * Math.sin(s / 1.6) + 0.05 * Math.sin(s / 0.7);
+      const v = voice.current;
+      const target = now < v.until ? Math.max(idle, v.loud) : idle;
+      // Quick to rise, a little slower to settle, so each word is a visible pulse.
+      level += (target - level) * (target > level ? 0.38 : 0.12);
+      const out = level.toFixed(3);
+      el.style.setProperty('--level', out);
+      panel?.style.setProperty('--level', out);
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
-
-    (async () => {
-      try {
-        const s = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
-        if (stopped) {
-          s.getTracks().forEach((t) => t.stop());
-          return;
-        }
-        stream = s;
-        ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const src = ctx.createMediaStreamSource(s);
-        const a = ctx.createAnalyser();
-        a.fftSize = 512;
-        a.smoothingTimeConstant = 0.8;
-        src.connect(a);
-        data = new Uint8Array(a.fftSize);
-        analyser = a;
-      } catch {
-        /* blocked or no microphone: the idle pulse keeps the glow alive */
-      }
-    })();
 
     return () => {
       stopped = true;
       panel?.style.removeProperty('--level');
       cancelAnimationFrame(raf);
-      stream?.getTracks().forEach((t) => t.stop());
-      ctx?.close().catch(() => {});
     };
   }, [reduced]);
 
