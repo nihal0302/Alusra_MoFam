@@ -104,14 +104,15 @@ export function MiraMessage({ msgId, scenario, avatar, name, head, labels, copy,
         }
         if (i === firstAsk) beforeCards.forEach((card, k) => out.push(<MiraCard key={`before${k}`} card={card} index={0} onAction={onAction} chosen={chosen} tray={tray} />));
         out.push(
-          <div className="noor-sec noor-sec--ask" key={`ask${i}`}>
+          <div className={`noor-sec noor-sec--ask${b.joined ? ' is-joined' : ''}`} key={`ask${i}`}>
             {b.lead && <p className="noor-ask__lead">{b.lead}</p>}
+            {b.intro && <p className="noor-ask__text">{b.intro}</p>}
             <h3 className="noor-ask__q">
               {b.question}
               {b.tag && <span className="noor-ask__tag"> {b.tag}</span>}
             </h3>
             {b.items?.length > 0 && list(b.items)}
-            {b.how && <p className="noor-ask__helper">{b.how}</p>}
+            {b.how && <p className={b.plainHow ? 'noor-ask__text noor-ask__after' : 'noor-ask__helper'}>{b.how}</p>}
             {b.note && <p className="noor-ask__helper">{b.note}</p>}
           </div>,
         );
@@ -228,7 +229,17 @@ export function MiraMessage({ msgId, scenario, avatar, name, head, labels, copy,
               </span>
               <span>
                 <b>{it.title}</b>
-                <span>{m.itemTexts?.[it.icon] && !/^Received/.test(it.text) ? m.itemTexts[it.icon] : it.text}</span>
+                {/^Received/.test(it.text) ? (
+                  // a document that has arrived: a green tick before "Received · name", so it does not look like it still has to be uploaded
+                  <span className="noor-need__got">
+                    <span className="noor-need__tick">
+                      <ChatIcon name="check" size={11} weight={2.6} />
+                    </span>
+                    {it.text}
+                  </span>
+                ) : (
+                  <span>{m.itemTexts?.[it.icon] ? m.itemTexts[it.icon] : it.text}</span>
+                )}
               </span>
             </li>
           ))}

@@ -12,7 +12,7 @@ const SERVICE_PAGE = 'https://www.alusra.gov.ae/en/services/determination-card/'
 
 export const eligibility = {
   hint: 'Choose one‹mic›, or use the microphone or type in your own words‹/mic›.',
-  steps: ['Eligibility', 'Documents', 'Application'],
+  steps: ['Eligibility', 'Documents', 'Application'], // the first stage: UAE PASS, who the card is for, and the eligibility check
   stepsLabel: 'Application steps',
   question: 'Question {step} of {total}',
   say: {
@@ -26,9 +26,12 @@ export const eligibility = {
   // Variation 2: the questions are asked together, numbered, and answered in one message (typed or spoken).
   batch: {
     // As in the team's Mira POD Assistant prototype: one line of what is happening, then the four questions, numbered.
-    intro: 'Let’s check your eligibility first. Nothing is submitted at this stage.',
+    intro: 'Let’s check your eligibility first.',
     primary: 'Please answer these four questions',
     how: 'You can answer all four together in one message.',
+    // The questions still to ask depend on who the card is for (UAE PASS confirms the applicant's own citizenship or residency).
+    primaries: { 1: 'Please answer this question', 2: 'Please answer these two questions', 3: 'Please answer these three questions', 4: 'Please answer these four questions' },
+    hows: { 1: 'Please reply in one message.', 2: 'You can answer both together in one message.', 3: 'You can answer all three together in one message.', 4: 'You can answer all four together in one message.' },
     title: 'Please provide',
     numbers: { who: 1, status: 2, report: 3, accredited: 4 },
     items: {
@@ -39,6 +42,8 @@ export const eligibility = {
     },
     // Pieces of one sentence, joined to show how a reply could read (only for the questions being asked).
     examples: { who: 'it is for myself', status: 'I am an Emirati citizen', report: 'I have a medical report', accredited: 'it is from a government hospital' },
+    // the same, when the card is for someone else
+    examplesOther: { status: 'they are an Emirati citizen', report: 'they have a medical report', accredited: 'it is from a government hospital' },
     exampleLabel: 'For example:',
     more: 'To complete the check, could you please provide {what}?',
     moreHow: 'Please respond in one message‹mic›, using the microphone or by typing‹/mic›.',
@@ -63,7 +68,7 @@ export const eligibility = {
     status: {
       label: 'Citizen or resident',
       text: '{Are} an Emirati citizen or a legal resident of the UAE?',
-      voiceSample: 'We’re Emirati citizens',
+      voiceSample: 'An Emirati citizen',
       options: [
         { value: 'citizen', icon: 'flag', label: 'Emirati citizen', hint: 'UAE national', answer: 'Emirati citizen', match: ['emirati', 'citizen', 'national'] },
         { value: 'resident', icon: 'homeDoor', label: 'Legal UAE resident', hint: 'Valid residency', answer: 'Legal UAE resident', match: ['resident', 'residence', 'visa', 'expat'] },
@@ -74,7 +79,7 @@ export const eligibility = {
     report: {
       label: 'Medical or psychological report',
       text: '{Do} have a medical or psychological report confirming the disability?',
-      voiceSample: 'Yes, we have a report',
+      voiceSample: 'Yes, there is a report',
       options: [
         { value: 'yes', icon: 'checkCircle', label: 'Yes', hint: 'A report confirms the disability', answer: 'Yes', match: ['yes', 'yeah', 'yep', 'we do', 'i do', 'have one', 'have a report'] },
         { value: 'no', icon: 'xCircle', label: 'No', hint: 'No report yet', answer: 'No', match: ['no', 'nope', 'not yet', 'don\'t have', 'do not have', 'haven\'t', 'have not'] },
@@ -100,7 +105,6 @@ export const eligibility = {
     text: 'Please review your answers before I give you the result.',
     changeLabel: 'Change',
     confirm: 'Confirm and continue',
-    note: 'Nothing is submitted',
   },
 
   results: {
@@ -122,7 +126,7 @@ export const eligibility = {
       otherItem: { icon: 'users', title: 'Applying on someone’s behalf', text: 'You will apply for them, and I will ask for their Emirates ID' },
       actions: { review: 'Review answers', later: 'I’ll apply later', apply: 'Yes, I want to apply' },
       // The next step, asked in its own bubble under the checklist (the buttons follow it).
-      next: { question: 'Would you like to continue with your application now?', hint: 'You will sign in with UAE PASS next. Nothing is submitted until you confirm.' },
+      next: { question: 'Would you like to continue with your application now?', hint: 'Your UAE PASS details are already in.', hintSignIn: 'You will sign in with UAE PASS next.' },
       // Variation 2 words the result as the team's Mira POD Assistant prototype does (contractions written out).
       mira: {
         title: 'You’re eligible to apply',
@@ -130,7 +134,7 @@ export const eligibility = {
         listLabel: 'To apply, you’ll upload two documents',
         // what each document line says before a file has been sent (by the icon of the checklist line)
         itemTexts: { camera: 'Recent, white background · JPG or PNG', file: 'The report you mentioned · PDF or JPG' },
-        next: { question: 'Would you like to start your application now?', hint: 'You’ll sign in with UAE PASS so I can fill in your personal details.' },
+        next: { question: 'Would you like to start your application now?', hint: 'I already have your details from UAE PASS, so I’ll only ask what is left.', hintSignIn: 'You’ll sign in with UAE PASS so I can fill in your personal details.' },
         actions: { later: 'I’ll apply later', apply: 'Start application' },
       },
     },

@@ -89,4 +89,95 @@ export function buildSubmitted(app, reference) {
   };
 }
 
+// After UAE PASS: the details that came from it, and the one question of who the card is for (two buttons; typing also works).
+export function buildWhoAsk(app, { conv = false } = {}) {
+  const w = app.who;
+  const s = app.signIn;
+  const rows = app.conv.profileRows.self.map((id) => s.profile.rows.find((r) => r.id === id)).filter(Boolean);
+  const m = app.conv.signIn.mira;
+  const details = conv
+    ? { type: 'details', before: true, open: true, title: app.conv.signIn.title, rows, note: s.card.note, mira: { ...m, welcome: fill(m.welcome, { first: s.profile.first }) }, spoken: `${app.conv.signIn.title}.` }
+    : { type: 'fetch', before: true, title: s.card.title, rows, note: s.card.note, spoken: `From UAE PASS: ${rows.map((r) => r.label).join(', ')}.` };
+  return {
+    id: 'app:who',
+    tool: { working: s.working, done: s.done },
+    text: [{ lead: w.lead, question: w.question, how: w.how }],
+    cards: [details, { type: 'actions', buttons: [{ label: w.myself, variant: 'primary' }, { label: w.other, variant: 'secondary' }] }],
+  };
+}
+
+// When who the card is for was already said (in the first message): just the details that came from UAE PASS.
+export function buildSignedIn(app, { conv = false } = {}) {
+  const base = buildWhoAsk(app, { conv });
+  return { ...base, id: 'app:signedin', text: [{ primary: app.who.signedIn }], cards: [{ ...base.cards[0], before: false }] };
+}
+
+// Someone returns to an application left half done: continue or start again.
+export function buildResumeOffer(app, saved) {
+  const r = app.resume;
+  const stage = app.conv.review.labels?.[saved.stage] ?? saved.stage;
+  return {
+    id: 'app:resume-offer',
+    tool: null,
+    text: [{ ack: r.ack, question: r.question, how: fill(r.how, { stage }) }],
+    cards: [{ type: 'actions', buttons: [{ label: r.continue, variant: 'primary' }, { label: r.again, variant: 'secondary' }] }],
+  };
+}
+
+// What was entered earlier, shown again before the next question.
+export function buildResumeSummary(app, eligibility, saved, reviewRows) {
+  const r = app.resume;
+  const labels = app.conv.review.labels;
+  const uaepass = app.conv.profileRows[saved.who].map((id) => app.signIn.profile.rows.find((x) => x.id === id)).filter(Boolean).map((x) => ({ id: x.id, label: x.label, value: x.value }));
+  const check = reviewRows(eligibility, saved.eligibility).map((x) => ({ id: x.qid, label: x.label, value: x.answer }));
+  const delivery = ['emirate', 'address', 'deliveryMobile'].filter((k) => saved.data[k]).map((k) => ({ id: k, label: labels[k], value: saved.data[k] }));
+  const groups = [
+    { key: 'uaepass', title: r.groups.uaepass, rows: uaepass },
+    { key: 'eligibility', title: r.groups.eligibility, rows: check },
+    { key: 'delivery', title: r.groups.delivery, rows: delivery },
+  ].filter((g) => g.rows.length);
+  return { id: 'app:resume-summary', tool: null, text: [{ primary: r.summary }], cards: [{ type: 'saved', groups, icons: r.icons, spoken: `${r.summary} ${groups.map((g) => g.title).join(', ')}.` }] };
+}
+
+// "continue" / "start again" from a typed or spoken reply: 'continue', 'again' or null.
+export function readResume(app, text) {
+  const t = text.toLowerCase();
+  const has = (words) => words.some((k) => new RegExp('\\b' + k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b').test(t));
+  if (has(app.resume.match.again)) return 'again';
+  if (has(app.resume.match.continue)) return 'continue';
+  return null;
+}
+
+// "myself" / "someone else" from a typed or spoken reply: 'self', 'other' or null.
+export function readWho(app, text) {
+  const t = text.toLowerCase();
+  const has = (words) => words.some((k) => new RegExp('\\b' + k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).test(t));
+  if (has(app.who.match.other)) return 'other';
+  if (has(app.who.match.self)) return 'self';
+  return null;
+}
+
+// The simulated reading of the two documents, and what Mira says once she has read them.
+export function buildReading(app) {
+  const r = app.reading;
+  return { id: 'app:reading', tool: null, text: [{ primary: r.text }], cards: [{ type: 'reading', title: r.title, steps: r.steps, ms: r.ms, done: r.done, spoken: `${r.title}. ${r.steps.join(', ')}.` }] };
+}
+
+// The disability type "found" in the report: from words in its file name, otherwise the sample type (see content `reading`).
+export function detectDisability(app, fileName = '') {
+  const hit = app.reading.detect.find(([pattern]) => new RegExp(pattern, 'i').test(fileName));
+  return hit ? hit[1] : app.reading.sample;
+}
+
+export function buildDetected(app, value, who = 'self') {
+  const r = app.reading;
+  return {
+    id: 'app:detected',
+    tool: null,
+    // a line of body copy, the type in bold, and the question as body copy under it
+    text: [{ intro: fill(r.intro, { your: who === 'other' ? 'their' : 'your' }), question: value, how: r.question, plainHow: true }],
+    cards: [{ type: 'actions', buttons: [{ label: r.confirm, variant: 'primary' }, { label: r.change, variant: 'secondary' }] }],
+  };
+}
+
 export const newReference = () => `POD-${String(Math.floor(Math.random() * 9000) + 1000)}`;

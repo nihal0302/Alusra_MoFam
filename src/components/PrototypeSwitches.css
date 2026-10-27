@@ -1,85 +1,68 @@
-/* Testing controls (see PrototypeSwitches.jsx). Plain and neutral on purpose: they are not part of either design. */
-.proto-stack {
+/* Testing controls (see PrototypeSwitches.jsx): a button at the bottom left that opens a panel, as in the team's Mira POD Assistant
+   prototype. Plain and neutral on purpose: they are not part of either design. */
+.pc {
   position: fixed;
-  inset-block-end: 16px;
-  inset-inline-start: 16px;
+  inset-block-end: 20px;
+  inset-inline-start: 20px;
   z-index: 1100; /* over the chat and its blurred backdrop, so the controls can be used while the chat is open */
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 8px;
-}
-
-.proto-bar {
-  display: flex;
-  align-items: center;
   gap: 10px;
-  padding: 6px 12px 6px 12px;
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
-  font-size: 13px;
-  color: var(--c-body);
-  background: var(--c-white);
-  border: 1px solid var(--c-line);
-  border-radius: 999px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
 }
 
-.proto-bar__label { font-weight: 600; }
-
-.proto-seg { display: inline-flex; padding: 2px; background: var(--c-slot); border-radius: 999px; }
-
-.proto-seg__btn {
-  padding: 5px 12px;
+.pc__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
   font: inherit;
-  color: var(--c-body);
-  background: transparent;
-  border: 0;
-  border-radius: 999px;
-  cursor: pointer;
-}
-
-.proto-seg__btn.is-on { color: var(--c-white); background: var(--c-green); font-weight: 600; }
-.proto-seg__btn:focus-visible { outline: 2px solid var(--c-green); outline-offset: 2px; }
-
-@media (max-width: 600px) {
-  .proto-bar__label { display: none; }
-}
-
-/* A quick tooltip above any option that has a data-tip (the scenarios). It appears on hover and on keyboard focus. */
-.proto-seg__btn { position: relative; }
-
-.proto-seg__btn[data-tip]::after {
-  content: attr(data-tip);
-  position: absolute;
-  inset-block-end: calc(100% + 12px);
-  inset-inline-start: 0;
-  z-index: 2;
-  inline-size: max-content;
-  max-inline-size: 250px;
-  padding: 8px 11px;
-  font-size: 12.5px;
-  font-weight: 400;
-  line-height: 17px;
-  text-align: start;
+  font-size: 13.5px;
+  font-weight: 600;
   color: var(--c-white);
   background: var(--c-ink);
-  border-radius: 10px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(3px);
-  pointer-events: none;
-  transition: opacity 120ms ease, transform 120ms ease, visibility 0s linear 120ms;
+  border: 0;
+  border-radius: 999px;
+  box-shadow: 0 10px 30px -10px color-mix(in srgb, var(--c-ink) 50%, transparent);
+  cursor: pointer;
 }
+.pc__btn:focus-visible { outline: 2px solid var(--c-green); outline-offset: 2px; }
 
-.proto-seg__btn[data-tip]:hover::after,
-.proto-seg__btn[data-tip]:focus-visible::after {
-  opacity: 1;
-  visibility: visible;
-  transform: none;
-  transition-delay: 0s;
+.pc__panel {
+  inline-size: min(340px, calc(100vw - 40px));
+  max-block-size: calc(100dvh - 100px);
+  overflow-y: auto;
+  display: grid;
+  gap: 18px;
+  padding: 18px;
+  color: var(--c-ink);
+  background: var(--c-white);
+  border-radius: 18px;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--c-ink) 6%, transparent), 0 24px 60px -20px color-mix(in srgb, var(--c-ink) 32%, transparent);
+  animation: pc-in 300ms var(--ease-out, ease) both;
 }
+@keyframes pc-in { from { opacity: 0; transform: translateY(8px); } }
 
-@media (prefers-reduced-motion: reduce) {
-  .proto-seg__btn[data-tip]::after { transition: none; }
-}
+.pc__title { display: flex; align-items: center; justify-content: space-between; margin: 0; font-size: 15px; font-weight: 600; }
+.pc__close { display: grid; place-items: center; inline-size: 30px; block-size: 30px; padding: 0; color: var(--c-muted); background: transparent; border: 0; border-radius: 8px; cursor: pointer; }
+.pc__close:hover { color: var(--c-ink); background: var(--c-surface-soft); }
+
+.pc-group { display: grid; gap: 8px; }
+.pc-group__label { font-size: 13px; font-weight: 600; }
+.pc-group__note { font-size: 12.5px; line-height: 1.45; color: var(--c-muted); }
+
+.pc-seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 3px; padding: 3px; background: var(--c-surface-soft); border-radius: 11px; }
+.pc-seg__btn { padding: 8px 10px; font: inherit; font-size: 13px; font-weight: 500; color: var(--c-body); text-align: center; background: transparent; border: 0; border-radius: 8px; cursor: pointer; }
+.pc-seg__btn.is-on { color: var(--c-ink); font-weight: 600; background: var(--c-white); box-shadow: 0 1px 3px color-mix(in srgb, var(--c-ink) 12%, transparent); }
+
+.pc-list { display: grid; gap: 3px; padding: 3px; background: var(--c-surface-soft); border-radius: 11px; }
+.pc-list__btn { display: grid; gap: 1px; padding: 8px 10px; font: inherit; color: var(--c-body); text-align: start; background: transparent; border: 0; border-radius: 8px; cursor: pointer; }
+.pc-list__btn b { font-size: 13px; font-weight: 500; }
+.pc-list__btn small { font-size: 12px; font-weight: 400; line-height: 1.4; color: var(--c-muted); }
+.pc-list__btn.is-on { color: var(--c-ink); background: var(--c-white); box-shadow: 0 1px 3px color-mix(in srgb, var(--c-ink) 12%, transparent); }
+.pc-list__btn.is-on b { font-weight: 600; }
+
+.pc-seg__btn:focus-visible, .pc-list__btn:focus-visible { outline: 2px solid var(--c-green); outline-offset: 1px; }
+@media (max-width: 600px) { .pc__btn span { display: none; } }
+@media (prefers-reduced-motion: reduce) { .pc__panel { animation: none; } }

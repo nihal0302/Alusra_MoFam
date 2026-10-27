@@ -12,9 +12,9 @@ export const STEPS = [
   { id: 'cardholderDob', optional: true, when: (who) => who === 'other' },
   { id: 'emirate' },
   { id: 'address' },
-  { id: 'disability' },
   { id: 'photo' },
   { id: 'report' },
+  { id: 'disability' }, // after the documents: Mira reads the report, then confirms the disability type with the person
   { id: 'additional', optional: true },
   { id: 'altMobile', optional: true },
   { id: 'eidExpiry', optional: true, when: (who) => who !== 'other' },

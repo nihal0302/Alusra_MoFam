@@ -91,7 +91,7 @@ export const topics = [
 // Voice is simulated: the mic shows a listening state, then "hears" this utterance.
 export const voice = {
   // The starting screen "hears" one complete sentence, so a single message carries the whole check end to end.
-  transcript: 'I am an Emirati citizen and I want to apply for the People of Determination card for myself. I have a medical report from a government hospital.',
+  transcript: 'Apply for a POD card', // the application starts with UAE PASS, so this is all the starting screen needs (the words of the starting screen's first option, which start it)
   listeningMs: 2400,
 };
 
@@ -104,8 +104,7 @@ export const eligibilityCard = {
   type: 'eligibility',
   title: 'Check if you’re eligible',
   description: 'A few quick questions · I will tell you exactly what to prepare',
-  note: 'Nothing is submitted',
-  action: { label: 'Start check', event: 'startCheck' }, // starts the in-chat eligibility flow
+  action: { label: 'Start check', event: 'startCheck' }, // starts the application: UAE PASS first, then the eligibility check
 };
 
 // Matched in order; first hit wins. Keep specific intents above general ones.
@@ -216,7 +215,7 @@ export const scenarios = [
       {
         lead: 'Thank you for applying on someone’s behalf.',
         primary: 'You will apply for them, and I will ask for their details after you sign in.',
-        secondary: 'I will ask a few things first so you know what to prepare. Nothing is submitted until you say so.',
+        secondary: 'I will ask a few things first so you know what to prepare.',
       },
     ],
     cards: [{ ...eligibilityCard, title: 'Check if they’re eligible' }],
@@ -257,9 +256,9 @@ export const scenarios = [
     then: 'startEligibility',
     text: [
       {
-        lead: 'Certainly, let us begin the eligibility check.',
-        primary: 'I will ask a few quick questions first, so you know whether you are eligible before anything else.',
-        secondary: 'Nothing is submitted, and you can change any answer.',
+        lead: 'Certainly, let us begin your application.',
+        primary: 'I will ask you to sign in with UAE PASS first, then a few quick questions to check that you are eligible.',
+        secondary: 'You can change any answer.',
       },
     ],
     cards: [],
@@ -402,7 +401,7 @@ export const afterCheck = {
   close: {
     id: 'check:close',
     tool: null,
-    text: [{ lead: 'Understood.', primary: 'Your answers were not saved and nothing was submitted. I’m here whenever you want to continue.' }],
+    text: [{ lead: 'Understood.', primary: 'I’m here whenever you want to continue.' }],
     cards: [eligibilityCard],
   },
   apply: {
@@ -434,7 +433,6 @@ export const uaePassStub = {
     {
       lead: 'Thank you for your patience.',
       primary: 'UAE PASS sign-in is the next part of this prototype, so it isn’t available yet.',
-      secondary: 'Nothing has been submitted.',
     },
   ],
   cards: [],

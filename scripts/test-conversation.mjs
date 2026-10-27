@@ -109,7 +109,8 @@ const fillAll = { emirate: 'Dubai', address: 'x', disability: 'Autism', photo: {
 check('next: self starts with delivery', nextGroup('self', {}, new Set()) === 'delivery');
 check('next: someone else starts with the cardholder', nextGroup('other', {}, new Set()) === 'cardholder');
 check('next: then delivery', nextGroup('other', { cardholderEid: 'x' }, new Set()) === 'delivery');
-check('next: then disability', nextGroup('self', { emirate: 'Dubai', address: 'x' }, new Set()) === 'disability');
+check('next: then documents (the report is read before the disability type is confirmed)', nextGroup('self', { emirate: 'Dubai', address: 'x' }, new Set()) === 'documents');
+check('next: then disability', nextGroup('self', { emirate: 'Dubai', address: 'x', photo: {}, report: {} }, new Set()) === 'disability');
 check('next: then documents', nextGroup('self', { emirate: 'Dubai', address: 'x', disability: 'Autism' }, new Set()) === 'documents');
 check('next: then the optional extras', nextGroup('self', fillAll, new Set()) === 'extras');
 check('next: then employment', nextGroup('self', fillAll, new Set(['extras'])) === 'employment');

@@ -230,7 +230,7 @@ export const conv = {
     },
     placeholder: 'Attach the photograph and report with the paperclip…',
     voiceSample: 'How do I attach my files?',
-    nudge: 'Please attach your files with the paperclip. They stay on your device until you submit.',
+    nudge: 'Please attach your files with the paperclip.',
     wrongType: { photo: 'The photograph needs to be a JPG or PNG.', report: 'The report needs to be a PDF or JPG.' },
     extra: 'I used the first file of each kind and set the others aside.',
     additionalNoted: 'I have added {name} as an additional report.',

@@ -11,12 +11,13 @@ import { NoorAvatar } from './NoorAvatar.jsx';
 import { NoorMessage } from './NoorMessage.jsx';
 import { MiraMessage } from './MiraMessage.jsx';
 import { resolveScenario } from '../../lib/noor.js';
-import { buildQuestion, buildResult, buildReview, nextStep, parseAnswer, pathOf, purge } from '../../lib/eligibility.js';
+import { buildQuestion, buildResult, buildReview, nextStep, parseAnswer, pathOf, purge, reviewRows } from '../../lib/eligibility.js';
 import { CONV_KINDS, batchExample, buildApplyConv, buildBatch, buildNudgeConv, looksLikeQuestion, readBatch } from '../../lib/conversation.js';
 import { useApplication } from './useApplication.js';
 import { usePrefersReducedMotion } from '../../lib/usePrefersReducedMotion.js';
 import { buildNudge } from '../../lib/application.js';
 import { buildStatusReply, parseApplicationId } from '../../lib/status.js';
+import { buildResumeOffer, buildResumeSummary, readResume } from '../../lib/application.js';
 import { createKnowledge } from '../../lib/knowledge.js';
 import { trayItems } from '../../lib/actionTray.js';
 import { LinkButton } from './ActionCard.jsx';
@@ -52,6 +53,7 @@ function stepState(stage, i) {
 
 export function Assistant({ content, variant = '1', buttonsInside = true, defaultOpen = false, onOpenChange, scenario = 'free' }) {
   const { persona, ui, topics, voice, scenarios, fallback, fallbackGap, afterCheck, eligibility, application, intake, statusCheck, eligibilityCard, knowledge, demo } = content;
+  const scenarioName = scenario; // the testing scenario (inside the send function the name `scenario` is the reply being chosen)
   // Search over the Ministry's published information (see src/lib/knowledge.js). The service we were just discussing is
   // remembered so a follow-up like "and the fees?" knows what it is about.
   const kb = useMemo(() => createKnowledge({ ...knowledge, extras: { eligibilityCard } }), [knowledge, eligibilityCard]);
@@ -300,7 +302,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
   // The application itself (UAE PASS, questions, uploads, review, submit) lives in its own hook.
   // Variation 2 runs the application as a conversation; Variation 1 uses the cards.
   const conv = variant === '2';
-  const app = useApplication(application, { pushUser, pushNoor, lock, setStage }, { conv });
+  const app = useApplication(application, { pushUser, pushNoor, lock, setStage, startCheck: (who) => beginCheck(who) }, { conv });
   appRef.current = app;
 
   // ---- Eligibility flow (in the conversation) ---------------------------------------------
@@ -327,21 +329,115 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
 
   // Variation 2 asks the questions together, numbered; Variation 1 asks them one at a time.
   const askBatch = (answers, first = false) => {
-    const qids = first ? ['who', 'status', 'report', 'accredited'] : pathOf(answers).filter((q) => answers[q] === undefined);
+    // (who the card is for, and the applicant's own citizenship or residency, are already known from UAE PASS and the one question)
+    const qids = pathOf(answers).filter((q) => answers[q] === undefined);
     if (!qids.length) {
       askNext(answers);
       return;
     }
-    const msgId = pushNoor(buildBatch(eligibility, qids, first));
+    const msgId = pushNoor(buildBatch(eligibility, qids, first, answers.who));
     setWaiting({ msgId, batch: true, qids });
   };
 
-  const startEligibility = () => {
-    flowRef.current = { answers: {}, awaiting: null };
+  // Starting the application: UAE PASS first (it gives the name, Emirates ID, nationality and contact details), so there is no
+  // eligibility check. The only question afterwards is who the card is for (see useApplication.js).
+  // The eligibility check, once UAE PASS is done and it is known who the card is for. UAE PASS already says whether the applicant
+  // is a citizen or resident, so for "myself" only the report and its issuer are asked; for someone else, their citizenship or
+  // residency too. Whatever a first message said is used.
+  const presetRef = useRef({});
+  const beginCheck = (who) => {
+    const answers = purge({ ...presetRef.current, who, ...(who === 'self' ? { status: 'citizen' } : {}) });
+    presetRef.current = {};
+    flowRef.current = { answers, awaiting: null };
+    setWaiting(null);
     setStage('check');
     expandForCheck();
-    if (conv) askBatch({}, true);
-    else askNext({});
+    if (!pathOf(answers).some((q) => answers[q] === undefined)) {
+      // a first message already answered everything: the result, with the answers
+      const built = buildIntake({ eligibility, copy: intake, answers, docs: docsRef.current, notes: [], hadText: true, fileCount: 0, resultShownFor: resultShown.current });
+      if (built.resultFor) {
+        resultShown.current = built.resultFor;
+        setStage(built.kind === 'eligible' ? 'checkDone' : 'check');
+      }
+      pushNoor(built.scenario);
+      return;
+    }
+    if (conv) askBatch(answers, true);
+    else askNext(answers);
+  };
+
+  // Starting (or starting again): UAE PASS first (it gives the name, Emirates ID, nationality and contact details); then who the card
+  // is for; then the eligibility check; then the application.
+  // The "returning visitor" testing scenario: on starting, Mira first asks whether to continue the application left half done or to
+  // start again (asked once per conversation). Continue shows what was entered earlier and asks the next question.
+  const resumeRef = useRef({ handled: false, awaiting: false, msgId: null });
+  const offerResume = () => {
+    if (scenario !== 'returning' || !demo?.saved || resumeRef.current.handled) return false;
+    expandForCheck();
+    const msgId = pushNoor(buildResumeOffer(application, demo.saved));
+    resumeRef.current = { handled: true, awaiting: true, msgId };
+    return true;
+  };
+  const resumeApplication = () => {
+    const s = demo.saved;
+    app.restore({ who: s.who, data: { ...s.data } });
+    flowRef.current = { answers: { ...s.eligibility }, awaiting: null };
+    resultShown.current = JSON.stringify(s.eligibility);
+    docsRef.current = {};
+    pushNoor(buildResumeSummary(application, eligibility, s, reviewRows));
+    app.begin(); // the next question
+  };
+
+  // Until the person has signed in, the result's closing line says UAE PASS comes next.
+  const withSignInHint = (sc) =>
+    app.signedIn()
+      ? sc
+      : {
+          ...sc,
+          cards: sc.cards.map((c) =>
+            c.type === 'result' && c.next
+              ? { ...c, next: { ...c.next, hint: c.next.hintSignIn ?? c.next.hint }, mira: c.mira && { ...c.mira, next: { ...c.mira.next, hint: c.mira.next?.hintSignIn ?? c.mira.next?.hint } } }
+              : c,
+          ),
+        };
+
+  const startEligibility = () => {
+    if (offerResume()) return;
+    expandForCheck();
+    if (app.signedIn()) {
+      beginCheck(app.who()); // already signed in (a second go at the check): straight to the questions
+      return;
+    }
+    flowRef.current = { answers: {}, awaiting: null };
+    setStage('check');
+    app.setWho('self', false);
+    pushNoor(buildApplyConv(application, afterCheck.apply, 'self'));
+  };
+
+  // A first message that already says things (who it is for, files attached): the files are kept for the documents step, and a
+  // statement of who the card is for means that question is not asked.
+  const startFromMessage = (text, files, facts) => {
+    if (scenario === 'returning' && !resumeRef.current.handled) {
+      // someone returning: the question of continuing comes first (what the message said is not used)
+      pushUser(text || files.map((f) => f.name).join(', '));
+      setAttach([]);
+      offerResume();
+      return;
+    }
+    expandForCheck();
+    const placed = placeFiles(docsRef.current, files);
+    docsRef.current = placed.docs;
+    flowRef.current = { answers: {}, awaiting: null };
+    setWaiting(null);
+    setStage('check');
+    pushUser([text, files.map((f) => f.name).join(', ')].filter(Boolean).join(' — '), files.map((f) => ({ url: f.type.startsWith('image/') ? f.url : undefined })));
+    attachRef.current = [];
+    setAttachments([]);
+    app.prefill(docsRef.current);
+    // what the message already said is kept for the eligibility check (a report file means there is a report)
+    presetRef.current = { ...facts, ...(placed.docs.report && facts.report === undefined ? { report: 'yes' } : {}) };
+    app.setWho(facts.who, Boolean(facts.who));
+    pushNoor(buildApplyConv(application, afterCheck.apply, facts.who));
   };
 
   // Details and files sent in one message: read what is there, say what was understood, then either give the result
@@ -376,7 +472,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
       resultShown.current = built.resultFor;
       setStage(built.kind === 'eligible' ? 'checkDone' : 'check');
     }
-    pushNoor(built.scenario);
+    pushNoor(withSignInHint(built.scenario));
   };
 
   const answer = (msgId, qid, value, shown) => {
@@ -419,7 +515,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
         if (Object.keys(docsRef.current).length) scenario.cards[0] = markReceived(scenario.cards[0], docsRef.current, intake);
         resultShown.current = JSON.stringify(flowRef.current.answers);
         setStage(kind === 'eligible' ? 'checkDone' : 'check');
-        pushNoor(scenario);
+        pushNoor(withSignInHint(scenario));
         break;
       }
       case 'reviewAnswers':
@@ -437,8 +533,14 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
         lock(msgId, 'apply');
         pushUser(payload.label);
         app.prefill(docsRef.current); // files sent earlier are not asked for again
-        app.setWho(flowRef.current.answers.who); // an application for someone else asks for their details too
-        pushNoor(buildApplyConv(application, afterCheck.apply, flowRef.current.answers.who)); // worded for who the card is for
+        app.setWho(flowRef.current.answers.who, true); // an application for someone else asks for their details too
+        if (app.signedIn()) {
+          app.begin(); // UAE PASS was done at the start, so the application goes straight to its questions
+        } else {
+          // the check was done up front: now UAE PASS, then the application (the check is not asked again)
+          app.markEligible();
+          pushNoor(buildApplyConv(application, afterCheck.apply, flowRef.current.answers.who));
+        }
         break;
       case 'ask':
         send(payload);
@@ -516,6 +618,17 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
       const scenario = replyFor(text);
       if (scenario.then === 'startEligibility') expandForCheck();
       begin(() => {
+        if (resumeRef.current.awaiting) {
+          const choice = readResume(application, text);
+          if (choice) {
+            resumeRef.current.awaiting = false;
+            lock(resumeRef.current.msgId, 'answered');
+            pushUser(text);
+            if (choice === 'continue') resumeApplication();
+            else startEligibility();
+            return;
+          }
+        }
         const open = appRef.current?.awaiting;
         if (files.length && open?.kind === 'file') {
           // A document is being asked for: a file sent from the message box counts as that upload.
@@ -551,14 +664,17 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
           }
           if (!aside && isFallback(scenario)) {
             pushUser(text);
-            pushNoor(buildNudgeConv(eligibility.batch.nudgeLead, eligibility.batch.nudge, batchExample(eligibility, waiting.qids), eligibility.batch.exampleLabel));
+            pushNoor(buildNudgeConv(eligibility.batch.nudgeLead, eligibility.batch.nudge, batchExample(eligibility, waiting.qids, flowRef.current.answers.who), eligibility.batch.exampleLabel));
             return;
           }
         }
         // Files, or a message that already tells Mira two or more of the answers: read it all at once.
         const facts = extractFacts(text);
         if (files.length || (countFacts(facts) >= 2 && !open && !statusRef.current)) {
-          runIntake(text, files, facts);
+          // The message already gives answers (and perhaps files): the eligibility check works from them. Whatever is missing is asked
+          // for, then the result comes, and UAE PASS is asked for only when the person then starts the application.
+          if (scenarioName === 'returning' && !resumeRef.current.handled) startFromMessage(text, files, facts); // the question of continuing comes first
+          else runIntake(text, files, facts);
           return;
         }
         if (statusRef.current) {
@@ -585,8 +701,8 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
           return;
         }
         pushUser(text);
-        if (conv && scenario.then === 'startEligibility') {
-          // Variation 2: the questions open with their own line ("Let us check your eligibility first…"), so no intro before them.
+        if (scenario.then === 'startEligibility') {
+          // The sign-in message opens with its own line ("Great, let’s begin your application."), so no intro before it.
           startEligibility();
           return;
         }
@@ -601,7 +717,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
       focusInput();
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [busy, leaving, started, reduced, scenarios, fallback],
+    [busy, leaving, started, reduced, scenarios, fallback, scenario],
   );
 
   // ---- Testing scenarios: pre-fill the message box (see content/demo.en.js) --------------------------------------------
@@ -618,7 +734,13 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
 
   // The sample for the question that is being asked: the first time its own first sample, a repeat the next one.
   const sampleFor = (key) => {
-    if (scenario === 'free') return; // nothing is pre-filled
+    if (scenario === 'free' || scenario === 'returning') return; // nothing is pre-filled
+    if (key === 'batch') {
+      // the eligibility questions that are being asked, answered in one sentence
+      const w = flowRef.current.awaiting;
+      if (w?.qids) fillBox(batchExample(eligibility, w.qids, flowRef.current.answers.who));
+      return;
+    }
     const set = demo?.samples?.[key];
     const list = set?.[scenario] ?? set?.default;
     if (!list?.length) return;
@@ -633,6 +755,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
     if (waiting?.msgId === msgId && waiting.batch) return 'batch';
     const a = appRef.current?.awaiting;
     if (a?.msgId !== msgId) return null;
+    if (a.kind === 'who' || a.kind === 'detected') return a.kind;
     if (a.kind === 'docs') return 'documents';
     if (a.kind === 'confirm') return 'confirm';
     return a.kind === 'multi' ? a.group : null;
@@ -706,7 +829,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
   // speech recognition is not used and no microphone is asked for. Nothing is sent anywhere by this code.
   const sampleSaid = () => {
     const waiting = flowRef.current.awaiting;
-    return app.voiceSample ?? (statusRef.current ? statusCheck.voiceSample : waiting?.batch ? eligibility.batch.voiceSample : waiting ? eligibility.questions[waiting.qid].voiceSample : voice.transcript);
+    return app.voiceSample ?? (statusRef.current ? statusCheck.voiceSample : waiting?.batch ? batchExample(eligibility, waiting.qids, flowRef.current.answers.who) : waiting ? eligibility.questions[waiting.qid].voiceSample : voice.transcript);
   };
 
   const showHeard = (text) => {
@@ -779,6 +902,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
     docsRef.current = {};
     resultShown.current = null;
     statusRef.current = false;
+    resumeRef.current = { handled: false, awaiting: false, msgId: null };
     kbService.current = null;
     setStatusAwait(false);
     followed.current = new Set();
@@ -815,7 +939,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
 
   // The "everything up front" scenario starts with everything already in the box and the documents attached.
   useEffect(() => {
-    if (open && !started && scenario === 'upfront' && demo?.landing) fillBox(demo.landing);
+    if (open && !started && (scenario === 'upfront' || scenario === 'forgetful') && demo?.landing?.[scenario]) fillBox(demo.landing[scenario]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, scenario, session]);
 
@@ -1283,7 +1407,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
                         feedback={ui.feedback}
                         rating={ratings[m.id]}
                         latest={m.id === lastNoorId}
-                        onRate={(rating) => rate(m, rating)}
+                        onRate={messages[mi + 1] && messages[mi + 1].role !== 'user' ? undefined : (rating) => rate(m, rating)}
                         onStage={(st, sc) => onStage(st, sc, m.id)}
                         onAction={(event, payload) => onAction(event, payload, m.id)}
                       />
@@ -1299,7 +1423,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
                         feedback={ui.feedback}
                         rating={ratings[m.id]}
                         latest={m.id === lastNoorId}
-                        onRate={(rating) => rate(m, rating)}
+                        onRate={messages[mi + 1] && messages[mi + 1].role !== 'user' ? undefined : (rating) => rate(m, rating)}
                         onStage={(st, sc) => onStage(st, sc, m.id)}
                         onAction={(event, payload) => onAction(event, payload, m.id)}
                       />

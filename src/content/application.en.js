@@ -269,7 +269,7 @@ export const application = {
     drop: 'or choose a file from your device',
     dropActive: 'Release to upload',
     errors: { type: 'That file type is not accepted. Please choose {types}.', size: 'That file is larger than 10 MB. Please choose a smaller one.' },
-    nudge: 'Please use the button above to choose your file. It stays on your device until you submit.',
+    nudge: 'Please use the button above to choose your file.',
   },
 
   review: {
@@ -279,7 +279,6 @@ export const application = {
     change: 'Change',
     consent: 'I confirm the information and documents provided are accurate to the best of my knowledge.',
     submit: 'Confirm and submit',
-    note: 'Nothing is submitted until you confirm.',
   },
 
   submit: {
@@ -317,6 +316,77 @@ export const application = {
       ],
       actions: { status: 'Check status', apps: 'View my applications' },
     },
+  },
+
+  // The one question asked after UAE PASS: who the card is for. For someone else the Emirates ID and date of birth are asked next
+  // (UAE PASS gives only the applicant's own details); for the person themselves nothing more is asked.
+  who: {
+    lead: 'I just need to confirm one thing.',
+    question: 'Is this application for yourself or for someone else?',
+    how: 'I will use your UAE PASS details, and ask only what is needed to check eligibility.',
+    signedIn: 'Thank you. I have your details from UAE PASS.',
+    myself: 'Myself',
+    other: 'Someone else',
+    placeholder: 'Reply “myself” or “someone else”…',
+    voiceSample: 'It is for myself',
+    nudge: 'Please say whether this application is for yourself or for someone else.',
+    // APPROX: everyday words for each answer (matched at the start of a word).
+    match: {
+      self: ['myself', 'for me', 'my own', 'me'],
+      other: ['someone else', 'somebody else', 'another person', 'on behalf', 'behalf', 'child', 'son', 'daughter', 'kid', 'under 18', 'boy', 'girl', 'mother', 'father', 'parent', 'brother', 'sister', 'wife', 'husband', 'relative', 'friend', 'guardian'],
+    },
+  },
+
+  // Someone who comes back to an application they did not finish (the "returning" testing scenario, see demo.en.js): Mira asks
+  // whether to continue or start again; on "continue" she shows what was entered earlier, then asks the next question.
+  resume: {
+    ack: 'Welcome back. You started an application earlier and did not finish it.',
+    question: 'Would you like to continue from where you stopped, or start again from the beginning?',
+    how: 'You stopped at the {stage} step. Your earlier answers have been kept.',
+    continue: 'Continue where I stopped',
+    again: 'Start again',
+    placeholder: 'Reply “continue” or “start again”…',
+    voiceSample: 'Continue where I stopped',
+    summary: 'Welcome back. Here are the details you entered earlier.',
+    groups: { uaepass: 'From UAE PASS', eligibility: 'Eligibility', delivery: 'Delivery' },
+    icons: { uaepass: 'user', eligibility: 'check', delivery: 'home' },
+    // APPROX: everyday words for each answer (matched at the start of a word).
+    match: {
+      again: ['start again', 'start over', 'begin again', 'from the beginning', 'restart', 'new application', 'no'],
+      continue: ['continue', 'resume', 'carry on', 'where i stopped', 'pick up', 'yes'],
+    },
+  },
+
+  // After the two documents are in, Mira "reads" them and says which disability type the report names; the person confirms it or
+  // changes it. The reading is simulated: nothing is read from the files. APPROX: the type is taken from words in the report's file
+  // name (the first that matches), otherwise it is the sample type; a real service would read the report itself.
+  reading: {
+    ms: 5500, // how long the reading takes: an equal share for each step and for the last line
+    text: 'Thank you. I am now reading your documents. This will take a moment.',
+    title: 'Reading your documents',
+    steps: ['Checking your personal photograph', 'Opening your report', 'Reading the report', 'Identifying the disability type'],
+    done: 'Document scan completed',
+    sample: 'Physical',
+    detect: [
+      ['autis', 'Autism'],
+      ['hearing.?visual|deaf.?blind', 'Hearing-Visual'],
+      ['hear|deaf', 'Hearing'],
+      ['visual|vision|blind|eye', 'Visual'],
+      ['intellect|down', 'Intellectual'],
+      ['adhd|attention', 'ADHD'],
+      ['psychi|mental', 'Psychiatric'],
+      ['learning|dyslex', 'Specific learning disorder'],
+      ['speech|communic|language', 'Communication Disorder'],
+      ['physical|mobility|motor|wheel', 'Physical'],
+    ],
+    // three lines, as body copy, the type in bold, and the question as body copy again
+    intro: 'Disability type',
+    question: 'Do you confirm this, or would you like to change it?',
+    confirm: 'Confirm',
+    change: 'Change it',
+    placeholder: 'Reply “yes”, or say the correct type…',
+    voiceSample: 'Yes, that is correct',
+    nudge: 'Please confirm the disability type, or say the correct type.',
   },
 
   nudges: {

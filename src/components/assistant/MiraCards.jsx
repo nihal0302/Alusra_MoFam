@@ -190,6 +190,24 @@ export function MiraCard({ card, index, onAction, chosen, tray }) {
     );
   }
 
+  if (card.type === 'saved') {
+    return (
+      <>
+        {card.groups.map((g) => (
+          <div className="noor-sec noor-rv" key={g.key}>
+            <div className="noor-rv__h">
+              <h4>
+                <ChatIcon name={card.icons[g.key] ?? 'info'} size={17} />
+                {g.title}
+              </h4>
+            </div>
+            <Rows rows={g.rows} />
+          </div>
+        ))}
+      </>
+    );
+  }
+
   if (card.type === 'submitted' && card.mira) {
     const m = card.mira;
     return <SubmittedSections card={card} m={m} tray={tray} say={say} />;

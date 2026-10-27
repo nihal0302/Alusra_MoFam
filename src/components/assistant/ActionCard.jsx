@@ -81,6 +81,41 @@ function SigningCard({ card }) {
   );
 }
 
+// The simulated reading of the documents (the files are not read; this only shows the wait). One line at a time: a spinner and what
+// is being done; when it is done the spinner becomes a tick, and the line moves up and fades away while the next one comes up from
+// below. The last line, "Document scan completed", stays.
+function ReadingCard({ card, style }) {
+  const reduced = usePrefersReducedMotion();
+  const [elapsed, setElapsed] = useState(0);
+  useEffect(() => {
+    const t0 = Date.now();
+    const id = setInterval(() => setElapsed(Math.min(card.ms, Date.now() - t0)), 80);
+    return () => clearInterval(id);
+  }, [card.ms]);
+  const slot = card.ms / (card.steps.length + 1); // each step, and the last line, get an equal time
+  const index = Math.min(card.steps.length, Math.floor(elapsed / slot));
+  const within = elapsed - index * slot;
+  const last = index >= card.steps.length;
+  // the spinner for the first 65% of a step, then the tick, then (from 85%) the line leaves
+  const state = last ? 'done' : within < slot * 0.65 ? 'active' : 'done';
+  const leaving = !last && within >= slot * 0.85 && !reduced;
+  const text = last ? card.done : card.steps[index];
+  return (
+    <section className="noor-card noor-reading" style={style} aria-label={card.title}>
+      <div className="noor-card__body">
+        <div className="noor-reading__stage" role="status" aria-live="polite">
+          <div key={index} className={`noor-reading__row is-${state}${last ? ' is-last' : ''}${leaving ? ' is-leaving' : ''}`}>
+            <span className="noor-reading__ic" aria-hidden="true">
+              {state === 'done' ? <ChatIcon name="check" size={12} /> : <span className="noor-spinner" />}
+            </span>
+            <span className="noor-reading__text">{text}</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // Small "i" that reveals extra detail on hover, keyboard focus or tap; Escape or a second tap closes it.
 function InfoTip({ text, label }) {
   const [open, setOpen] = useState(false);
@@ -615,7 +650,7 @@ export function ActionCard({ card, index = 0, onAction, chosen, tray = false }) 
           )}
         </div>
         {/* The note is about the person's files, so it appears only when a file has been attached. */}
-        {card.docs.length > 0 && (
+        {card.docs.length > 0 && card.note && (
           <div className="noor-card__foot">
             <span className="noor-card__note">{card.note}</span>
           </div>
@@ -757,6 +792,8 @@ export function ActionCard({ card, index = 0, onAction, chosen, tray = false }) 
 
   // Details arriving from UAE PASS, one row at a time.
   if (card.type === 'signing') return <SigningCard card={card} />;
+
+  if (card.type === 'reading') return <ReadingCard card={card} style={style} />;
 
   if (card.type === 'fetch') {
     const total = card.rows.length * FETCH_STEP_MS;
@@ -955,8 +992,31 @@ export function ActionCard({ card, index = 0, onAction, chosen, tray = false }) 
               {card.submit.label}
             </button>
           )}
-          <p className="noor-done__note">{card.note}</p>
+          {card.note && <p className="noor-done__note">{card.note}</p>}
         </div>
+      </section>
+    );
+  }
+
+  // What was entered earlier, shown again when someone comes back to an application (no Change here: the next question follows).
+  if (card.type === 'saved') {
+    return (
+      <section className="noor-card noor-arev" style={style} aria-label={card.spoken}>
+        {card.groups.map((g) => (
+          <div className="noor-arev__group" key={g.key}>
+            <h3 className="noor-arev__title">{g.title}</h3>
+            <dl>
+              {g.rows.map((r) => (
+                <div className="noor-arev__row" key={r.id}>
+                  <dt>{r.label}</dt>
+                  <dd>
+                    <span className="noor-arev__value">{r.value}</span>
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        ))}
       </section>
     );
   }

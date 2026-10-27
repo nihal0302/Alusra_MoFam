@@ -26,8 +26,8 @@ const WORK_ONLY = ['workSector', 'employer', 'jobTitle', 'academicDegree']; // a
 export const GROUPS = [
   { id: 'cardholder', required: ['cardholderEid'], when: (who) => who === 'other' },
   { id: 'delivery', required: ['emirate', 'address'] },
+  { id: 'documents', required: ['photo', 'report'] }, // the documents come first: Mira reads the report, then confirms the disability type with the person
   { id: 'disability', required: ['disability'] },
-  { id: 'documents', required: ['photo', 'report'] },
   { id: 'extras', optional: true },
   { id: 'employment', optional: true },
   { id: 'workplace', optional: true, when: (who, d) => EMPLOYED.includes(d.employmentStatus) },
@@ -647,7 +647,10 @@ export function readBatch(text, qids, eligibility) {
   let marks = [...text.matchAll(/(?:^|\s)([1-4])\s*[.):–-]\s*/g)];
   if (marks.length < 2) marks = [...text.matchAll(/^\s*([1-4])\s+/gm)];
   if (marks.length >= 1) {
-    const byNumber = Object.fromEntries(qids.map((id) => [numbers[id], id]));
+    // The list is numbered from 1 as it was asked; numbers from the form (2 for the citizenship question…) work too.
+    const byPosition = Object.fromEntries(qids.map((id, i) => [i + 1, id]));
+    const byForm = Object.fromEntries(qids.map((id) => [numbers[id], id]));
+    const byNumber = marks.every((m) => byPosition[Number(m[1])]) ? byPosition : byForm;
     const usable = marks.every((m) => byNumber[Number(m[1])]);
     marks.forEach((m, i) => {
       const end = i + 1 < marks.length ? marks[i + 1].index : text.length;
@@ -677,9 +680,9 @@ export function readBatch(text, qids, eligibility) {
 }
 
 // The numbered questions (all of them, or only those still missing) with an example of how to answer.
-export function buildBatch(eligibility, qids, first) {
+export function buildBatch(eligibility, qids, first, who = 'self') {
   const b = eligibility.batch;
-  const items = qids.map((id) => ({ n: b.numbers[id], text: b.items[id] }));
+  const items = qids.map((id, i) => ({ n: i + 1, text: b.items[id] }));
   const what = qids.length === 1 ? 'one more answer' : `${qids.length} more answers`;
   return {
     id: first ? 'check:batch' : 'check:batchMore',
@@ -687,9 +690,9 @@ export function buildBatch(eligibility, qids, first) {
     // The questions are part of the message (numbered as they are on the form, so "2. yes" still points at the right one).
     text: [
       {
-        ...(first ? { ack: b.intro, question: b.primary, how: b.how } : { question: fill(b.more, { what }), how: b.moreHow }),
+        ...(first ? { ack: b.intro, question: b.primaries?.[qids.length] ?? b.primary, how: b.hows?.[qids.length] ?? b.how } : { question: fill(b.more, { what }), how: b.moreHow }),
         items,
-        example: batchExample(eligibility, qids),
+        example: batchExample(eligibility, qids, who),
         exampleLabel: b.exampleLabel,
       },
     ],
@@ -697,7 +700,8 @@ export function buildBatch(eligibility, qids, first) {
   };
 }
 
-export function batchExample(eligibility, qids) {
-  const sentence = joinList(qids.map((id) => eligibility.batch.examples[id]));
+export function batchExample(eligibility, qids, who = 'self') {
+  const examples = who === 'other' ? { ...eligibility.batch.examples, ...eligibility.batch.examplesOther } : eligibility.batch.examples;
+  const sentence = joinList(qids.map((id) => examples[id]));
   return `${sentence[0].toUpperCase()}${sentence.slice(1)}.`;
 }

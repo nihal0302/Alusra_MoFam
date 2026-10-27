@@ -775,3 +775,40 @@
   .noor-splash__av .r2 { animation: none; stroke-dashoffset: 0; }
   .noor-splash.is-leaving { animation: none; opacity: 0; }
 }
+
+/* A question that follows its finding directly (the disability type read from the report): no divider, and the two sit close. */
+.noor--v2 .noor-block > .noor-sec--ack:has(+ .is-joined) { padding-block-end: 4px; }
+.noor--v2 .noor-block > .noor-sec--ask.is-joined { padding-block-start: 4px; border-block-start: 0; }
+
+/* "Reading your documents": a tighter title, close to the words above it and to the steps under it. */
+.noor--v2 .noor-block > .noor-sec--ask:has(+ .noor-reading) { padding-block-end: 4px; }
+.noor-reading .noor-card__body { padding-block: 4px 12px; }
+
+/* Buttons that answer the question right above them sit close to it, with no divider between them. */
+.noor--v2 .noor-block > .noor-sec--ask:has(+ .noor-actions) { padding-block-end: 4px; }
+.noor--v2 .noor-block > .noor-sec--ask + .noor-card.noor-actions { padding-block-start: 8px; border-block-start: 0; }
+
+/* Replies that follow one another (nothing from the person in between) are one answer: they sit close together, and only the last
+   has the thumbs. */
+.noor--v2 .noor-turn + .noor-turn { margin-block-start: -9px; }
+
+/* "Reading your documents", one line at a time: the line comes up from below, shows a spinner and then a tick, and goes up and fades
+   while the next one comes. The window is one line high, so a line is cut off as it moves. */
+.noor-reading__stage { position: relative; block-size: 28px; overflow: hidden; }
+.noor-reading__row { position: absolute; inset-inline: 0; inset-block-start: 0; display: flex; align-items: center; gap: 12px; block-size: 28px; font-size: 16px; color: var(--noor-ink); animation: noor-read-in 300ms var(--ease-out) both; }
+.noor-reading__row.is-leaving { animation: noor-read-out 300ms var(--ease-out) forwards; }
+.noor-reading__ic { display: grid; flex: none; place-items: center; inline-size: 22px; block-size: 22px; border-radius: 50%; }
+.noor-reading__row.is-done .noor-reading__ic { color: var(--c-white); background: var(--noor-success); }
+.noor-reading__row.is-last .noor-reading__text { font-weight: 600; }
+@keyframes noor-read-in { from { opacity: 0; transform: translateY(18px); } }
+@keyframes noor-read-out { to { opacity: 0; transform: translateY(-18px); } }
+@media (prefers-reduced-motion: reduce) { .noor-reading__row, .noor-reading__row.is-leaving { animation: none; } }
+
+/* a document that has arrived (the eligibility result's list): a green tick before "Received · file name" */
+.noor--v2 .noor-need .noor-need__got { display: flex; align-items: center; gap: 6px; color: var(--noor-success); }
+.noor--v2 .noor-need .noor-need__tick { display: grid; flex: none; place-items: center; inline-size: 16px; block-size: 16px; color: var(--c-white); background: var(--noor-success); border-radius: 50%; }
+.noor--v2 .noor-need .noor-need__tick svg { inline-size: 11px; block-size: 11px; }
+
+/* A question that comes after the thing it is about (the disability type, then "Do you confirm this…"): a clear gap before it, so the
+   label and the value read as one group and the question as the next. */
+.noor--v2 .noor-ask__after { margin-block-start: 14px; }

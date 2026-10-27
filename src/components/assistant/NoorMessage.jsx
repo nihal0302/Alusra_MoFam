@@ -28,9 +28,16 @@ export function NoorMessage({ msgId, scenario, avatar, onStage, onAction, labels
     () =>
       scenario.text.flatMap((b0) => {
         // The question, then on separate lines how to answer it (`how`) and anything else worth knowing (`note`), then an example.
+        // A label with its value in bold ("Disability type" / "Physical") is one bubble; the question about it is the next bubble.
+        if (b0.intro && b0.plainHow) {
+          return [
+            { lead: b0.intro, plainLead: true, primary: b0.question, ask: true },
+            { primary: b0.how, plainQuestion: true, ask: true },
+          ];
+        }
         if (b0.question) {
           return [
-            ...(b0.lead || b0.primary || b0.ack ? [{ lead: b0.lead, plainLead: b0.plainLead, primary: b0.primary ?? b0.ack }] : []),
+            ...(b0.lead || b0.primary || b0.ack || b0.intro ? [{ lead: b0.lead, plainLead: b0.plainLead, primary: b0.primary ?? b0.ack ?? b0.intro }] : []),
             { primary: b0.question, tag: b0.tag, plainQuestion: b0.plainQuestion, items: b0.items, secondary: b0.how, note: b0.note, example: b0.example, exampleLabel: b0.exampleLabel, ask: true },
           ];
         }

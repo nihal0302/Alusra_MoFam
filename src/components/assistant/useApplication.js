@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { buildNudge, buildPrompt, buildSignIn, buildSigningIn, buildSubmitted, fill, newReference } from '../../lib/application.js';
+import { buildDetected, buildNudge, buildPrompt, buildReading, buildSignIn, buildSignedIn, buildSigningIn, buildSubmitted, buildWhoAsk, detectDisability, fill, newReference, readWho } from '../../lib/application.js';
 import {
   CONV_KINDS,
   GROUPS,
@@ -37,8 +37,9 @@ const EXTRA_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
 // With `conv` (Variation 2) the same journey runs as a conversation: the form is asked in groups of two or three questions,
 // answered in free text, documents are attached to the chat, and the review is a sentence that can be changed by typing.
 export function useApplication(app, api, { conv = false } = {}) {
-  const ref = useRef({ data: {}, awaiting: null, returnToReview: false, settled: new Set(), who: 'self' });
+  const ref = useRef({ data: {}, awaiting: null, returnToReview: false, settled: new Set(), who: 'self', whoKnown: false, signedIn: false, eligibleDone: false });
   const signing = useRef(null); // timer while the simulated UAE PASS approval is pending
+  const reader = useRef(null); // timer while the simulated reading of the documents is going on
   const [awaitingInfo, setAwaitingInfo] = useState(null);
 
   const setAwait = (a) => {
@@ -60,7 +61,26 @@ export function useApplication(app, api, { conv = false } = {}) {
     api.pushNoor(buildReviewSteps(app, { who: ref.current.who, data: ref.current.data }));
   };
 
+  // Both documents are in and the disability type is next: Mira "reads" them (a short simulated wait), then says which type the
+  // report names and asks the person to confirm it or change it. Asked once; changing the type from the review skips it.
+  const readDocuments = () => {
+    ref.current.read = true;
+    setAwait(null);
+    api.pushNoor(buildReading(app));
+    reader.current = setTimeout(() => {
+      reader.current = null;
+      const value = detectDisability(app, ref.current.data.report?.name);
+      const msgId = api.pushNoor(buildDetected(app, value, ref.current.who));
+      setAwait({ kind: 'detected', step: 'detected', value, msgId, placeholder: app.reading.placeholder, voiceSample: app.reading.voiceSample });
+    }, app.reading.ms);
+  };
+  const needsReading = (id, opts = {}) => id === 'disability' && !opts.changing && !ref.current.read && Boolean(ref.current.data.report) && !ref.current.data.disability;
+
   const ask = (step, opts = {}) => {
+    if (needsReading(step, opts)) {
+      readDocuments();
+      return;
+    }
     if (!conv) {
       // The two support questions are asked together, unless one is already answered (then only the other is asked, as its own question).
       if (step === 'support') {
@@ -88,6 +108,10 @@ export function useApplication(app, api, { conv = false } = {}) {
 
   // ---- Conversational steps (Variation 2) ----
   const askGroup = (id, opts = {}) => {
+    if (needsReading(id, opts)) {
+      readDocuments();
+      return;
+    }
     if (id === 'documents') {
       const msgId = api.pushNoor(buildDocsAsk(app, { who: ref.current.who, data: ref.current.data, ...opts }));
       setAwait({ kind: 'docs', group: 'documents', step: 'docs', msgId, placeholder: app.conv.docs.placeholder, voiceSample: app.conv.docs.voiceSample });
@@ -145,13 +169,16 @@ export function useApplication(app, api, { conv = false } = {}) {
   };
 
   // Who the card is for, from the eligibility answers ("self" or "other").
-  const setWho = (who) => {
+  const setWho = (who, known = false) => {
     ref.current.who = who === 'other' ? 'other' : 'self';
+    ref.current.whoKnown = known; // said already (in the first message): the question is not asked
   };
 
   const reset = () => {
     clearTimeout(signing.current);
     signing.current = null;
+    clearTimeout(reader.current);
+    reader.current = null;
     const files = Object.values(ref.current.data).flatMap((v) => (Array.isArray(v) ? v : [v]));
     files.forEach((v) => v?.url && URL.revokeObjectURL(v.url));
     ref.current = { data: {}, awaiting: null, returnToReview: false, settled: new Set(), who: 'self' };
@@ -216,18 +243,21 @@ export function useApplication(app, api, { conv = false } = {}) {
         // Simulated approval: after the wait, the details arrive exactly as before.
         signing.current = setTimeout(() => {
           signing.current = null;
-          api.setStage('docs');
           // The delivery contact number starts as the UAE PASS mobile; it can be changed in the review.
           const mobile = app.signIn.profile.rows.find((r) => r.id === 'mobile')?.value;
           if (mobile) store('deliveryMobile', mobile);
-          if (conv) {
-            const group = nextGroup(ref.current.who, ref.current.data, ref.current.settled);
-            const id = api.pushNoor(buildSignInConv(app, { who: ref.current.who, data: ref.current.data, group }));
-            const g = app.conv.groups[group];
-            setAwait({ kind: 'multi', group, step: 'details', msgId: id, placeholder: g.placeholder, voiceSample: g.voiceSample });
-          } else {
-            api.pushNoor(buildSignIn(app, ref.current.who));
+          ref.current.signedIn = true;
+          if (!ref.current.whoKnown) {
+            // After UAE PASS: the details that came from it, and who the card is for. Then the eligibility check.
+            const msgId = api.pushNoor(buildWhoAsk(app, { conv }));
+            setAwait({ kind: 'who', step: 'who', msgId, placeholder: app.who.placeholder, voiceSample: app.who.voiceSample });
+            return;
           }
+          // Said already (in the first message): the details, then the eligibility check.
+          api.pushNoor(buildSignedIn(app, { conv }));
+          // The eligibility check was done before UAE PASS (a first message gave every answer): on to the application.
+          if (ref.current.eligibleDone) begin();
+          else api.startCheck(ref.current.who);
         }, app.signIn.wait.ms);
         return true;
       case 'choice':
@@ -477,11 +507,77 @@ export function useApplication(app, api, { conv = false } = {}) {
     if (emirate) store('emirate', emirate);
   };
 
+  // Who the card is for (asked once, after UAE PASS): then the eligibility check begins.
+  const afterWho = (who) => {
+    ref.current.who = who;
+    ref.current.whoKnown = true;
+    setAwait(null);
+    api.startCheck(who);
+  };
+  // The eligibility check is done and the person starts the application: UAE PASS has been done, so it goes straight to the questions.
+  // Someone returns to an application left half done and chooses to continue: what was entered earlier is back.
+  const restore = ({ who, data }) => {
+    ref.current = { ...ref.current, data: { ...ref.current.data, ...data }, who, whoKnown: true, signedIn: true, settled: new Set(), awaiting: null };
+    setAwait(null);
+  };
+  const begin = () => {
+    api.setStage('docs');
+    // Documents already in (sent with the first message): Mira reads them straight away, then asks the delivery questions.
+    if (needsReading('disability')) {
+      readDocuments();
+      return;
+    }
+    if (conv) convNext();
+    else next();
+  };
+  const whoText = (text, aw, known) => {
+    if (looksLikeQuestion(text) && known) return false;
+    const who = readWho(app, text);
+    if (who) {
+      api.lock(aw.msgId, 'answered');
+      api.pushUser(text);
+      afterWho(who);
+      return true;
+    }
+    if (known) return false;
+    api.pushUser(text);
+    api.pushNoor(buildNudge(app.who.nudge));
+    return true;
+  };
+
+  // The reply to "Is this the correct disability type?": yes keeps it, a type names the right one, no asks for it with the usual choices.
+  const detectedText = (text, aw, known) => {
+    if (looksLikeQuestion(text) && known && !parseYes(text)) return false;
+    const value = readSingle('disability', text, ctx());
+    if (parseYes(text) || value) {
+      api.lock(aw.msgId, 'confirmed');
+      api.pushUser(text);
+      store('disability', value ?? aw.value);
+      setAwait(null);
+      afterAnswer([]);
+      return true;
+    }
+    if (parseNo(text) || /\bchange\b/i.test(text)) {
+      api.lock(aw.msgId, 'changing');
+      api.pushUser(text);
+      setAwait(null);
+      if (conv) askGroup('disability');
+      else ask('disability');
+      return true;
+    }
+    if (known) return false;
+    api.pushUser(text);
+    api.pushNoor(buildNudge(app.reading.nudge));
+    return true;
+  };
+
   // Typed or spoken text while a question is open. Returns true when it was consumed.
   const handleText = (text, { known }) => {
-    if (signing.current) return true; // waiting for UAE PASS: ignore typing rather than derail the sign-in
+    if (signing.current || reader.current) return true; // waiting for UAE PASS, or for the reading: ignore typing rather than derail it
     const aw = ref.current.awaiting;
     if (!aw) return false;
+    if (aw.kind === 'detected') return detectedText(text, aw, known);
+    if (aw.kind === 'who') return whoText(text, aw, known);
     if (conv && CONV_KINDS.includes(aw.kind)) return convText(text, aw, known);
     return stepText(text, aw, known);
   };
@@ -557,6 +653,13 @@ export function useApplication(app, api, { conv = false } = {}) {
     reset,
     prefill,
     setWho,
+    begin,
+    markEligible: () => {
+      ref.current.eligibleDone = true;
+    },
+    restore,
+    signedIn: () => ref.current.signedIn,
+    who: () => ref.current.who,
     next,
     awaiting: awaitingInfo,
     voiceSample: ref.current.awaiting ? ref.current.awaiting.voiceSample ?? app.steps[ref.current.awaiting.step]?.voiceSample : null,

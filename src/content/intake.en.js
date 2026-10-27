@@ -13,7 +13,6 @@ export const intake = {
     missing: 'Still needed',
     notAttached: 'Not attached yet',
     changeLabel: 'Change',
-    note: 'Your files stay on your device. Nothing is submitted.',
   },
   docLabels: { photo: 'Personal photograph', report: 'Medical or psychological report' },
   docNames: { photo: 'photograph', report: 'report' },
