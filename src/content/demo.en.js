@@ -5,6 +5,10 @@
 //   3  Everything up front: before even pressing "Start POD application", sends all the details and both documents in one message.
 //   4  Forgetful: like 3, one message with the details and both documents, but something is forgotten in it (the citizenship). Mira
 //      asks for what is missing, then gives the eligibility result, then goes on with the application.
+//   6  Unrecognised question: the box holds a question that has nothing to do with the Ministry ("I want to order a pizza"); Mira says
+//      what she can help with and offers the main things.
+//   7  No answer found: the box holds a question about the Ministry that its published information does not answer; Mira says she
+//      cannot find a reliable answer and points to the support team (email and phone).
 //   5  Returning: the person left an application half done and has come back. On "Apply for a POD card" Mira asks whether to
 //      continue or start again; "continue" shows what was entered earlier and asks the next question (see `saved` below).
 // The samples are made-up. The key is the question the chatbot is asking; each key lists the sample for the first time it is asked,
@@ -21,6 +25,8 @@ export const demo = {
     ['upfront', 'Everything up front', 'Before pressing Apply for a POD card, all the details and both documents are already in the message box.'],
     ['forgetful', 'Forgetful', 'Like Everything up front, but something is forgotten in the first message (the citizenship). Mira asks for what is missing, gives the eligibility result, then takes you through the application.'],
     ['returning', 'Returning visitor', 'Someone who left an application half done and has come back: Mira asks whether to continue or start again, and on continue shows what was entered earlier.'],
+    ['offtopic', 'Unrecognised question', 'A question that has nothing to do with the Ministry (I want to order a pizza). Mira says what she can help with, and offers to start an application or check a status.'],
+    ['gap', 'No answer found', 'A question about the Ministry that its published information does not answer. Mira says she cannot find a reliable answer and points to support: info@alusra.gov.ae or 800 114.'],
   ],
   // The "returning" scenario only: the application that was left half done (made up; nothing is stored). It stopped at the documents step.
   saved: {
@@ -35,6 +41,9 @@ export const demo = {
       text: 'I am an Emirati citizen and I want to apply for the People of Determination card for myself. I have a medical report from a government hospital. My photo and the report are attached.',
       files: ['photo', 'report'],
     },
+    // the two "cannot answer" scenarios: the question that is in the box on the starting screen
+    offtopic: { text: 'I want to order a pizza' },
+    gap: { text: 'Does the ministry offer scholarships for university students?' },
     // the same, but the citizenship is forgotten
     forgetful: {
       text: 'I want to apply for the People of Determination card for myself. I have a medical report from a government hospital. My photo and the report are attached.',

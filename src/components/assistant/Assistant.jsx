@@ -734,7 +734,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
 
   // The sample for the question that is being asked: the first time its own first sample, a repeat the next one.
   const sampleFor = (key) => {
-    if (scenario === 'free' || scenario === 'returning') return; // nothing is pre-filled
+    if (['free', 'returning', 'offtopic', 'gap'].includes(scenario)) return; // nothing is pre-filled for the application's questions
     if (key === 'batch') {
       // the eligibility questions that are being asked, answered in one sentence
       const w = flowRef.current.awaiting;
@@ -939,7 +939,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
 
   // The "everything up front" scenario starts with everything already in the box and the documents attached.
   useEffect(() => {
-    if (open && !started && (scenario === 'upfront' || scenario === 'forgetful') && demo?.landing?.[scenario]) fillBox(demo.landing[scenario]);
+    if (open && !started && demo?.landing?.[scenario]) fillBox(demo.landing[scenario]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, scenario, session]);
 
