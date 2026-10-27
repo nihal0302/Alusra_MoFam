@@ -1260,3 +1260,6 @@
 .noor-listen { display: flex; align-items: center; gap: 8px; margin: 0; padding-inline: 4px; min-block-size: 20px; font-size: 13px; font-weight: 600; color: color-mix(in srgb, var(--c-gold) 55%, var(--noor-ink)); }
 .noor-listen__dot { inline-size: 8px; block-size: 8px; background: var(--c-gold); border-radius: 50%; box-shadow: 0 0 0 0 color-mix(in srgb, var(--c-gold) 60%, transparent); animation: noor-listen-pulse 1400ms infinite; }
 @media (prefers-reduced-motion: reduce) { .noor-listen__dot { animation: none; } }
+
+/* On a wide chat the "Mira is listening…" label stays above the start of the message box (a reset rule had zeroed its auto margins). */
+.noor .noor-footer > .noor-listen { margin-inline: auto; }
