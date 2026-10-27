@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { buildDetected, buildNudge, buildPrompt, buildReading, buildSignIn, buildSignedIn, buildSigningIn, buildSubmitted, buildWhoAsk, detectDisability, fill, newReference, readWho } from '../../lib/application.js';
+import { buildDetected, buildNudge, buildPrompt, buildReading, buildSignIn, buildSignedIn, buildSigningIn, buildStatusAsk, buildSubmitted, buildWhoAsk, detectDisability, fill, newReference, readStatus, readWho } from '../../lib/application.js';
 import {
   CONV_KINDS,
   GROUPS,
@@ -25,9 +25,12 @@ import {
   subject,
 } from '../../lib/conversation.js';
 import { classifyFile } from '../../lib/intake.js';
+import { saveSubmitted } from '../../lib/account.js';
 import { buildReviewSteps, buildStepPrompt, isOptional, nextStep, readStepAnswer } from '../../lib/stepwise.js';
 
 const EXTRA_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
+// "I don't have the report", "no report": without the report there is no eligibility
+const NO_REPORT_TEXT = /\b(no|don'?t|do not|didn'?t|haven'?t|have not|never)\b[^.?!]*\breport\b|\bwithout (a |the )?report\b/i;
 
 // The application, in the conversation: UAE PASS sign-in → details fetched → a few questions →
 // two uploads → review → consent and submit. Everything is held in memory; nothing leaves the device.
@@ -53,7 +56,7 @@ export function useApplication(app, api, { conv = false } = {}) {
   const review = (updated = []) => {
     api.setStage('review');
     if (conv) {
-      const msgId = api.pushNoor(buildReviewConv(app, { who: ref.current.who, data: ref.current.data, updated }));
+      const msgId = api.pushNoor(buildReviewConv(app, { who: ref.current.who, data: ref.current.data, updated, fromMessage: ref.current.source === 'message' }));
       setAwait({ kind: 'confirm', step: 'review', msgId, placeholder: app.conv.review.placeholder, voiceSample: app.conv.review.voiceSample });
       return;
     }
@@ -63,12 +66,27 @@ export function useApplication(app, api, { conv = false } = {}) {
 
   // Both documents are in and the disability type is next: Mira "reads" them (a short simulated wait), then says which type the
   // report names and asks the person to confirm it or change it. Asked once; changing the type from the review skips it.
+  // The application cannot go on (see `notEligible` in the content): nothing more is asked.
+  const notEligible = (reason) => {
+    setAwait(null);
+    api.notEligible(reason);
+  };
   const readDocuments = () => {
     ref.current.read = true;
     setAwait(null);
     api.pushNoor(buildReading(app));
     reader.current = setTimeout(() => {
       reader.current = null;
+      // a report that is not from an accredited authority: not eligible
+      if (new RegExp(app.reading.notAccredited, 'i').test(ref.current.data.report?.name ?? '')) {
+        notEligible('notAccredited');
+        return;
+      }
+      // the disability type was already given (in the first message): the scan only confirms the report, and the application goes on
+      if (ref.current.data.disability) {
+        afterAnswer([]);
+        return;
+      }
       const value = detectDisability(app, ref.current.data.report?.name);
       const msgId = api.pushNoor(buildDetected(app, value, ref.current.who));
       setAwait({ kind: 'detected', step: 'detected', value, msgId, placeholder: app.reading.placeholder, voiceSample: app.reading.voiceSample });
@@ -190,7 +208,16 @@ export function useApplication(app, api, { conv = false } = {}) {
     api.pushUser(label);
     api.setStage('complete');
     setAwait(null);
-    api.pushNoor(buildSubmitted(app, newReference()));
+    const reference = newReference();
+    // remembered in this browser, so the "My applications" page (another tab) lists it
+    saveSubmitted({
+      number: reference,
+      applicant: app.signIn.profile.rows.find((r) => r.id === 'name')?.value,
+      appliedFor: ref.current.who,
+      appliedOn: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
+      status: 'received',
+    });
+    api.pushNoor(buildSubmitted(app, reference));
   };
 
   // Asks for one field again, from the review (Change, or "change my …").
@@ -255,9 +282,7 @@ export function useApplication(app, api, { conv = false } = {}) {
           }
           // Said already (in the first message): the details, then the eligibility check.
           api.pushNoor(buildSignedIn(app, { conv }));
-          // The eligibility check was done before UAE PASS (a first message gave every answer): on to the application.
-          if (ref.current.eligibleDone) begin();
-          else api.startCheck(ref.current.who);
+          afterWho(ref.current.who);
         }, app.signIn.wait.ms);
         return true;
       case 'choice':
@@ -395,6 +420,12 @@ export function useApplication(app, api, { conv = false } = {}) {
     }
 
     if (aw.kind === 'docs') {
+      if (NO_REPORT_TEXT.test(text) && !d.report) {
+        api.lock(aw.msgId, 'answered');
+        api.pushUser(text);
+        notEligible('noReport');
+        return true;
+      }
       if (known) return false;
       api.pushUser(text);
       api.pushNoor(buildNudgeConv(c.nudgeLead, c.docs.nudge));
@@ -468,6 +499,12 @@ export function useApplication(app, api, { conv = false } = {}) {
     }
     // An uploaded document is expected: typing cannot give it, apart from skipping an optional one.
     if (step.kind === 'file') {
+      if (aw.step === 'report' && NO_REPORT_TEXT.test(text)) {
+        api.lock(aw.msgId, 'answered');
+        api.pushUser(text);
+        notEligible('noReport');
+        return true;
+      }
       if (optional && parseSkip(text)) {
         skip();
         return true;
@@ -512,9 +549,44 @@ export function useApplication(app, api, { conv = false } = {}) {
     ref.current.who = who;
     ref.current.whoKnown = true;
     setAwait(null);
-    api.startCheck(who);
+    if (who === 'other') {
+      // UAE PASS knows only the person signed in: whether the applicant is a citizen or resident is asked.
+      const msgId = api.pushNoor(buildStatusAsk(app));
+      setAwait({ kind: 'status', step: 'status', msgId, placeholder: app.who.status.placeholder, voiceSample: app.who.status.voiceSample });
+      return;
+    }
+    begin(); // for themselves: UAE PASS gave everything, so straight to the application's questions
+  };
+  const statusText = (text, aw, known) => {
+    if (looksLikeQuestion(text) && known) return false;
+    const status = readStatus(app, text);
+    if (status) {
+      api.lock(aw.msgId, 'answered');
+      api.pushUser(text);
+      if (status === 'neither') notEligible('citizenship');
+      else begin();
+      return true;
+    }
+    if (known) return false;
+    api.pushUser(text);
+    api.pushNoor(buildNudge(app.who.status.nudge));
+    return true;
   };
   // The eligibility check is done and the person starts the application: UAE PASS has been done, so it goes straight to the questions.
+  // Everything given in the first message (name, Emirates ID, mobile, email, delivery address, who it is for) and both documents: no UAE PASS.
+  // Mira shows the details and goes on to what is still missing. APPROX: the sample person's details stand for what was typed.
+  const startWithDetails = ({ who, deliveryText }) => {
+    ref.current.who = who;
+    ref.current.whoKnown = true;
+    ref.current.signedIn = true;
+    ref.current.source = 'message';
+    const mobile = app.signIn.profile.rows.find((r) => r.id === 'mobile')?.value;
+    if (mobile) store('deliveryMobile', mobile);
+    if (deliveryText) ref.current.data = { ...ref.current.data, ...readGroup('delivery', deliveryText, ref.current.data, ctx()) };
+    api.pushNoor(buildSignedIn(app, { conv, upfront: true }));
+    begin();
+  };
+
   // Someone returns to an application left half done and chooses to continue: what was entered earlier is back.
   const restore = ({ who, data }) => {
     ref.current = { ...ref.current, data: { ...ref.current.data, ...data }, who, whoKnown: true, signedIn: true, settled: new Set(), awaiting: null };
@@ -523,7 +595,7 @@ export function useApplication(app, api, { conv = false } = {}) {
   const begin = () => {
     api.setStage('docs');
     // Documents already in (sent with the first message): Mira reads them straight away, then asks the delivery questions.
-    if (needsReading('disability')) {
+    if (needsReading('disability') && (ref.current.who === 'self' || ref.current.data.cardholderEid)) {
       readDocuments();
       return;
     }
@@ -578,6 +650,7 @@ export function useApplication(app, api, { conv = false } = {}) {
     if (!aw) return false;
     if (aw.kind === 'detected') return detectedText(text, aw, known);
     if (aw.kind === 'who') return whoText(text, aw, known);
+    if (aw.kind === 'status') return statusText(text, aw, known);
     if (conv && CONV_KINDS.includes(aw.kind)) return convText(text, aw, known);
     return stepText(text, aw, known);
   };
@@ -658,6 +731,7 @@ export function useApplication(app, api, { conv = false } = {}) {
       ref.current.eligibleDone = true;
     },
     restore,
+    startWithDetails,
     signedIn: () => ref.current.signedIn,
     who: () => ref.current.who,
     next,

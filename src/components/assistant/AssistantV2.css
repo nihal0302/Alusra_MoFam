@@ -812,3 +812,12 @@
 /* A question that comes after the thing it is about (the disability type, then "Do you confirm this…"): a clear gap before it, so the
    label and the value read as one group and the question as the next. */
 .noor--v2 .noor-ask__after { margin-block-start: 14px; }
+
+/* "You are not eligible…": the red alert mark beside the title and its body copy, centred on them; nothing above it */
+.noor--v2 .noor-alert { display: flex; align-items: center; gap: 14px; }
+.noor--v2 .noor-alert__mark { flex: none; } /* as tall as the title and its line of body copy together */
+.noor--v2 .noor-alert > div { display: grid; gap: 6px; min-inline-size: 0; }
+
+.noor--v2 .noor-alert > div { gap: 4px; }
+.noor-support__lead { margin: 0 0 4px; font-size: 15px; line-height: 1.5; color: var(--c-body); }
+.noor--v2 .noor-support__lead { font-size: 0.933em; }

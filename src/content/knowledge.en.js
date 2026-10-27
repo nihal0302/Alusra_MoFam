@@ -23,7 +23,7 @@ export const knowledgeCopy = {
   // Asked for fees, documents and so on without saying which service.
   applyInChat: {
     primary: 'You can apply right here in the chat, and I will guide you step by step.',
-    secondary: 'I will first ask you to sign in with UAE PASS, then a few quick questions to check that you are eligible. You can review everything before it is submitted.',
+    secondary: 'I will first ask you to sign in with UAE PASS, so I can fill in your details. You can review everything before it is submitted.',
   },
   clarify: {
     primary: 'Which service do you mean? Tell me, and I will share its fees, documents, conditions and timing.',

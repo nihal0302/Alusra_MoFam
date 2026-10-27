@@ -2,7 +2,7 @@
 // typed answer to each question is read, what each question shows (buttons, Skip, upload), and the review.
 // `npm run steps:test`  (exits 1 if an expectation fails)
 import { application } from '../src/content/application.en.js';
-import { buildDetected, buildResumeOffer, buildResumeSummary, buildWhoAsk, detectDisability, readResume, readWho } from '../src/lib/application.js';
+import { buildDetected, buildNotEligible, buildResumeOffer, buildResumeSummary, buildStatusAsk, buildWhoAsk, detectDisability, readProfile, readResume, readStatus, readWho } from '../src/lib/application.js';
 import { demo } from '../src/content/demo.en.js';
 import { eligibility } from '../src/content/eligibility.en.js';
 import { reviewRows } from '../src/lib/eligibility.js';
@@ -31,16 +31,16 @@ function walk(who, answers, skipped = []) {
   return asked.join(' ');
 }
 
-check('self, no employment', walk('self', {}, ['employmentStatus']) === 'emirate address photo report disability additional altMobile eidExpiry employmentStatus support');
+check('self, no employment', walk('self', {}, ['employmentStatus']) === 'photo report disability emirate address additional altMobile eidExpiry employmentStatus support');
 check(
   'self, employed',
-  walk('self', { employmentStatus: 'Employed' }) === 'emirate address photo report disability additional altMobile eidExpiry employmentStatus workSector employer jobTitle educationLevel academicDegree institutionLocation support',
+  walk('self', { employmentStatus: 'Employed' }) === 'photo report disability emirate address additional altMobile eidExpiry employmentStatus workSector employer jobTitle educationLevel academicDegree institutionLocation support',
 );
 check(
   'self, student',
-  walk('self', { employmentStatus: 'Student' }) === 'emirate address photo report disability additional altMobile eidExpiry employmentStatus educationLevel institutionLocation support',
+  walk('self', { employmentStatus: 'Student' }) === 'photo report disability emirate address additional altMobile eidExpiry employmentStatus educationLevel institutionLocation support',
 );
-check('someone else asks for their Emirates ID and birth date first, and not the expiry date', walk('other', {}, ['employmentStatus']).startsWith('cardholderEid cardholderDob emirate address') && !walk('other', {}, ['employmentStatus']).includes('eidExpiry'));
+check('someone else asks for their Emirates ID and birth date first, and not the expiry date', walk('other', {}, ['employmentStatus']).startsWith('cardholderEid cardholderDob photo report') && !walk('other', {}, ['employmentStatus']).includes('eidExpiry'));
 check('documents already sent are not asked again', nextStep('self', { emirate: 'Dubai', address: 'x', disability: 'Autism', photo: {}, report: {} }, new Set()) === 'additional');
 check('every question has its copy', STEPS.every((s) => application.steps[s.id]) && Boolean(application.steps.deliveryMobile));
 
@@ -132,7 +132,7 @@ for (const [text, want] of [['myself', 'self'], ['It is for me', 'self'], ['Some
   check('who: ' + text, readWho(application, text) === want);
 }
 check('someone else: the cardholder’s Emirates ID is asked first', nextStep('other', { deliveryMobile: 'x' }, new Set()) === 'cardholderEid');
-check('yourself: nothing about the cardholder is asked', nextStep('self', { deliveryMobile: 'x' }, new Set()) === 'emirate');
+check('yourself: nothing about the cardholder is asked, the documents come first', nextStep('self', { deliveryMobile: 'x' }, new Set()) === 'photo');
 const whoAsk = buildWhoAsk(application, { conv: true });
 check('who question: the details from UAE PASS, then Myself and Someone else', whoAsk.cards[0].type === 'details' && whoAsk.cards[1].buttons.map((b) => b.label).join() === 'Myself,Someone else');
 // The report is read (simulated): the type comes from words in the file name, otherwise the sample type, and is confirmed with the person.
@@ -142,13 +142,27 @@ for (const [name, want] of [['autism-assessment.pdf', 'Autism'], ['Hearing repor
 check('reading: confirm or change', buildDetected(application, 'Autism').cards[0].buttons.length === 2 && buildDetected(application, 'Autism').text[0].question.includes('Autism'));
 
 // Someone returning to an application left half done: continue or start again, and what was entered earlier is shown.
-for (const [text, want] of [['Continue where I stopped', 'continue'], ['yes please', 'continue'], ['Start again', 'again'], ['start over', 'again'], ['no', 'again'], ['banana', null]]) {
+for (const [text, want] of [['Continue my application', 'continue'], ['yes please', 'continue'], ['Discard & start again', 'again'], ['discard it', 'again'], ['Start again', 'again'], ['start over', 'again'], ['no', 'again'], ['banana', null]]) {
   check('resume: ' + text, readResume(application, text) === want);
 }
-check('resume: the offer has Continue and Start again', buildResumeOffer(application, demo.saved).cards[0].buttons.map((b) => b.label).join() === 'Continue where I stopped,Start again');
+check('resume: the offer has Continue and Start again', buildResumeOffer(application, demo.saved).cards[0].buttons.map((b) => b.label).join() === 'Continue my application,Discard & start again');
 const summary = buildResumeSummary(application, eligibility, demo.saved, reviewRows);
-check('resume: shows the UAE PASS details, the eligibility answers and the delivery details', summary.cards[0].groups.map((g) => g.key).join() === 'uaepass,eligibility,delivery' && summary.cards[0].groups[2].rows.some((r) => r.value === 'Dubai'));
+check('resume: shows the UAE PASS details and who the application is for', summary.cards[0].groups.map((g) => g.key).join() === 'uaepass,who' && summary.cards[0].groups[1].rows.some((r) => r.value === 'Myself'));
 check('resume: the saved application is missing the documents, so they are asked next', nextStep('self', { ...demo.saved.data }, new Set()) === 'photo');
+
+// Eligibility is not a test: the card is for citizens and residents with an accredited report, found out as the application goes.
+for (const [text, want] of [['An Emirati citizen', 'citizen'], ['UAE resident', 'resident'], ['they are a resident', 'resident'], ['neither', 'neither'], ['no', 'neither'], ['a tourist', 'neither'], ['blue', null]]) {
+  check('status: ' + text, readStatus(application, text) === want);
+}
+check('status question: Emirati citizen, UAE resident, Neither', buildStatusAsk(application).cards[0].buttons.map((b) => b.label).join() === 'Emirati citizen,UAE resident,Neither');
+const given = readProfile(demo.landing.upfront.text);
+check('details up front: the Emirates ID, email and mobile are found in the message', given.eid === '784-1998-1234567-1' && given.email === 'hamdan@example.com' && given.mobile === '050 123 4567');
+check('details up front: a message without them is not read as details', !readProfile('I want to apply for myself').eid);
+check('not eligible: a private clinic report is not accredited', new RegExp(application.reading.notAccredited, 'i').test('private-clinic-report.pdf') && !new RegExp(application.reading.notAccredited, 'i').test('rashid-hospital-report.pdf'));
+for (const reason of ['noReport', 'notAccredited', 'citizenship']) {
+  const m = buildNotEligible(application, reason, { type: 'support' });
+  check('not eligible: ' + reason, m.text[0].alert.body.startsWith(application.notEligible.reasons[reason]) && m.cards[0].type === 'support' && m.cards[1].buttons.length === 2);
+}
 
 console.log(bad ? `\n${bad} unexpected` : '\nall as expected');
 process.exit(bad ? 1 : 0);

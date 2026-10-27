@@ -1065,6 +1065,7 @@ export function ActionCard({ card, index = 0, onAction, chosen, tray = false }) 
       <section className="noor-card noor-support" style={style} aria-label={card.title}>
         <div className="noor-card__body">
           {card.title && <h3 className="noor-card__title">{card.title}</h3>}
+          {card.lead && <p className="noor-support__lead">{card.lead}</p>}
           {card.rows.map((r) => (
             <div className="noor-support__row" key={r.label}>
               <ChatIcon name={r.icon} size={18} />

@@ -1,4 +1,5 @@
 import {
+  Alert02Icon,
   ArrowExpand01Icon,
   AttachmentIcon,
   ArrowLeft01Icon,
@@ -52,6 +53,7 @@ const ICONS = {
   close: Cancel01Icon,
   question: HelpCircleIcon,
   info: InformationCircleIcon,
+  warning: Alert02Icon, // a warning triangle
   shield: SecurityCheckIcon,
   file: File01Icon,
   camera: Camera01Icon,

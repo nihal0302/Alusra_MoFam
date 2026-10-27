@@ -36,6 +36,7 @@ export const conv = {
   apply: {
     self: {
       lead: 'Great, let’s begin your application.',
+      info: 'To be eligible for the POD card, you need to be an Emirati citizen or a UAE resident, and to have a medical or psychological report from a government hospital or another accredited authority.',
       question: 'Please sign in with UAE PASS',
       primary: 'To fill in your details for you, I will ask you to sign in with UAE PASS.',
       secondary: 'Your name, Emirates ID, nationality, mobile and email are filled in for you.',
@@ -43,6 +44,7 @@ export const conv = {
     },
     other: {
       lead: 'Great, let’s begin your application.',
+      info: 'To be eligible for the POD card, the applicant needs to be an Emirati citizen or a UAE resident, and to have a medical or psychological report from a government hospital or another accredited authority.',
       question: 'Please sign in with UAE PASS',
       primary: 'You will sign in as the applicant, so I will use UAE PASS for your own details.',
       secondary: 'Your name, mobile and email are filled in for you. Their Emirates ID and date of birth are not part of your UAE PASS, so I will ask you for those next.',

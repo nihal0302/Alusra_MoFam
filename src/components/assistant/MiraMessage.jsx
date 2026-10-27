@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ChatIcon } from './ChatIcon.jsx';
 import { NoorAvatar } from './NoorAvatar.jsx';
 import { LinkButton } from './ActionCard.jsx';
 import { MiraCard } from './MiraCards.jsx';
+import alertMark from '../../assets/noor/alert.png'; // the red circle with an exclamation mark, as supplied
 import { usePrefersReducedMotion } from '../../lib/usePrefersReducedMotion.js';
 
 const THANKS_MS = 3500; // how long the thank-you line after a rating stays
@@ -15,6 +16,30 @@ const Chevron = () => (
   </svg>
 );
 
+// The title and its line of body copy, with the alert mark beside them as tall as the two together (it follows the text if it wraps).
+function Alert({ title, body }) {
+  const text = useRef(null);
+  const [size, setSize] = useState(52);
+  useLayoutEffect(() => {
+    const el = text.current;
+    if (!el || typeof ResizeObserver === 'undefined') return undefined;
+    const fit = () => setSize(Math.min(el.offsetHeight || 52, 72)); // as tall as the text, but not huge if the title wraps
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  return (
+    <div className="noor-sec noor-alert">
+      <img className="noor-alert__mark" src={alertMark} alt="" width={size} height={size} style={{ inlineSize: size, blockSize: size }} draggable={false} />
+      <div ref={text}>
+        <h3 className="noor-ask__q">{title}</h3>
+        <p className="noor-ask__text">{body}</p>
+      </div>
+    </div>
+  );
+}
+
 // One Mira turn in Variation 2, drawn as the Mira card of the team's POD Assistant prototype: a "Mira is thinking" line, then a
 // single card whose sections come in one after another. The parts of a reply become sections:
 //   ack      what Mira understood or cannot do (an icon and a line)
@@ -25,9 +50,11 @@ const Chevron = () => (
 // The eligibility result (the "What I understood" card and the result card) is drawn as the prototype draws it: the result
 // header, "Your answers" with Change, the documents to prepare, the next question and its buttons.
 // Stages: thinking → done. The reply is announced once through the panel's live region (see Assistant.jsx).
-export function MiraMessage({ msgId, scenario, avatar, name, head, labels, copy, chosen, tray = false, feedback, rating, onRate, latest = false, onStage, onAction }) {
+export function MiraMessage({ msgId, queued = false, scenario, avatar, name, head, labels, copy, chosen, tray = false, feedback, rating, onRate, latest = false, onStage, onAction }) {
   const reduced = usePrefersReducedMotion();
-  const [stage, setStage] = useState(reduced ? 'done' : 'thinking');
+  // A reply that comes right behind another reply that is still being prepared waits for it (one avatar, one "thinking" at a time)
+  // and then appears straight away.
+  const [stage, setStage] = useState(reduced ? 'done' : queued ? 'queued' : 'thinking');
   const [line, setLine] = useState(0);
   const [time] = useState(stamp);
   const onStageRef = useRef(onStage);
@@ -37,8 +64,13 @@ export function MiraMessage({ msgId, scenario, avatar, name, head, labels, copy,
   const lines = copy.thinking[kind] ?? copy.thinking.default;
 
   useEffect(() => {
+    if (stage === 'queued') return;
     onStageRef.current?.(stage, scenario);
   }, [stage, scenario]);
+
+  useEffect(() => {
+    if (stage === 'queued' && !queued) setStage('done');
+  }, [stage, queued]);
 
   useEffect(() => {
     if (reduced) setStage('done');
@@ -92,6 +124,13 @@ export function MiraMessage({ msgId, scenario, avatar, name, head, labels, copy,
     const out = [];
     if (submitted || result || scenario.cards.some((c) => c.type === 'status' && c.mira)) return out; // cards with no words above them, as in the prototype
     scenario.text.forEach((b, i) => {
+      if (b.alert) {
+        // "You are not eligible…": the red alert mark beside the title and its body copy, centred on them
+        out.push(
+          <Alert key={`alert${i}`} title={b.alert.title} body={b.alert.body} />,
+        );
+        return;
+      }
       if (b.question) {
         const ack = b.primary ?? b.ack;
         if (ack) {
@@ -276,6 +315,8 @@ export function MiraMessage({ msgId, scenario, avatar, name, head, labels, copy,
 
   const rest = scenario.cards.filter((c) => !beforeCards.includes(c) && !(result && (c === result || c === intake)) && !(submitted && c.type === 'suggestions'));
   const thanks = rating === 'up' ? feedback.thanksUp : rating === 'down' ? feedback.thanksDown : '';
+
+  if (stage === 'queued') return null;
 
   return (
     <div className="noor-msg noor-msg--noor noor-turn" data-msg={msgId}>

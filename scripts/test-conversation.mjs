@@ -106,12 +106,11 @@ for (const [text, want] of fieldOf) check(`edit field: ${text}`, readEditField(t
 
 // ---- Which group is next
 const fillAll = { emirate: 'Dubai', address: 'x', disability: 'Autism', photo: {}, report: {} };
-check('next: self starts with delivery', nextGroup('self', {}, new Set()) === 'delivery');
+check('next: self starts with the documents (they decide eligibility)', nextGroup('self', {}, new Set()) === 'documents');
 check('next: someone else starts with the cardholder', nextGroup('other', {}, new Set()) === 'cardholder');
-check('next: then delivery', nextGroup('other', { cardholderEid: 'x' }, new Set()) === 'delivery');
-check('next: then documents (the report is read before the disability type is confirmed)', nextGroup('self', { emirate: 'Dubai', address: 'x' }, new Set()) === 'documents');
-check('next: then disability', nextGroup('self', { emirate: 'Dubai', address: 'x', photo: {}, report: {} }, new Set()) === 'disability');
-check('next: then documents', nextGroup('self', { emirate: 'Dubai', address: 'x', disability: 'Autism' }, new Set()) === 'documents');
+check('next: then the documents', nextGroup('other', { cardholderEid: 'x' }, new Set()) === 'documents');
+check('next: then the disability type (confirmed after the report is read)', nextGroup('self', { photo: {}, report: {} }, new Set()) === 'disability');
+check('next: then delivery', nextGroup('self', { photo: {}, report: {}, disability: 'Autism' }, new Set()) === 'delivery');
 check('next: then the optional extras', nextGroup('self', fillAll, new Set()) === 'extras');
 check('next: then employment', nextGroup('self', fillAll, new Set(['extras'])) === 'employment');
 check('next: skipping employment still asks about support', nextGroup('self', fillAll, new Set(['extras', 'employment'])) === 'support');

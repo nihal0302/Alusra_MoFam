@@ -29,7 +29,7 @@ export const ui = {
     title: 'How can I help you today?',
     subtitle: 'Choose an option, or tap the microphone and tell me in your own words.',
     items: [
-      { id: 'apply', label: 'Apply for a POD card', description: 'Check eligibility first. About 1 minute.', icon: 'card' },
+      { id: 'apply', label: 'Apply for a POD card', description: 'Sign in with UAE PASS, then apply.', icon: 'card' },
       { id: 'status', label: 'Check application status', description: 'You’ll need your application number.', icon: 'clock' },
       { id: 'ask', label: 'Ask a question', description: 'About the card, documents or services.', icon: 'chat' },
     ],
@@ -83,7 +83,7 @@ export const ui = {
 };
 
 export const topics = [
-  { id: 'apply', label: 'Start POD application', description: 'Check eligibility, then apply for the card.', icon: 'fileAdd', message: 'Start POD application' },
+  { id: 'apply', label: 'Start POD application', description: 'Sign in with UAE PASS, then apply for the card.', icon: 'fileAdd', message: 'Start POD application' },
   { id: 'ask', label: 'Ask a question', description: 'Answers on services, fees and documents.', icon: 'messageQuestion', message: 'Ask a question' },
   { id: 'status', label: 'Check application status', description: 'See where your application stands.', icon: 'search', message: 'Check application status' },
 ];
@@ -102,9 +102,9 @@ const REQUIRED_DOCS = [
 
 export const eligibilityCard = {
   type: 'eligibility',
-  title: 'Check if you’re eligible',
+  title: 'Apply for the POD card',
   description: 'A few quick questions · I will tell you exactly what to prepare',
-  action: { label: 'Start check', event: 'startCheck' }, // starts the application: UAE PASS first, then the eligibility check
+  action: { label: 'Start application', event: 'startCheck' }, // starts the application: UAE PASS first
 };
 
 // Matched in order; first hit wins. Keep specific intents above general ones.
@@ -257,7 +257,7 @@ export const scenarios = [
     text: [
       {
         lead: 'Certainly, let us begin your application.',
-        primary: 'I will ask you to sign in with UAE PASS first, then a few quick questions to check that you are eligible.',
+        primary: 'I will ask you to sign in with UAE PASS first, so I can fill in your details.',
         secondary: 'You can change any answer.',
       },
     ],

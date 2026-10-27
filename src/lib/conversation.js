@@ -25,9 +25,10 @@ const WORK_ONLY = ['workSector', 'employer', 'jobTitle', 'academicDegree']; // a
 
 export const GROUPS = [
   { id: 'cardholder', required: ['cardholderEid'], when: (who) => who === 'other' },
-  { id: 'delivery', required: ['emirate', 'address'] },
-  { id: 'documents', required: ['photo', 'report'] }, // the documents come first: Mira reads the report, then confirms the disability type with the person
+  // What decides eligibility comes first: the documents (Mira reads the report), then the disability type is confirmed; then the rest.
+  { id: 'documents', required: ['photo', 'report'] },
   { id: 'disability', required: ['disability'] },
+  { id: 'delivery', required: ['emirate', 'address'] },
   { id: 'extras', optional: true },
   { id: 'employment', optional: true },
   { id: 'workplace', optional: true, when: (who, d) => EMPLOYED.includes(d.employmentStatus) },
@@ -464,7 +465,7 @@ export function buildApplyConv(app, base, who) {
   const a = app.conv.apply[who === 'other' ? 'other' : 'self'];
   return {
     ...base,
-    text: [{ lead: a.lead, question: a.question, how: a.description }],
+    text: [{ lead: a.lead, primary: a.info, question: a.question, how: a.description }],
     cards: base.cards.map((card) => (card.type === 'uaepass' ? { ...card, description: a.description } : card)),
   };
 }
@@ -593,7 +594,7 @@ export function reviewGroups(app, { who, data }) {
 
 // The review: a short opener and a line saying what follows, then the card with every answer. The card's confirmation says in one
 // paragraph that the details are accurate and how to submit or change them.
-export function buildReviewConv(app, { who, data, updated = [] }) {
+export function buildReviewConv(app, { who, data, updated = [], fromMessage = false }) {
   const c = app.conv.review;
   const r = app.review;
   const again = updated.length > 0;
@@ -605,7 +606,7 @@ export function buildReviewConv(app, { who, data, updated = [] }) {
       {
         type: 'appReview',
         title: r.title,
-        fromUaePass: r.fromUaePass,
+        fromUaePass: fromMessage ? app.upfront.reviewTag : r.fromUaePass,
         change: r.change,
         consent: r.consent,
         note: r.note,

@@ -13,10 +13,11 @@ const PARTS = ['lead', 'primary', 'tag', 'secondary', 'note', 'example'];
 // Stages: thinking → tool → stream → done. Reduced motion skips straight to done.
 // Screen readers: the streaming text is hidden from them and the finished reply is announced
 // once through the panel's live region (see Assistant.jsx), so they never hear it word by word.
-export function NoorMessage({ msgId, scenario, avatar, onStage, onAction, labels, chosen, tray = false, feedback, rating, onRate, latest = false }) {
+export function NoorMessage({ msgId, queued = false, scenario, avatar, onStage, onAction, labels, chosen, tray = false, feedback, rating, onRate, latest = false }) {
   const reduced = usePrefersReducedMotion();
   const hasTool = Boolean(scenario.tool);
-  const [stage, setStage] = useState(reduced ? 'done' : 'thinking');
+  // Right behind another reply that is still being prepared: wait for it, then appear straight away (one avatar at a time).
+  const [stage, setStage] = useState(reduced ? 'done' : queued ? 'queued' : 'thinking');
   const [shown, setShown] = useState(0);
   const onStageRef = useRef(onStage);
   onStageRef.current = onStage;
@@ -29,6 +30,7 @@ export function NoorMessage({ msgId, scenario, avatar, onStage, onAction, labels
       scenario.text.flatMap((b0) => {
         // The question, then on separate lines how to answer it (`how`) and anything else worth knowing (`note`), then an example.
         // A label with its value in bold ("Disability type" / "Physical") is one bubble; the question about it is the next bubble.
+        if (b0.alert) return [{ lead: b0.alert.title, primary: b0.alert.body }];
         if (b0.intro && b0.plainHow) {
           return [
             { lead: b0.intro, plainLead: true, primary: b0.question, ask: true },
@@ -60,8 +62,16 @@ export function NoorMessage({ msgId, scenario, avatar, onStage, onAction, labels
   const total = words.reduce((n, w) => n + PARTS.reduce((m, k) => m + w[k].length, 0) + w.items.reduce((m, t) => m + t.length, 0), 0);
 
   useEffect(() => {
+    if (stage === 'queued') return;
     onStageRef.current?.(stage, scenario);
   }, [stage, scenario]);
+
+  useEffect(() => {
+    if (stage === 'queued' && !queued) {
+      setShown(total);
+      setStage('done');
+    }
+  }, [stage, queued, total]);
 
   useEffect(() => {
     if (reduced) {
@@ -104,6 +114,8 @@ export function NoorMessage({ msgId, scenario, avatar, onStage, onAction, labels
     cursor += list.length;
     return { text: list.slice(0, visible).join(' '), active: streaming && visible > 0 && visible < list.length, started: visible > 0 };
   };
+
+  if (stage === 'queued') return null;
 
   return (
     <div className="noor-msg noor-msg--noor" data-msg={msgId}>

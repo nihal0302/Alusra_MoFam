@@ -107,9 +107,49 @@ export function buildWhoAsk(app, { conv = false } = {}) {
 }
 
 // When who the card is for was already said (in the first message): just the details that came from UAE PASS.
-export function buildSignedIn(app, { conv = false } = {}) {
+export function buildSignedIn(app, { conv = false, upfront = false } = {}) {
   const base = buildWhoAsk(app, { conv });
-  return { ...base, id: 'app:signedin', text: [{ primary: app.who.signedIn }], cards: [{ ...base.cards[0], before: false }] };
+  const details = { ...base.cards[0], before: false };
+  if (upfront && details.mira) details.mira = { ...details.mira, ...app.upfront.mira, welcome: fill(app.upfront.mira.welcome, { first: app.signIn.profile.first }) };
+  return { ...base, id: 'app:signedin', text: [{ primary: upfront ? app.upfront.text : app.who.signedIn }], cards: [details] };
+}
+
+// For someone else: whether they are an Emirati citizen or a UAE resident (buttons; typing works too).
+export function buildStatusAsk(app) {
+  const s = app.who.status;
+  return { id: 'app:status', tool: null, text: [{ question: s.question, how: s.how }], cards: [{ type: 'actions', buttons: s.options.map((o, i) => ({ label: o.label, variant: i === 0 ? 'primary' : 'secondary' })) }] };
+}
+
+// 'citizen', 'resident', 'neither' or null from a typed or spoken reply ("neither" and "resident" are checked before "citizen").
+export function readStatus(app, text) {
+  const t = text.toLowerCase();
+  const has = (words) => words.some((k) => new RegExp('\\b' + k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).test(t));
+  const by = Object.fromEntries(app.who.status.options.map((o) => [o.value, o.match]));
+  if (has(by.neither.filter((k) => k !== 'no')) || /^\s*no\b/.test(t)) return 'neither';
+  if (has(by.resident)) return 'resident';
+  if (has(by.citizen)) return 'citizen';
+  return null;
+}
+
+// The application cannot go on: why, and where to get help. `support` is the contact card (the same as for a question Mira cannot answer).
+export function buildNotEligible(app, reason, support) {
+  const n = app.notEligible;
+  return {
+    id: 'app:not-eligible',
+    tool: null,
+    // the title with the reason under it (one line), the alert mark beside them; then the offer of help above the contacts
+    text: [{ alert: { title: n.question, body: n.reasons[reason] } }],
+    cards: [...(support ? [{ ...support, lead: n.how }] : []), { type: 'actions', buttons: [{ label: 'Ask something else', variant: 'secondary' }, { label: 'Apply for a POD card', variant: 'primary' }] }],
+  };
+}
+
+// The Emirates ID, email and mobile number found in a message (all three: the person has given their details up front).
+export function readProfile(text) {
+  const eid = text.match(/\b784[-\s]?\d{4}[-\s]?\d{7}[-\s]?\d\b/)?.[0] ?? null;
+  const email = text.match(/[\w.+-]+@[\w-]+(?:\.[\w-]+)+/)?.[0] ?? null;
+  const rest = text.replace(eid ?? '', ' ').replace(email ?? '', ' ');
+  const mobile = rest.match(/(?:\+?971|0)?[\s-]?5\d[\s-]?\d{3}[\s-]?\d{4}/)?.[0] ?? null;
+  return { eid, email, mobile };
 }
 
 // Someone returns to an application left half done: continue or start again.
@@ -129,12 +169,10 @@ export function buildResumeSummary(app, eligibility, saved, reviewRows) {
   const r = app.resume;
   const labels = app.conv.review.labels;
   const uaepass = app.conv.profileRows[saved.who].map((id) => app.signIn.profile.rows.find((x) => x.id === id)).filter(Boolean).map((x) => ({ id: x.id, label: x.label, value: x.value }));
-  const check = reviewRows(eligibility, saved.eligibility).map((x) => ({ id: x.qid, label: x.label, value: x.answer }));
-  const delivery = ['emirate', 'address', 'deliveryMobile'].filter((k) => saved.data[k]).map((k) => ({ id: k, label: labels[k], value: saved.data[k] }));
+  const who = [{ id: 'who', label: labels.applyingFor, value: saved.who === 'other' ? app.conv.review.forOther : app.conv.review.forSelf }];
   const groups = [
     { key: 'uaepass', title: r.groups.uaepass, rows: uaepass },
-    { key: 'eligibility', title: r.groups.eligibility, rows: check },
-    { key: 'delivery', title: r.groups.delivery, rows: delivery },
+    { key: 'who', title: r.groups.who, rows: who },
   ].filter((g) => g.rows.length);
   return { id: 'app:resume-summary', tool: null, text: [{ primary: r.summary }], cards: [{ type: 'saved', groups, icons: r.icons, spoken: `${r.summary} ${groups.map((g) => g.title).join(', ')}.` }] };
 }

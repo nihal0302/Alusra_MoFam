@@ -323,10 +323,23 @@ export const application = {
   who: {
     lead: 'I just need to confirm one thing.',
     question: 'Is this application for yourself or for someone else?',
-    how: 'I will use your UAE PASS details, and ask only what is needed to check eligibility.',
+    how: 'I will use your UAE PASS details. If it is for someone else, I will ask for a few more.',
     signedIn: 'Thank you. I have your details from UAE PASS.',
     myself: 'Myself',
     other: 'Someone else',
+    // For someone else, UAE PASS knows only the person signed in, so their citizenship or residency is asked (one question).
+    status: {
+      question: 'Is the applicant an Emirati citizen or a UAE resident?',
+      how: 'I need to confirm this for the person the card is for.',
+      placeholder: 'Reply “Emirati citizen”, “UAE resident” or “neither”…',
+      voiceSample: 'An Emirati citizen',
+      nudge: 'Please say whether the applicant is an Emirati citizen, a UAE resident, or neither.',
+      options: [
+        { value: 'citizen', label: 'Emirati citizen', match: ['emirati', 'citizen', 'national'] },
+        { value: 'resident', label: 'UAE resident', match: ['resident', 'residence', 'visa', 'expat'] },
+        { value: 'neither', label: 'Neither', match: ['neither', 'none', 'visitor', 'tourist', 'not a citizen', 'not a resident', 'no'] },
+      ],
+    },
     placeholder: 'Reply “myself” or “someone else”…',
     voiceSample: 'It is for myself',
     nudge: 'Please say whether this application is for yourself or for someone else.',
@@ -340,21 +353,41 @@ export const application = {
   // Someone who comes back to an application they did not finish (the "returning" testing scenario, see demo.en.js): Mira asks
   // whether to continue or start again; on "continue" she shows what was entered earlier, then asks the next question.
   resume: {
-    ack: 'Welcome back.',
-    question: 'You started an application earlier. Would you like to continue from where you stopped, or start again from the beginning?',
+    question: 'You started an application earlier. Would you like to continue it, or discard it and start again?',
     how: 'You stopped at the {stage} step. Your earlier answers have been kept.',
-    continue: 'Continue where I stopped',
-    again: 'Start again',
-    placeholder: 'Reply “continue” or “start again”…',
-    voiceSample: 'Continue where I stopped',
+    continue: 'Continue my application',
+    again: 'Discard & start again',
+    placeholder: 'Reply “continue” or “discard”…',
+    voiceSample: 'Continue my application',
     summary: 'Welcome back. Here are the details you entered earlier.',
-    groups: { uaepass: 'From UAE PASS', eligibility: 'Eligibility', delivery: 'Delivery' },
-    icons: { uaepass: 'user', eligibility: 'check', delivery: 'home' },
+    groups: { uaepass: 'From UAE PASS', who: 'Application' },
+    icons: { uaepass: 'user', who: 'check' },
     // APPROX: everyday words for each answer (matched at the start of a word).
     match: {
-      again: ['start again', 'start over', 'begin again', 'from the beginning', 'restart', 'new application', 'no'],
+      again: ['discard', 'start again', 'start over', 'begin again', 'from the beginning', 'restart', 'new application', 'no'],
       continue: ['continue', 'resume', 'carry on', 'where i stopped', 'pick up', 'yes'],
     },
+  },
+
+  // When the applicant cannot go on: the card is for Emirati citizens and UAE residents with a report from an accredited authority.
+  // Found out as the application goes: from the answer about someone else's citizenship, from "I do not have the report", or
+  // from the reading of the report (see `reading.notAccredited`).
+  notEligible: {
+    question: 'You are not eligible for the POD card at this stage.',
+    how: 'If you think this is a mistake, our support team can help.',
+    reasons: {
+      noReport: 'A medical or psychological report is required to apply.', // each reason is one short line
+      notAccredited: 'The report must come from an accredited authority.',
+      citizenship: 'The card is for Emirati citizens and UAE residents.',
+    },
+  },
+
+  // Everything given in the first message (name, Emirates ID, mobile, email, delivery address, who it is for, both documents): there is
+  // no UAE PASS, and Mira goes on to what is still missing. APPROX: the details are not read from the message; the sample person's are used.
+  upfront: {
+    text: 'Thank you. I have read your message and your documents. Here are your details.',
+    mira: { welcome: 'Thank you, {first}', signedIn: 'I have read the details in your message.', tag: 'From your message', note: 'You can change any of these before you submit.' },
+    reviewTag: 'From your message',
   },
 
   // After the two documents are in, Mira "reads" them and says which disability type the report names; the person confirms it or
@@ -367,6 +400,9 @@ export const application = {
     steps: ['Checking your personal photograph', 'Opening your report', 'Reading the report', 'Identifying the disability type'],
     done: 'Document scan completed',
     sample: 'Physical',
+    // A report whose file name says it is from a private clinic is found not to be from an accredited authority (APPROX: a real
+    // service would read the report): the person is told they are not eligible.
+    notAccredited: 'private|clinic|unaccredited|non.?accredited|not.?accredited',
     detect: [
       ['autis', 'Autism'],
       ['hearing.?visual|deaf.?blind', 'Hearing-Visual'],

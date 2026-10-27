@@ -10,11 +10,12 @@ import { EMPLOYED, chipOptions, chipSplit, readSingle, reviewGroups, subject } f
 export const STEPS = [
   { id: 'cardholderEid', when: (who) => who === 'other' },
   { id: 'cardholderDob', optional: true, when: (who) => who === 'other' },
-  { id: 'emirate' },
-  { id: 'address' },
+  // What decides eligibility comes first: the documents (Mira reads the report), then the disability type is confirmed; then the rest.
   { id: 'photo' },
   { id: 'report' },
-  { id: 'disability' }, // after the documents: Mira reads the report, then confirms the disability type with the person
+  { id: 'disability' },
+  { id: 'emirate' },
+  { id: 'address' },
   { id: 'additional', optional: true },
   { id: 'altMobile', optional: true },
   { id: 'eidExpiry', optional: true, when: (who) => who !== 'other' },
