@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { buildDetected, buildNudge, buildPrompt, buildReading, buildSignIn, buildSignedIn, buildSigningIn, buildStatusAsk, buildSubmitted, buildWhoAsk, detectDisability, fill, newReference, readStatus, readWho } from '../../lib/application.js';
+import { buildDetected, buildNudge, buildPrompt, buildReading, buildSignIn, buildSignedIn, buildSigningIn, buildSubmitted, buildWhoAsk, detectDisability, fill, newReference, readWho } from '../../lib/application.js';
 import {
   CONV_KINDS,
   GROUPS,
@@ -280,8 +280,9 @@ export function useApplication(app, api, { conv = false } = {}) {
             setAwait({ kind: 'who', step: 'who', msgId, placeholder: app.who.placeholder, voiceSample: app.who.voiceSample });
             return;
           }
-          // Said already (in the first message): the details, then the eligibility check.
-          api.pushNoor(buildSignedIn(app, { conv }));
+          // Said already (in the first message): the details, then the application's questions. When the whole application was given in
+          // the message, the details are said to match UAE PASS.
+          api.pushNoor(buildSignedIn(app, { conv, upfront: ref.current.source === 'message' }));
           afterWho(ref.current.who);
         }, app.signIn.wait.ms);
         return true;
@@ -549,42 +550,19 @@ export function useApplication(app, api, { conv = false } = {}) {
     ref.current.who = who;
     ref.current.whoKnown = true;
     setAwait(null);
-    if (who === 'other') {
-      // UAE PASS knows only the person signed in: whether the applicant is a citizen or resident is asked.
-      const msgId = api.pushNoor(buildStatusAsk(app));
-      setAwait({ kind: 'status', step: 'status', msgId, placeholder: app.who.status.placeholder, voiceSample: app.who.status.voiceSample });
-      return;
-    }
-    begin(); // for themselves: UAE PASS gave everything, so straight to the application's questions
-  };
-  const statusText = (text, aw, known) => {
-    if (looksLikeQuestion(text) && known) return false;
-    const status = readStatus(app, text);
-    if (status) {
-      api.lock(aw.msgId, 'answered');
-      api.pushUser(text);
-      if (status === 'neither') notEligible('citizenship');
-      else begin();
-      return true;
-    }
-    if (known) return false;
-    api.pushUser(text);
-    api.pushNoor(buildNudge(app.who.status.nudge));
-    return true;
+    // Straight to the application's questions. Citizenship or residency is not asked, of the person or of someone else: UAE PASS says it
+    // for the person signed in, and applying is enough for the card.
+    begin();
   };
   // The eligibility check is done and the person starts the application: UAE PASS has been done, so it goes straight to the questions.
-  // Everything given in the first message (name, Emirates ID, mobile, email, delivery address, who it is for) and both documents: no UAE PASS.
-  // Mira shows the details and goes on to what is still missing. APPROX: the sample person's details stand for what was typed.
+  // Everything given in the first message (name, Emirates ID, mobile, email, delivery address, who it is for) and both documents: what was
+  // said is kept, and the caller asks for UAE PASS first (to check the details). After the sign-in (see 'uaepass' in `handle`) Mira says
+  // they match and goes on to what is still missing. APPROX: the sample person's details stand for what was typed.
   const startWithDetails = ({ who, deliveryText }) => {
     ref.current.who = who;
     ref.current.whoKnown = true;
-    ref.current.signedIn = true;
     ref.current.source = 'message';
-    const mobile = app.signIn.profile.rows.find((r) => r.id === 'mobile')?.value;
-    if (mobile) store('deliveryMobile', mobile);
     if (deliveryText) ref.current.data = { ...ref.current.data, ...readGroup('delivery', deliveryText, ref.current.data, ctx()) };
-    api.pushNoor(buildSignedIn(app, { conv, upfront: true }));
-    begin();
   };
 
   // Someone returns to an application left half done and chooses to continue: what was entered earlier is back.
@@ -616,6 +594,7 @@ export function useApplication(app, api, { conv = false } = {}) {
     api.pushNoor(buildNudge(app.who.nudge));
     return true;
   };
+
 
   // The reply to "Is this the correct disability type?": yes keeps it, a type names the right one, no asks for it with the usual choices.
   const detectedText = (text, aw, known) => {
@@ -650,7 +629,6 @@ export function useApplication(app, api, { conv = false } = {}) {
     if (!aw) return false;
     if (aw.kind === 'detected') return detectedText(text, aw, known);
     if (aw.kind === 'who') return whoText(text, aw, known);
-    if (aw.kind === 'status') return statusText(text, aw, known);
     if (conv && CONV_KINDS.includes(aw.kind)) return convText(text, aw, known);
     return stepText(text, aw, known);
   };

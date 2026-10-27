@@ -470,6 +470,17 @@ export function buildApplyConv(app, base, who) {
   };
 }
 
+// The first message gave all the details: UAE PASS is still the first step, to check them. `base` is the scripted scenario.
+export function buildUpfrontSignIn(app, base) {
+  const u = app.upfront.signIn;
+  return {
+    ...base,
+    // one statement (no separate acknowledgement line above it), then the question with the button
+    text: [{ lead: `${u.lead} ${u.primary}`, plainLead: true, question: app.conv.apply.self.question }],
+    cards: base.cards.map((card) => (card.type === 'uaepass' ? { ...card, description: u.description } : card)),
+  };
+}
+
 // Asks for one group (or what is still missing of it), after saying what was understood.
 export function buildGroupAsk(app, id, { who, data, noted = [], docs = [], prefix = '' }) {
   const parts = groupParts(app, id, { who, data });

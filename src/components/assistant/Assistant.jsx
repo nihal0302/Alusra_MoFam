@@ -12,7 +12,7 @@ import { NoorMessage } from './NoorMessage.jsx';
 import { MiraMessage } from './MiraMessage.jsx';
 import { resolveScenario } from '../../lib/noor.js';
 import { buildQuestion, buildResult, buildReview, nextStep, parseAnswer, pathOf, purge, reviewRows } from '../../lib/eligibility.js';
-import { CONV_KINDS, batchExample, buildApplyConv, buildBatch, buildNudgeConv, looksLikeQuestion, readBatch } from '../../lib/conversation.js';
+import { CONV_KINDS, batchExample, buildApplyConv, buildBatch, buildUpfrontSignIn, buildNudgeConv, looksLikeQuestion, readBatch } from '../../lib/conversation.js';
 import { useApplication } from './useApplication.js';
 import { usePrefersReducedMotion } from '../../lib/usePrefersReducedMotion.js';
 import { buildNudge } from '../../lib/application.js';
@@ -413,8 +413,8 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
 
   // A first message that already says things (who it is for, files attached): the files are kept for the documents step, and a
   // statement of who the card is for means that question is not asked.
-  // A first message with the person's details (Emirates ID, email, mobile), who it is for, a delivery address and the documents: no UAE PASS.
-  // Mira shows the details and asks for whatever is still missing, then the optional questions, then the summary.
+  // A first message with the person's details (Emirates ID, email, mobile), who it is for, a delivery address and the documents: UAE PASS
+  // comes first, to check them. Then Mira shows the details and asks for whatever is still missing, then the optional questions, then the summary.
   const startFromDetails = (text, files, facts) => {
     expandForCheck();
     const placed = placeFiles(docsRef.current, files);
@@ -427,6 +427,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
     app.reset();
     app.prefill(docsRef.current);
     app.startWithDetails({ who: facts.who === 'other' ? 'other' : 'self', deliveryText: text.match(/(?:delivered|delivery)[^.]*?\bto\b\s+([^.]+)/i)?.[1] });
+    pushNoor(buildUpfrontSignIn(application, afterCheck.apply)); // UAE PASS first, to check the details given
   };
 
   const startFromMessage = (text, files, facts) => {
@@ -628,11 +629,11 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
         // Files, or a message that already tells Mira two or more of the answers: read it all at once.
         const facts = extractFacts(text);
         if (!app.signedIn() && (files.length || (countFacts(facts) >= 2 && !open && !statusRef.current) || (readProfile(text).eid && readProfile(text).email))) {
-          // The first message already gives details, or files: with all the details in it there is no UAE PASS; otherwise UAE PASS comes
-          // first and what was said is kept. (There is no eligibility result: eligibility is found out as the application goes.)
+          // The first message already gives details, or files: UAE PASS comes first in every case (with all the details in the message it
+          // checks them), and what was said is kept. (There is no eligibility result: eligibility is found out as the application goes.)
           const given = readProfile(text);
           if (scenarioName === 'returning' && !resumeRef.current.handled) startFromMessage(text, files, facts); // the question of continuing comes first
-          else if (given.eid && given.email && given.mobile) startFromDetails(text, files, facts); // the details are all in the message: no UAE PASS
+          else if (given.eid && given.email && given.mobile) startFromDetails(text, files, facts); // the details are all in the message: UAE PASS first, to check them
           else startFromMessage(text, files, facts); // UAE PASS first; what was said is kept
           return;
         }
@@ -710,7 +711,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
     if (waiting?.msgId === msgId && waiting.batch) return 'batch';
     const a = appRef.current?.awaiting;
     if (a?.msgId !== msgId) return null;
-    if (a.kind === 'who' || a.kind === 'detected' || a.kind === 'status') return a.kind;
+    if (a.kind === 'who' || a.kind === 'detected') return a.kind;
     if (a.kind === 'docs') return 'documents';
     if (a.kind === 'confirm') return 'confirm';
     return a.kind === 'multi' ? a.group : null;

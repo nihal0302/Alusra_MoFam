@@ -114,23 +114,6 @@ export function buildSignedIn(app, { conv = false, upfront = false } = {}) {
   return { ...base, id: 'app:signedin', text: [{ primary: upfront ? app.upfront.text : app.who.signedIn }], cards: [details] };
 }
 
-// For someone else: whether they are an Emirati citizen or a UAE resident (buttons; typing works too).
-export function buildStatusAsk(app) {
-  const s = app.who.status;
-  return { id: 'app:status', tool: null, text: [{ question: s.question, how: s.how }], cards: [{ type: 'actions', buttons: s.options.map((o, i) => ({ label: o.label, variant: i === 0 ? 'primary' : 'secondary' })) }] };
-}
-
-// 'citizen', 'resident', 'neither' or null from a typed or spoken reply ("neither" and "resident" are checked before "citizen").
-export function readStatus(app, text) {
-  const t = text.toLowerCase();
-  const has = (words) => words.some((k) => new RegExp('\\b' + k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).test(t));
-  const by = Object.fromEntries(app.who.status.options.map((o) => [o.value, o.match]));
-  if (has(by.neither.filter((k) => k !== 'no')) || /^\s*no\b/.test(t)) return 'neither';
-  if (has(by.resident)) return 'resident';
-  if (has(by.citizen)) return 'citizen';
-  return null;
-}
-
 // The application cannot go on: why, and where to get help. `support` is the contact card (the same as for a question Mira cannot answer).
 export function buildNotEligible(app, reason, support) {
   const n = app.notEligible;

@@ -327,19 +327,6 @@ export const application = {
     signedIn: 'Thank you. I have your details from UAE PASS.',
     myself: 'Myself',
     other: 'Someone else',
-    // For someone else, UAE PASS knows only the person signed in, so their citizenship or residency is asked (one question).
-    status: {
-      question: 'Is the applicant an Emirati citizen or a UAE resident?',
-      how: 'I need to confirm this for the person the card is for.',
-      placeholder: 'Reply “Emirati citizen”, “UAE resident” or “neither”…',
-      voiceSample: 'An Emirati citizen',
-      nudge: 'Please say whether the applicant is an Emirati citizen, a UAE resident, or neither.',
-      options: [
-        { value: 'citizen', label: 'Emirati citizen', match: ['emirati', 'citizen', 'national'] },
-        { value: 'resident', label: 'UAE resident', match: ['resident', 'residence', 'visa', 'expat'] },
-        { value: 'neither', label: 'Neither', match: ['neither', 'none', 'visitor', 'tourist', 'not a citizen', 'not a resident', 'no'] },
-      ],
-    },
     placeholder: 'Reply “myself” or “someone else”…',
     voiceSample: 'It is for myself',
     nudge: 'Please say whether this application is for yourself or for someone else.',
@@ -370,23 +357,28 @@ export const application = {
   },
 
   // When the applicant cannot go on: the card is for Emirati citizens and UAE residents with a report from an accredited authority.
-  // Found out as the application goes: from the answer about someone else's citizenship, from "I do not have the report", or
-  // from the reading of the report (see `reading.notAccredited`).
+  // Found out as the application goes: from "I do not have the report", or from the reading of the report (see `reading.notAccredited`).
+  // Citizenship and residency are never asked (UAE PASS tells them for the person signed in).
   notEligible: {
     question: 'You are not eligible for the POD card at this stage.',
     how: 'If you think this is a mistake, our support team can help.',
     reasons: {
       noReport: 'A medical or psychological report is required to apply.', // each reason is one short line
       notAccredited: 'The report must come from an accredited authority.',
-      citizenship: 'The card is for Emirati citizens and UAE residents.',
     },
   },
 
-  // Everything given in the first message (name, Emirates ID, mobile, email, delivery address, who it is for, both documents): there is
-  // no UAE PASS, and Mira goes on to what is still missing. APPROX: the details are not read from the message; the sample person's are used.
+  // Everything given in the first message (name, Emirates ID, mobile, email, delivery address, who it is for, both documents): UAE PASS
+  // still comes first, so that the details given can be checked against it; then Mira goes on to what is still missing.
+  // APPROX: the details are not read from the message and compared; the sample person's are used, and they always match.
   upfront: {
-    text: 'Thank you. I have read your message and your documents. Here are your details.',
-    mira: { welcome: 'Thank you, {first}', signedIn: 'I have read the details in your message.', tag: 'From your message', note: 'You can change any of these before you submit.' },
+    signIn: {
+      lead: 'Thank you. I have read your message.',
+      primary: 'Before I go on, please sign in with UAE PASS so that I can check the details you gave.',
+      description: 'UAE PASS confirms your name, Emirates ID, mobile number and email, to check what you have told me. You’ll see everything before anything is submitted.',
+    },
+    text: 'Thank you. The details in your message match your UAE PASS details.',
+    mira: { welcome: 'Thank you, {first}', signedIn: 'Your message matches your UAE PASS details.', tag: 'Checked with UAE PASS', note: 'You can change any of these before you submit.' },
     reviewTag: 'From your message',
   },
 

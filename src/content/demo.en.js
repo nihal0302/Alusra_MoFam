@@ -25,7 +25,7 @@ export const demo = {
   options: [
     ['free', 'Free', 'Nothing is pre-filled. Speak or type whatever you wish, and attach your own files.'],
     ['plain', 'Pre-filled answers', 'Answers each question as it is asked. A complete sample answer is pre-filled for every question.'],
-    ['upfront', 'Everything up front', 'The first message has everything: name, Emirates ID, mobile, email, who it is for, the delivery address and both documents. No UAE PASS: Mira shows the details, reads the documents, asks the optional questions and shows the summary.'],
+    ['upfront', 'Everything up front', 'The first message has everything: name, Emirates ID, mobile, email, who it is for, the delivery address and both documents. UAE PASS comes first, to check them; then Mira shows the details, reads the documents, asks the optional questions and shows the summary.'],
     ['forgetful', 'Forgetful', 'Like Everything up front, but something is forgotten in the first message (the delivery address). Mira asks for what is missing, then goes on.'],
     ['returning', 'Returning visitor', 'Someone who left an application half done and has come back: Mira asks whether to continue or start again, and on continue shows what was entered earlier.'],
     ['offtopic', 'Unrecognised question', 'A question that has nothing to do with the Ministry (I want to order a pizza). Mira says what she can help with, and offers to start an application or check a status.'],
@@ -59,9 +59,8 @@ export const demo = {
     },
   },
   samples: {
-    // who the card is for (asked after UAE PASS), and, for someone else, whether they are a citizen or resident
+    // who the card is for (asked after UAE PASS)
     who: { default: ['Myself'], forgetful: ['Myself'] },
-    status: { default: ['Emirati citizen'] },
     // (the answers to the eligibility questions that are asked are written from the questions themselves: see sampleFor)
     cardholder: { default: ['784-1985-1234567-1, born 15 May 1985'] },
     delivery: {

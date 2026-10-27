@@ -2,7 +2,8 @@
 // typed answer to each question is read, what each question shows (buttons, Skip, upload), and the review.
 // `npm run steps:test`  (exits 1 if an expectation fails)
 import { application } from '../src/content/application.en.js';
-import { buildDetected, buildNotEligible, buildResumeOffer, buildResumeSummary, buildStatusAsk, buildWhoAsk, detectDisability, readProfile, readResume, readStatus, readWho } from '../src/lib/application.js';
+import { buildDetected, buildNotEligible, buildResumeOffer, buildResumeSummary, buildWhoAsk, detectDisability, readProfile, readResume, readWho } from '../src/lib/application.js';
+import { buildUpfrontSignIn } from '../src/lib/conversation.js';
 import { demo } from '../src/content/demo.en.js';
 import { eligibility } from '../src/content/eligibility.en.js';
 import { reviewRows } from '../src/lib/eligibility.js';
@@ -151,15 +152,14 @@ check('resume: shows the UAE PASS details and who the application is for', summa
 check('resume: the saved application is missing the documents, so they are asked next', nextStep('self', { ...demo.saved.data }, new Set()) === 'photo');
 
 // Eligibility is not a test: the card is for citizens and residents with an accredited report, found out as the application goes.
-for (const [text, want] of [['An Emirati citizen', 'citizen'], ['UAE resident', 'resident'], ['they are a resident', 'resident'], ['neither', 'neither'], ['no', 'neither'], ['a tourist', 'neither'], ['blue', null]]) {
-  check('status: ' + text, readStatus(application, text) === want);
-}
-check('status question: Emirati citizen, UAE resident, Neither', buildStatusAsk(application).cards[0].buttons.map((b) => b.label).join() === 'Emirati citizen,UAE resident,Neither');
+check('citizenship and residency are not asked: no such question exists', !application.who.status);
 const given = readProfile(demo.landing.upfront.text);
 check('details up front: the Emirates ID, email and mobile are found in the message', given.eid === '784-1998-1234567-1' && given.email === 'hamdan@example.com' && given.mobile === '050 123 4567');
 check('details up front: a message without them is not read as details', !readProfile('I want to apply for myself').eid);
+const upSign = buildUpfrontSignIn(application, { id: 'x', tool: null, text: [], cards: [{ type: 'uaepass', action: { label: 'Sign in with UAE PASS', event: 'uaepass' } }] });
+check('details up front: UAE PASS is asked first, to check the details', upSign.cards[0].type === 'uaepass' && upSign.cards[0].description === application.upfront.signIn.description && upSign.text.length === 1 && !upSign.text[0].primary && upSign.text[0].lead.startsWith('Thank you') && upSign.text[0].lead.includes('sign in with UAE PASS'));
 check('not eligible: a private clinic report is not accredited', new RegExp(application.reading.notAccredited, 'i').test('private-clinic-report.pdf') && !new RegExp(application.reading.notAccredited, 'i').test('rashid-hospital-report.pdf'));
-for (const reason of ['noReport', 'notAccredited', 'citizenship']) {
+for (const reason of ['noReport', 'notAccredited']) {
   const m = buildNotEligible(application, reason, { type: 'support' });
   check('not eligible: ' + reason, m.text[0].alert.body.startsWith(application.notEligible.reasons[reason]) && m.cards[0].type === 'support' && m.cards[1].buttons.length === 2);
 }
