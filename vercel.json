@@ -3,6 +3,10 @@
     {
       "source": "/account",
       "destination": "/index.html"
+    },
+    {
+      "source": "/account/:number",
+      "destination": "/index.html"
     }
   ]
 }

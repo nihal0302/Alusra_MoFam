@@ -215,7 +215,12 @@ export function useApplication(app, api, { conv = false } = {}) {
       applicant: app.signIn.profile.rows.find((r) => r.id === 'name')?.value,
       appliedFor: ref.current.who,
       appliedOn: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
-      status: 'received',
+      status: 'review',
+      // what the application's own page shows (src/lib/caseDetails.js); the files themselves are not kept, only their names and sizes
+      details: {
+        emirate: ref.current.data.emirate,
+        documents: Object.fromEntries(['report', 'photo'].map((k) => [k, ref.current.data[k] && { name: ref.current.data[k].name, size: ref.current.data[k].size }])),
+      },
     });
     api.pushNoor(buildSubmitted(app, reference));
   };

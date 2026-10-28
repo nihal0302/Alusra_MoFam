@@ -1,43 +1,126 @@
-/* "My applications" (see AccountPage.jsx): a table of applications on the website's own look. */
-.account { padding-block: 40px 72px; background: var(--c-white); min-block-size: 60vh; }
-.account__crumb { font-size: 14px; color: var(--c-muted); }
-.account__crumb a { color: var(--c-green); text-decoration: underline; text-underline-offset: 3px; }
-.account__title { margin-block: 12px 4px; font-family: var(--font-heading); font-size: clamp(28px, 4vw, 40px); line-height: 1.15; }
-.account__sub { font-size: 17px; color: var(--c-body); }
-.account__count { margin-block: 20px 12px; font-size: 14px; font-weight: 600; color: var(--c-muted); }
-.account__empty { padding: 32px; background: var(--c-surface-soft); border: 1px solid var(--c-line); border-radius: var(--radius-card); }
+/* "My applications" (see AccountPage.jsx): a beige page with the applications in a white table card. Colours: the website's beige and
+   the --case-* / --noor-* tokens; the bar is the one of the application's own page (AppHeader). */
+.account-page {
+  display: flow-root; /* the bar's top margin stays inside the page (otherwise it shows the white body above the beige) */
+  min-block-size: 100vh;
+  padding-block-end: 56px;
+  font-family: var(--font-assistant);
+  color: var(--case-ink);
+  background: var(--c-surface-soft);
+}
+.account-page h1 { color: inherit; font-family: inherit; }
 
-.account__scroll { overflow-x: auto; background: var(--c-surface-soft); border: 1px solid var(--c-line); border-radius: var(--radius-card); }
-.account__table { inline-size: 100%; border-collapse: collapse; font-size: 15px; }
-.account__table th { padding: 14px 16px; font-size: 13px; font-weight: 600; text-align: start; white-space: nowrap; color: var(--c-muted); background: var(--c-slot); border-block-end: 1px solid var(--c-line); }
-.account__table td { padding: 16px; vertical-align: middle; border-block-end: 1px solid var(--c-line); }
+.account { max-inline-size: 1280px; margin-inline: auto; padding: 18px 24px 0; }
+.account__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-block-size: 44px;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: 0.032px;
+  color: var(--case-gold);
+  text-decoration: none;
+  border-radius: 8px;
+}
+.account__back:hover { text-decoration: underline; text-underline-offset: 3px; }
+.account__back:focus-visible { outline: 2px solid var(--case-gold); outline-offset: 2px; }
+
+.account__head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-block: 4px 24px; }
+.account__title { font-size: 36px; font-weight: 600; line-height: 48px; }
+.account__sub { margin-block-start: 4px; font-size: 16px; line-height: 24px; color: var(--case-body); }
+.account__count {
+  padding: 6px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  white-space: nowrap;
+  color: var(--case-gold);
+  background: var(--c-white);
+  border: 1px solid var(--case-doc-line);
+  border-radius: 999px;
+}
+
+/* the white table */
+.account__card {
+  background: var(--c-white);
+  border: 1px solid var(--case-card-line);
+  border-radius: var(--radius-noor-panel);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.07); /* APPROX: the same shadow as the application's page (Figma), black at 7% */
+  overflow: hidden;
+}
+.account__scroll { overflow-x: auto; }
+.account__table { inline-size: 100%; border-collapse: collapse; font-size: 14px; line-height: 20px; }
+.account__table th {
+  padding: 16px 20px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-align: start;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--case-muted);
+  background: var(--case-off-white);
+  border-block-end: 1px solid var(--case-row-line);
+}
+.account__table td { padding: 20px; vertical-align: middle; color: var(--case-ink); border-block-end: 1px solid var(--case-row-line); }
 .account__table tbody tr:last-child td { border-block-end: 0; }
-.account__table tbody tr:hover { background: color-mix(in srgb, var(--c-white) 55%, var(--c-surface-soft)); }
-.account__number { display: block; font-variant-numeric: tabular-nums; color: var(--c-ink); }
+.account__table tbody tr { cursor: pointer; transition: background-color 150ms; }
+.account__table tbody tr:hover { background: var(--case-off-white); }
 
-.account__pill { display: inline-block; padding: 4px 12px; font-size: 13px; font-weight: 600; white-space: nowrap; border-radius: 999px; }
-.account__pill.is-pending { color: var(--noor-pending); background: var(--noor-pending-bg); }
-.account__pill.is-review { color: var(--c-indigo); background: color-mix(in srgb, var(--c-indigo) 10%, var(--c-white)); }
+.account__number { font-weight: 600; font-variant-numeric: tabular-nums; color: var(--case-ink); text-decoration: none; white-space: nowrap; }
+.account__number:hover { text-decoration: underline; text-underline-offset: 3px; }
+.account__number:focus-visible { outline: 2px solid var(--case-gold); outline-offset: 3px; border-radius: 4px; }
+.account__service { min-inline-size: 240px; max-inline-size: 340px; font-weight: 500; }
+.account__date { white-space: nowrap; color: var(--case-body); }
+.account__table td:nth-child(3), .account__table td:nth-child(4) { white-space: nowrap; }
+
+/* the new application: a mark beside its number and a soft tint on its row */
+.account__new {
+  display: inline-block;
+  margin-inline-start: 10px;
+  padding: 2px 9px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 16px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--case-gold);
+  background: var(--case-pale-cream);
+  border-radius: 999px;
+  vertical-align: 1px;
+}
+.account__table tbody tr.is-new { background: color-mix(in srgb, var(--case-pale-cream) 40%, var(--c-white)); }
+.account__table tbody tr.is-new:hover { background: color-mix(in srgb, var(--case-pale-cream) 60%, var(--c-white)); }
+
+.account__pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; font-size: 13px; font-weight: 600; line-height: 18px; white-space: nowrap; border-radius: 999px; }
+.account__pill::before { content: ""; inline-size: 6px; block-size: 6px; border-radius: 50%; background: currentColor; }
+.account__pill.is-draft { color: var(--case-body); background: var(--c-slot); }
+.account__pill.is-rejected { color: var(--case-danger); background: var(--case-danger-bg); }
+.account__pill.is-pending { color: var(--case-warning); background: var(--case-warning-bg); }
+.account__pill.is-review { color: var(--case-info); background: var(--case-info-bg); }
 .account__pill.is-done { color: var(--noor-success); background: var(--noor-success-bg); }
 
 .account__go-cell { inline-size: 56px; text-align: end; }
-.account__go { display: inline-grid; place-items: center; inline-size: 36px; block-size: 36px; color: var(--c-green); border-radius: 50%; transition: background-color 150ms; }
-.account__go:hover { background: color-mix(in srgb, var(--c-green) 10%, var(--c-white)); }
-.account__go:focus-visible { outline: 2px solid var(--c-green); outline-offset: 2px; }
+.account__go { display: inline-grid; place-items: center; inline-size: 36px; block-size: 36px; color: var(--case-gold); border-radius: 50%; transition: background-color 150ms; }
+.account__go:hover { background: var(--case-pale-cream); }
+.account__go:focus-visible { outline: 2px solid var(--case-gold); outline-offset: 2px; }
 
 /* narrow screens: each row is a card, its cells labelled */
-@media (max-width: 760px) {
-  .account__scroll { background: transparent; border: 0; }
+@media (max-width: 860px) {
+  .account { padding-inline: 16px; }
+  .account__head { flex-direction: column; align-items: flex-start; }
+  .account__title { font-size: 28px; line-height: 36px; }
+  .account__card { background: transparent; border: 0; box-shadow: none; overflow: visible; }
   .account__table thead { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); }
   .account__table, .account__table tbody, .account__table tr, .account__table td { display: block; }
-  .account__table tr { margin-block-end: 12px; padding: 12px 16px; background: var(--c-surface-soft); border: 1px solid var(--c-line); border-radius: var(--radius-card); }
-  .account__table td { display: flex; justify-content: space-between; gap: 16px; padding: 6px 0; border: 0; }
-  .account__table td[data-label]::before { content: attr(data-label); color: var(--c-muted); font-size: 13px; }
-  .account__table td:first-child { flex-wrap: wrap; align-items: center; }
-  .account__number { display: inline; white-space: nowrap; }
+  .account__table tr { margin-block-end: 12px; padding: 12px 16px; background: var(--c-white); border: 1px solid var(--case-card-line); border-radius: var(--radius-noor-card); }
+  .account__table tbody tr:hover { background: var(--c-white); }
+  .account__table tbody tr.is-new, .account__table tbody tr.is-new:hover { background: color-mix(in srgb, var(--case-pale-cream) 40%, var(--c-white)); }
+  .account__table td { display: flex; justify-content: space-between; gap: 16px; padding: 6px 0; border: 0; text-align: end; }
+  .account__table td[data-label]::before { content: attr(data-label); flex: none; font-size: 13px; text-align: start; color: var(--case-muted); }
+  .account__table td:first-child { align-items: center; }
+  .account__service { min-inline-size: 0; max-inline-size: none; }
   .account__go-cell { justify-content: flex-end; inline-size: auto; padding: 0; }
 }
-
-/* a new application (just submitted in the chat): its whole row has a slightly different colour */
-.account__table tbody tr.is-new { background: color-mix(in srgb, var(--c-gold) 16%, var(--c-surface-soft)); }
-.account__table tbody tr.is-new:hover { background: color-mix(in srgb, var(--c-gold) 22%, var(--c-surface-soft)); }

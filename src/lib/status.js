@@ -12,7 +12,7 @@ export function buildStatusReply(copy, id) {
   const done = 2 + stage; // the eligibility check and the submission are always complete
   const steps = copy.steps.map((label, i) => {
     const state = i < done ? 'done' : i === done ? 'current' : 'pending';
-    return { label, state, stateLabel: copy.states[state] };
+    return { label, state, stateLabel: (state === 'current' && copy.currentText?.[label]) || copy.states[state] };
   });
   const title = copy.card.title.replace('{id}', id);
   // Sample data: it was submitted a few days ago, at a fixed time of day.

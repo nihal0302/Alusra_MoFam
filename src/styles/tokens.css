@@ -61,6 +61,7 @@
   --noor-muted: #625c52;
   --noor-placeholder: #8c8477;
   --noor-gold: #7c5e24;          /* accent (dark gold): icons, links, focus */
+  --noor-dark-gold: var(--noor-gold); /* the dark gold itself: Variation 2 re-points --noor-gold to the website green, this one stays */
   --noor-cta: var(--c-green);            /* primary buttons: the website's own CTA green */
   --noor-cta-hover: var(--c-green-hover); /* its hover, from the website */
   --noor-chip: #faf6ec;
@@ -79,6 +80,34 @@
   --radius-noor-input: 14px;
   --shadow-noor-panel: 0 14px 30px rgba(36, 29, 16, 0.3);
   --shadow-noor-launcher: 0 8px 24px rgba(36, 29, 16, 0.22);
+}
+
+/* The page of one application (CasePage): values from the Figma frame "Main Empty" (MoFam Al Ursa, node 992:64662). */
+:root {
+  --case-ink: #1c1c24;
+  --case-body: #3e4046;
+  --case-muted: #7c7b70;
+  --case-gold: #92722a;          /* "Back to Applications", the user pill's outline */
+  --case-gold-light: #aa8c37;    /* the applicant's initials */
+  --case-pale-cream: #f2eccf;
+  --case-cream: #f9f7ed;         /* the step in progress */
+  --case-off-white: #faf9f5;     /* document cards, comments */
+  --case-card-line: #eeeeec;
+  --case-row-line: #eceae2;
+  --case-doc-line: #ece9df;
+  --case-icon-box: #e2dfd5;
+  --case-button-line: #dfdbd0;
+  --case-divider: #dbdfe9;
+  --case-step-line: #059669;     /* the connector after a step that is done */
+  --case-info: #1d4ed8;
+  --case-info-bg: #eff6ff;
+  --case-warning: #b45309;
+  --case-warning-bg: #fffbeb;
+  --case-danger: #b91c1c;        /* APPROX: "Rejected" (the status set's red, in the same weight as the success, info and warning ones) */
+  --case-danger-bg: #fef2f2;
+  --case-page-a: #fefae9;        /* the page's soft gold gradient */
+  --case-page-b: #fef8e9;
+  --case-page-c: #fefefe;
 }
 
 /* UAE PASS button — colours fixed by the UAE PASS Buttons Guidelines (black style). Not part of the

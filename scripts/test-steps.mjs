@@ -4,6 +4,8 @@
 import { application } from '../src/content/application.en.js';
 import { buildDetected, buildNotEligible, buildResumeOffer, buildResumeSummary, buildWhoAsk, detectDisability, readProfile, readResume, readWho } from '../src/lib/application.js';
 import { buildUpfrontSignIn } from '../src/lib/conversation.js';
+import { buildCase } from '../src/lib/caseDetails.js';
+import { caseView } from '../src/content/case.en.js';
 import { demo } from '../src/content/demo.en.js';
 import { eligibility } from '../src/content/eligibility.en.js';
 import { reviewRows } from '../src/lib/eligibility.js';
@@ -163,6 +165,17 @@ for (const reason of ['noReport', 'notAccredited']) {
   const m = buildNotEligible(application, reason, { type: 'support' });
   check('not eligible: ' + reason, m.text[0].alert.body.startsWith(application.notEligible.reasons[reason]) && m.cards[0].type === 'support' && m.cards[1].buttons.length === 2);
 }
+
+// The page of one application (src/lib/caseDetails.js): steps follow the status, the email is masked, kept file names are shown.
+const caseRow = (status, details) => ({ number: 'POD-1', appliedFor: 'self', appliedOn: '22 October 2026', status, details });
+const asCase = (r) => buildCase(r, application.signIn.profile, caseView);
+check('case: under review has three steps, the last in progress', asCase(caseRow('review')).steps.map((s) => s.state).join() === 'done,done,current');
+check('case: approved has four steps, all done', asCase(caseRow('approved')).steps.map((s) => s.state).join() === 'done,done,done,done');
+check('case: a draft has one step in progress; a rejected application ends with Rejected', asCase(caseRow('draft')).steps.map((s) => s.state).join() === 'current' && asCase(caseRow('rejected')).steps.map((s) => s.title).pop() === 'Rejected' && asCase(caseRow('rejected')).steps.every((s) => s.state === 'done'));
+check('case: dates are short', asCase(caseRow('review')).steps[0].note === '22 Oct 2026');
+check('case: the email is masked', asCase(caseRow('review')).contact[1][1] === 'h***@example.com');
+check('case: the discussion is only for review and documents', asCase(caseRow('review')).discussion && asCase(caseRow('documents')).discussion && !asCase(caseRow('approved')).discussion && !asCase(caseRow('draft')).discussion && !asCase(caseRow('rejected')).discussion);
+check('case: kept file names and sizes are shown', asCase(caseRow('review', { documents: { report: { name: 'a.pdf', size: 2048 } } })).documents[0].meta === 'a.pdf · 2 KB');
 
 console.log(bad ? `\n${bad} unexpected` : '\nall as expected');
 process.exit(bad ? 1 : 0);

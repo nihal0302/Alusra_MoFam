@@ -296,7 +296,7 @@ export const application = {
       steps: [
         { label: 'Eligibility check', state: 'done' },
         { label: 'Submitted', state: 'done' },
-        { label: 'Documents under review', state: 'pending' },
+        { label: 'Review in progress', state: 'pending' },
         { label: 'Decision', state: 'pending' },
       ],
     },
@@ -310,7 +310,7 @@ export const application = {
       copied: 'Copied',
       timeline: [
         ['Submitted', 'Application received'],
-        ['Under review', 'Documents checked by the Ministry'],
+        ['Review in progress', 'Application under review'],
         ['Decision', 'You’ll be notified by email and SMS'],
         ['Card issued', 'Delivered to your residential address'],
       ],

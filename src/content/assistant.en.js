@@ -309,10 +309,12 @@ export const statusCheck = {
     // APPROX: the account page (where the applicant sees their applications and anything more that is needed) is not built yet; this address is a placeholder. It opens in a new tab so the chat stays where it is.
     account: { label: 'View my applications', href: '/account', newTab: true },
   },
-  steps: ['Eligibility check', 'Submitted', 'Documents under review', 'Decision'],
+  steps: ['Eligibility check', 'Submitted', 'Review in progress', 'Decision'],
+  // the line under a step that is in progress, where it is not just "In progress"
+  currentText: { 'Review in progress': 'Application under review' },
   states: { done: 'Done', current: 'In progress', pending: 'Pending' },
   // One line per sample stage, in the order the steps are reached.
-  stages: ['Your documents are being reviewed.', 'Your application is awaiting its final decision.'],
+  stages: ['Your application is under review.', 'Your application is awaiting its final decision.'],
 };
 
 // A message Mira cannot use comes in two kinds, answered as in the team's Mira POD Assistant prototype (wording made formal):

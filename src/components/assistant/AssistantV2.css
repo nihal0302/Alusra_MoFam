@@ -638,7 +638,7 @@
 .noor--v2 .noor-tl li.is-cur .noor-tl__dot::before { content: ''; inline-size: 7px; block-size: 7px; background: var(--c-gold); border-radius: 50%; }
 .noor--v2 .noor-tl b { display: block; font-size: 0.933em; font-weight: 600; line-height: 1.35; }
 .noor--v2 .noor-tl span:not(.noor-tl__dot) { font-size: 0.867em; line-height: 1.4; color: var(--noor-muted); }
-.noor--v2 .noor-pill { display: inline-flex; align-items: center; padding: 4px 10px; font-size: 0.8em; font-weight: 600; color: var(--noor-gold); background: var(--c-surface-cream); border-radius: 999px; white-space: nowrap; }
+.noor--v2 .noor-pill { display: inline-flex; align-items: center; padding: 4px 10px; font-size: 0.8em; font-weight: 600; color: var(--noor-dark-gold); background: var(--c-surface-cream); border-radius: 999px; white-space: nowrap; }
 .noor--v2 .noor-statushead { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-variant-numeric: tabular-nums; }
 .noor--v2 .noor-statushead__sub { margin-block-start: 4px; }
 .noor--v2 .noor-why { display: grid; gap: 6px; margin: 0; padding: 0 0 0 18px; font-size: 0.933em; line-height: 1.5; color: var(--c-body); }

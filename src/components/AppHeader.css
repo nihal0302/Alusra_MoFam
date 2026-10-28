@@ -1,0 +1,75 @@
+/* The bar at the top of the application pages (AppHeader.jsx): sizes from the Figma frame "Main Empty" (node 992:64662). */
+.case-icon { display: inline-block; flex: none; line-height: 0; }
+.case-icon .image-slot__img { display: block; }
+.case-icon--5 { inline-size: 5px; block-size: 5px; }
+.case-icon--16 { inline-size: 16px; block-size: 16px; }
+.case-icon--18 { inline-size: 18px; block-size: 18px; }
+.case-icon--20 { inline-size: 20px; block-size: 20px; }
+.case-icon--24 { inline-size: 24px; block-size: 24px; }
+
+/* the bar */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 10px 7px 0;
+  padding: 11px 24px;
+  background: var(--c-white);
+  border-radius: 40px;
+  box-shadow: 0 0 16px color-mix(in srgb, var(--case-ink) 10%, transparent);
+}
+.app-header__logos { display: flex; align-items: center; gap: 15px; }
+.app-header__logo { display: block; block-size: 40px; inline-size: 56px; }
+.app-header__logo--uae { inline-size: 109px; }
+.app-header__rule { inline-size: 1px; block-size: 29px; background: var(--case-ink); }
+.app-header__tools { display: flex; align-items: center; gap: 14px; }
+
+.app-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background: color-mix(in srgb, var(--c-white) 25%, transparent);
+  border: 1px solid color-mix(in srgb, var(--case-gold) 50%, transparent);
+  border-radius: 100px;
+}
+.app-user__avatar { display: block; inline-size: 37px; block-size: 37px; overflow: hidden; border-radius: 50%; flex: none; }
+.app-user__avatar .image-slot__img { object-fit: cover; }
+.app-user__text { display: flex; flex-direction: column; justify-content: center; line-height: 24px; }
+.app-user__name { margin-block-end: -2px; font-size: 16px; font-weight: 500; letter-spacing: 0.032px; color: var(--case-ink); }
+.app-user__role { font-size: 14px; font-weight: 600; letter-spacing: 0.028px; color: var(--case-body); }
+
+.app-lang {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0.032px;
+  background: color-mix(in srgb, var(--c-white) 25%, transparent);
+  border: 1px solid color-mix(in srgb, var(--c-white) 20%, transparent);
+  border-radius: 100px;
+}
+.app-lang a { color: var(--case-ink); text-decoration: none; }
+.app-lang a:hover, .app-lang a:focus-visible { color: var(--noor-gold); }
+.app-lang__en { padding-block-end: 4px; border-block-end: 2px solid var(--noor-gold); margin-block-end: -6px; }
+.app-lang__rule { inline-size: 1px; block-size: 12px; background: var(--case-ink); }
+
+/* narrow screens: the name beside the photo and the Arabic switch make way for the logos */
+@media (max-width: 720px) {
+  .app-header { padding-inline: 16px; }
+  .app-header__logos { gap: 10px; }
+  .app-header__logo { block-size: 32px; inline-size: 45px; }
+  .app-header__logo--uae { inline-size: 87px; }
+  .app-header__tools { gap: 8px; }
+  .app-user__text { display: none; }
+  .app-lang { padding-inline: 10px; gap: 8px; font-size: 14px; }
+}
+@media (max-width: 480px) {
+  .app-user { padding: 4px; }
+  .app-user > .case-icon { display: none; }
+  .app-user__avatar { inline-size: 32px; block-size: 32px; }
+  .app-lang { padding-inline: 8px; gap: 6px; font-size: 13px; }
+}
