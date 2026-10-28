@@ -173,8 +173,9 @@ export function LinkButton({ link, solid }) {
       {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
     >
       {link.href.startsWith('tel:') && <ChatIcon name="phone" size={16} />}
+      {link.icon && <ChatIcon name={link.icon} size={18} />}
       {link.label}
-      {external && <ChatIcon name="arrowUpRight" size={14} />}
+      {external && !link.icon && <ChatIcon name="arrowUpRight" size={14} />}
       {external && <span className="visually-hidden"> (opens in a new tab)</span>}
     </a>
   );
@@ -1190,7 +1191,8 @@ export function ActionCard({ card, index = 0, onAction, chosen, tray = false }) 
         )}
         {card.account && !tray && (
           <div className="noor-card__foot noor-card__foot--links">
-            <LinkButton link={card.account} solid={!card.items} />
+            {card.details && <LinkButton link={card.details} solid />}
+            <LinkButton link={card.account} solid={!card.details} />
           </div>
         )}
       </section>

@@ -1,8 +1,11 @@
+import { useEffect, useRef, useState } from 'react';
 import { account } from '../content/account.en.js';
 import { application } from '../content/application.en.js';
 import { caseView } from '../content/case.en.js';
 import { listApplications } from '../lib/account.js';
 import { buildCase } from '../lib/caseDetails.js';
+import { usePrefersReducedMotion } from '../lib/usePrefersReducedMotion.js';
+import { ChatIcon } from './assistant/ChatIcon.jsx';
 import { AppHeader, Icon } from './AppHeader.jsx';
 import './CasePage.css';
 
@@ -15,11 +18,133 @@ function Rows({ rows }) {
   ));
 }
 
-const Arrow = () => (
-  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <path d="M5 12h14M13 6l6 6-6 6" />
-  </svg>
-);
+// The action under a reviewer's request: the document row(s), then Submit. Nothing is sent when a file is chosen: Submit sends (simulated),
+// and is possible once every document is in; a chosen file is taken back with its delete icon. APPROX: nothing is sent or kept.
+function ActionBlock({ documents, text, label }) {
+  const [files, setFiles] = useState({});
+  const [submitted, setSubmitted] = useState(false);
+  const ready = documents.every((d) => files[d.id]);
+  return (
+    <div className="case-action">
+      <p className="case-action__label">{label}</p>
+      {documents.map((d) => (
+        <UploadRow key={d.id} doc={d} text={text} file={files[d.id] ?? null} locked={submitted} onFile={(f) => setFiles((prev) => ({ ...prev, [d.id]: f }))} />
+      ))}
+      {submitted ? (
+        <p className="case-action__done" role="status">
+          {text.submitted}
+        </p>
+      ) : (
+        <div className="case-action__buttons">
+          <button type="button" className="case-btn case-btn--primary" disabled={!ready} onClick={() => setSubmitted(true)}>
+            {text.submit}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// A document the reviewer asked for: the icon, the name and format, and an Upload button. Choosing a file shows the rotating loader with
+// the percentage (a simulated upload, as in the chat: nothing is sent), then the file name and a delete icon to remove it and upload again.
+function UploadRow({ doc, text, file, locked, onFile }) {
+  const reduced = usePrefersReducedMotion();
+  const [busy, setBusy] = useState(false);
+  const [pct, setPct] = useState(0);
+  const [error, setError] = useState('');
+  const inputRef = useRef(null);
+  const timer = useRef(null);
+  useEffect(() => () => clearInterval(timer.current), []);
+
+  const pick = (f) => {
+    if (!f || busy || file) return;
+    if (!doc.types.includes(f.type)) {
+      setError(text.errors.type.replace('{types}', doc.typeNames));
+      return;
+    }
+    if (f.size > text.maxMb * 1024 * 1024) {
+      setError(text.errors.size);
+      return;
+    }
+    setError('');
+    if (reduced) {
+      onFile(f);
+      return;
+    }
+    const t0 = Date.now();
+    setPct(0);
+    setBusy(true);
+    timer.current = setInterval(() => {
+      const p = Math.min(100, Math.round(((Date.now() - t0) / text.ms) * 100));
+      setPct(p);
+      if (p >= 100) {
+        clearInterval(timer.current);
+        setBusy(false);
+        onFile(f);
+      }
+    }, 50);
+  };
+
+  return (
+    <div className="case-up">
+      <span className="case-up__box">
+        <Icon file={doc.id === 'photo' ? 'case-icon-image.svg' : 'case-icon-file.svg'} className="case-icon--18" />
+      </span>
+      <span className="case-up__text">
+        <span className="case-up__title">{doc.label}</span>
+        <span className="case-up__hint">
+          {file ? (
+            <>
+              <ChatIcon name="checkCircle" size={16} />
+              <span className="case-up__name">{file.name}</span>
+            </>
+          ) : busy ? (
+            text.uploading
+          ) : (
+            doc.hint
+          )}
+        </span>
+        {error && (
+          <span className="case-up__error" role="alert">
+            {error}
+          </span>
+        )}
+      </span>
+      <span className="case-up__action">
+        {busy ? (
+          <>
+            <span className="case-up__pct" aria-hidden="true">
+              {pct}%
+            </span>
+            <span className="case-up__spin" role="progressbar" aria-label={text.uploading} aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} />
+          </>
+        ) : file ? (
+          !locked && (
+            <button
+              type="button"
+              className="case-up__remove"
+              aria-label={`${text.remove} ${doc.label}`}
+              title={text.remove}
+              onClick={() => {
+                onFile(null);
+                setError('');
+              }}
+            >
+              <ChatIcon name="trash" size={20} />
+            </button>
+          )
+        ) : (
+          <>
+            <input ref={inputRef} className="visually-hidden" type="file" accept={doc.accept} tabIndex={-1} onChange={(e) => { pick(e.target.files?.[0]); e.target.value = ''; }} />
+            <button type="button" className="case-up__button" onClick={() => inputRef.current?.click()}>
+              {text.button}
+            </button>
+          </>
+        )}
+      </span>
+    </div>
+  );
+}
 
 // The page of one application: the row of "My applications" that was opened, by its number.
 export function CasePage({ number }) {
@@ -133,13 +258,7 @@ export function CasePage({ number }) {
                             </span>
                           </div>
                         )}
-                        {m.cta && (
-                          // APPROX: does nothing yet
-                          <button type="button" className="case-cta">
-                            {m.cta}
-                            <Arrow />
-                          </button>
-                        )}
+                        {m.documents && <ActionBlock documents={m.documents} text={v.discussion.upload} label={v.discussion.action} />}
                       </div>
                     ))}
                   </div>

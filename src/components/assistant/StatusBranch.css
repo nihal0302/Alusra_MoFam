@@ -11,9 +11,6 @@
 .noor-quote__avatar { display: grid; place-items: center; flex: none; inline-size: 30px; block-size: 30px; color: var(--c-white); background: var(--noor-dark-gold); border-radius: 50%; }
 /* Mira's line and the reviewer's message under it: one block, close together (no divider), so it reads as the bot speaking */
 .noor--v2 .noor-sec--said { display: flex; flex-direction: column; gap: 10px; }
-.noor-more-actions { display: flex; flex-wrap: wrap; gap: 10px; }
-.noor-more-actions > * { flex: 1 1 0; min-inline-size: max-content; }
-.noor-more-actions__error { flex-basis: 100%; }
 .noor-card__title--after { margin-block-start: 14px; }
 
 /* the branch: Review in progress (paused) and Requested missing info (active) hang off the line from Submitted, which goes on to Decision */

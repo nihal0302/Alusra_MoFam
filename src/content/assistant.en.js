@@ -305,10 +305,13 @@ export const statusCheck = {
   },
   // As the team's Mira POD Assistant prototype shows it (Variation 2).
   // (No "You’ll get an email and SMS when the status changes" line: it is not shown when the status is checked.)
-  mira: { ask: 'Check another number', apps: 'View all applications' },
+  // The buttons of a status check: View details (primary, left; the page of that application) and View all applications (secondary, right).
+  mira: { apps: 'View all applications' },
   card: { title: 'Application {id}', summary: '{done} of {total} steps complete', submittedLabel: 'Submitted',
     // APPROX: the account page (where the applicant sees their applications and anything more that is needed) is not built yet; this address is a placeholder. It opens in a new tab so the chat stays where it is.
-    account: { label: 'View all applications', href: '/account', newTab: true },
+    account: { label: 'View all applications', href: '/account', newTab: true, icon: 'list' },
+    // the page of the application that was checked ({id} is its number; APPROX: the sample page exists for the sample numbers only)
+    details: { label: 'View details', href: '/account/{id}', newTab: true, icon: 'fileView' }, // each button leads with an icon that says what it does
   },
   // The "Requested missing info" testing scenario (demo.en.js): whatever number is given, the reviewer has asked for more documents.
   // One bubble, in this order: the status (number, pill, summary), the stages with one branch out of Submitted (the request is active, the

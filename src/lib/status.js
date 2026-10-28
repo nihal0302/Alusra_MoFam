@@ -44,7 +44,8 @@ function buildMissingInfoReply(copy, id) {
           upload: { accept: a.box.accept, types: a.box.types, typeNames: a.box.typeNames, maxMb: a.box.maxMb, errors: a.box.errors, button: a.box.button, remove: a.box.remove },
         })),
         account: copy.card.account,
-        mira: { ...copy.mira, note: undefined, ask: undefined }, // no email line, no "Check another number"
+        details: { ...copy.card.details, href: copy.card.details.href.replace('{id}', id) },
+        mira: { ...copy.mira, note: undefined }, // no email line
         spoken: `${title}. ${m.pill}. ${m.summary} ${m.intro} ${m.comment.text}`,
       },
     ],
@@ -89,6 +90,7 @@ export function buildStatusReply(copy, id, { missingInfo = false } = {}) {
         summary: copy.card.summary.replace('{done}', done).replace('{total}', copy.steps.length),
         meta: [{ label: copy.card.submittedLabel, value: when }],
         account: copy.card.account,
+        details: { ...copy.card.details, href: copy.card.details.href.replace('{id}', id) },
         mira: copy.mira,
         spoken: title,
         steps,

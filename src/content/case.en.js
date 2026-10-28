@@ -82,6 +82,8 @@ export const caseView = {
       review: ['submitted'],
       documents: ['missingInfo', 'submitted'],
     },
+    action: 'Take action', // the small label above the document the request asks for, under a divider that separates it from the comment
+    upload: { button: 'Upload', uploading: 'Uploading…', remove: 'Remove', submit: 'Submit', submitted: 'Your document has been sent to the reviewer, and the review will resume.', maxMb: 5, ms: 1200, errors: { type: 'Please upload {types}.', size: 'The file must be 5 MB or smaller.' } }, // APPROX: 5 MB, as in the chat
     latest: '2h ago', // APPROX: the latest comment is always "2h ago"; an older one shows the date the application was made
     items: {
       submitted: { chip: 'Application Submitted', tone: 'success', role: 'Applicant' },
@@ -90,7 +92,9 @@ export const caseView = {
         tone: 'warning',
         text: 'Please provide a clear, high-resolution personal photograph with a plain white background. This image is essential for accurate identification and must meet the specified criteria to ensure it is accepted without delay. Kindly ensure the photo is recent, shows your full face clearly, and is free from shadows or obstructions.',
         by: 'Review Officer',
-        cta: 'Edit application', // APPROX: opens nothing yet; it will start the chat to change the application
+        // The document(s) the request asks for (this one asks for a photograph): one row each, with an Upload button. APPROX: the file is not
+        // sent anywhere; the row only shows that it was chosen.
+        documents: [{ id: 'photo', label: 'Personal photograph', hint: 'Recent, white background · JPG or PNG', types: ['image/jpeg', 'image/png'], accept: 'image/jpeg,image/png', typeNames: 'a JPG or PNG' }],
       },
     },
   },

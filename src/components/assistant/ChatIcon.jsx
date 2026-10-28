@@ -18,6 +18,8 @@ import {
   File01Icon,
   FileAddIcon,
   FileSearchIcon,
+  FileViewIcon,
+  LeftToRightListBulletIcon,
   Home03Icon,
   Hospital02Icon,
   MessageQuestionIcon,
@@ -70,6 +72,8 @@ const ICONS = {
   upload: Upload01Icon,
   fileAdd: FileAddIcon,
   fileSearch: FileSearchIcon,
+  fileView: FileViewIcon, // a document with an eye: view the details of an application
+  list: LeftToRightListBulletIcon, // a list: all the applications
   messageQuestion: MessageQuestionIcon,
   homeDoor: Home03Icon,
   hospital: Hospital02Icon,

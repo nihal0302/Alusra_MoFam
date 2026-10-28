@@ -133,26 +133,43 @@
 .case-comment__time { font-size: 12px; line-height: normal; color: var(--case-body); white-space: nowrap; }
 .case-comment__text { font-size: 14px; font-weight: 500; line-height: 21px; color: var(--case-body); }
 .case-comment__top + .case-comment__text { margin-block-start: -8px; }
-.case-cta {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  inline-size: 100%;
-  padding: 12px 16px;
-  font: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 20px;
-  color: var(--c-white);
-  background: var(--case-gold);
-  border: 0;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: background-color 150ms;
-}
-.case-cta:hover { background: color-mix(in srgb, var(--case-gold) 88%, var(--c-ink)); }
-.case-cta:focus-visible { outline: 2px solid var(--case-gold); outline-offset: 2px; }
+/* the action to take: set apart from the comment by a divider, with a small label above the document row(s) */
+.case-action { display: flex; flex-direction: column; gap: 10px; padding-block-start: 14px; border-block-start: 1px solid var(--case-row-line); }
+.case-action__label { font-size: 14px; font-weight: 600; line-height: normal; color: var(--case-ink); }
+.case-action__buttons { display: flex; gap: 10px; margin-block-start: 2px; }
+.case-action__buttons .case-btn { flex: 1 1 0; } /* Submit alone: the full width */
+.case-action__done { font-size: 14px; font-weight: 600; line-height: 20px; color: var(--noor-success); }
+/* Submit (the page's gold) */
+.case-btn { padding: 11px 16px; font: inherit; font-size: 14px; font-weight: 600; line-height: 20px; color: var(--case-ink); background: var(--c-white); border: 1px solid var(--case-doc-line); border-radius: 10px; cursor: pointer; transition: background-color 150ms; }
+.case-btn:hover { background: var(--case-off-white); }
+.case-btn--primary { color: var(--c-white); background: var(--case-gold); border-color: var(--case-gold); }
+.case-btn--primary:hover { background: color-mix(in srgb, var(--case-gold) 88%, var(--c-ink)); }
+.case-btn:disabled { cursor: not-allowed; opacity: 0.5; }
+.case-btn:disabled:hover { background: inherit; }
+.case-btn--primary:disabled:hover { background: var(--case-gold); }
+.case-btn:focus-visible { outline: 2px solid var(--case-gold); outline-offset: 2px; }
+/* the document the request asks for: a row with the format and an Upload button */
+.case-up { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--c-white); border: 1px solid var(--case-doc-line); border-radius: var(--radius-noor-chip); }
+.case-up__box { display: grid; place-items: center; flex: none; inline-size: 36px; block-size: 36px; background: var(--case-icon-box); border-radius: var(--radius-noor-icon); }
+.case-up__text { display: flex; flex: 1 1 0; min-inline-size: 0; flex-direction: column; gap: 2px; }
+.case-up__title { font-size: 14px; font-weight: 600; line-height: normal; color: var(--case-ink); }
+.case-up__hint { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; line-height: 16px; color: var(--case-muted); overflow-wrap: anywhere; }
+.case-up__hint svg { flex: none; color: var(--noor-success); }
+.case-up__name { min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--case-ink); }
+.case-up__action { flex: none; display: inline-flex; align-items: center; justify-content: flex-end; gap: 10px; min-inline-size: 40px; }
+.case-up__pct { min-inline-size: 3.2ch; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; text-align: end; color: var(--case-muted); }
+/* the rotating loader while the file is uploading (as in the chat) */
+.case-up__spin { inline-size: 22px; block-size: 22px; border: 2.5px solid var(--case-doc-line); border-block-start-color: var(--c-green); border-radius: 50%; animation: case-spin 700ms linear infinite; }
+@keyframes case-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .case-up__spin { animation-duration: 2.4s; } }
+/* delete: remove the file to upload it again */
+.case-up__remove { display: inline-grid; place-items: center; inline-size: 36px; block-size: 36px; padding: 0; color: var(--case-muted); background: transparent; border: 0; border-radius: 50%; cursor: pointer; }
+.case-up__remove:hover { color: var(--case-ink); background: var(--case-off-white); }
+.case-up__remove:focus-visible { outline: 2px solid var(--case-gold); outline-offset: 2px; }
+.case-up__error { font-size: 12px; font-weight: 600; color: var(--case-danger); }
+.case-up__button { flex: none; padding: 8px 14px; font: inherit; font-size: 13px; font-weight: 600; line-height: normal; color: var(--case-ink); background: var(--c-white); border: 1px solid var(--case-doc-line); border-radius: var(--radius-noor-icon); cursor: pointer; }
+.case-up__button:hover { background: var(--case-off-white); }
+.case-up__button:focus-visible { outline: 2px solid var(--case-gold); outline-offset: 2px; }
 .case-chip { display: inline-flex; align-items: center; gap: 6px; padding: 2px 9px; font-size: 12px; font-weight: 600; line-height: 18px; white-space: nowrap; border-radius: 999px; }
 .case-chip { color: var(--tone-fg); background: var(--tone-bg); }
 .case-chip__dot { inline-size: 5px; block-size: 5px; border-radius: 50%; background: currentColor; }

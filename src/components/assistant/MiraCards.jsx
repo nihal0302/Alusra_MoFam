@@ -272,16 +272,11 @@ export function MiraCard({ card, index, onAction, chosen, tray }) {
             <div className="noor-sec">
               <BranchTimeline flow={card.flow} />
             </div>
-            {/* the reviewer's message, one document row for each document it asks for, and View all applications are one block, no divider */}
+            {/* the reviewer's message, and one document row for each document it asks for are one block, no divider; the buttons are the section under it */}
             <div className="noor-sec noor-sec--said">
               <h3 className="noor-ask__q">{card.intro}</h3>
               <Quote comment={card.comment} />
               <DocRows items={card.items} locked={locked} onAction={onAction} />
-              {!tray && (
-                <div className="noor-more-actions">
-                  <LinkButton link={{ ...card.account, label: m.apps }} />
-                </div>
-              )}
             </div>
           </>
         ) : (
@@ -290,14 +285,10 @@ export function MiraCard({ card, index, onAction, chosen, tray }) {
           </div>
         )}
         {m.note && <Ack icon="mail">{m.note}</Ack>}
-        {!tray && !card.flow && (
+        {!tray && (
           <div className="noor-sec noor-sec--actions" style={{ '--n': 2 }}>
-            {m.ask && (
-              <button type="button" className="noor-btn noor-btn--outline" disabled={locked} onClick={() => say('Check application status')}>
-                {m.ask}
-              </button>
-            )}
-            <LinkButton link={{ ...card.account, label: m.apps }} solid />
+            <LinkButton link={card.details} solid />
+            <LinkButton link={{ ...card.account, label: m.apps }} />
           </div>
         )}
       </>
