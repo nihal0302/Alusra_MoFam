@@ -83,6 +83,7 @@ export function CasePage({ number }) {
               <div className="case-col case-col--docs">
                 <h2 className="case-heading">{v.documents.title}</h2>
                 {c.documents.map((d) => (
+                  // APPROX: the whole card will open the document; it does not yet (it only looks as if it will)
                   <div className="case-doc" key={d.key}>
                     <span className="case-doc__box">
                       <Icon file={d.key === 'report' ? 'case-icon-file.svg' : 'case-icon-image.svg'} className="case-icon--18" />
@@ -91,10 +92,6 @@ export function CasePage({ number }) {
                       <span className="case-doc__title">{d.title}</span>
                       <span className="case-doc__meta">{d.meta}</span>
                     </span>
-                    {/* APPROX: the document does not open yet */}
-                    <button type="button" className="case-doc__button">
-                      {v.documents.view}
-                    </button>
                   </div>
                 ))}
               </div>

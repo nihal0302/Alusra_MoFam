@@ -1,7 +1,7 @@
 // The page of one application (opened from a row of "My applications", see CasePage.jsx): its progress, what was submitted, the
 // documents and the discussion with the Ministry. From the Figma frame "Main Empty" (MoFam Al Ursa, node 992:64662).
 // APPROX: the dates of the steps, the contact preferences, the documents of the sample applications and the discussion are made up;
-// nothing is stored anywhere but this browser (see src/lib/account.js). The "View document" buttons do not open anything yet.
+// nothing is stored anywhere but this browser (see src/lib/account.js). The document cards do not open anything yet.
 
 export const caseView = {
   title: 'Case #{number}',
@@ -61,7 +61,6 @@ export const caseView = {
     title: 'Submitted Documents',
     report: 'Medical report',
     photo: 'Personal photograph',
-    view: 'View document',
     // APPROX: the documents of the sample applications, and of an application whose files were not kept
     sample: { report: { name: 'medical-report.pdf', size: '686 KB' }, photo: { name: 'photograph.jpg', size: '183 KB' } },
   },

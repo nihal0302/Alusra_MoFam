@@ -103,36 +103,20 @@
 /* documents */
 .case-doc {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  align-items: flex-start;
   gap: 14px;
   padding: 20px;
   background: var(--case-off-white);
   border: 1px solid var(--case-doc-line);
   border-radius: var(--radius-noor-card);
+  cursor: pointer; /* the whole card will be the link to the document (not built yet) */
+  transition: background-color 150ms;
 }
+.case-doc:hover { background: color-mix(in srgb, var(--case-icon-box) 40%, var(--case-off-white)); }
 .case-doc__box { display: grid; place-items: center; flex: none; inline-size: 36px; block-size: 36px; background: var(--case-icon-box); border-radius: var(--radius-noor-icon); }
 .case-doc__text { display: flex; flex: 1 1 0; min-inline-size: 0; flex-direction: column; gap: 6px; }
 .case-doc__title { font-size: 16px; font-weight: 600; line-height: normal; color: var(--case-ink); }
 .case-doc__meta { font-size: 12px; font-weight: 500; line-height: 16px; letter-spacing: 0.024px; color: var(--case-muted); overflow-wrap: anywhere; }
-.case-doc__button {
-  flex: none;
-  padding: 8px 16px;
-  font: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  line-height: normal;
-  color: var(--case-ink);
-  white-space: nowrap;
-  background: var(--c-white);
-  border: 1px solid var(--case-button-line);
-  border-radius: var(--radius-noor-icon);
-  cursor: pointer;
-}
-.case-doc__button:hover { background: var(--case-off-white); }
-.case-doc__button:focus-visible { outline: 2px solid var(--case-gold); outline-offset: 2px; }
-.case-doc { align-items: flex-start; }
-.case-doc__button { align-self: center; }
 
 /* discussion */
 .case-col--talk { gap: 20px; }
@@ -168,6 +152,4 @@
   .case-steps { flex-direction: column; align-items: stretch; gap: 8px; }
   .case-connector { display: none; }
   .case-step { inline-size: 100%; border-radius: var(--radius-noor-card); }
-  .case-doc { flex-wrap: wrap; }
-  .case-doc__button { margin-inline-start: 50px; }
 }
