@@ -20,8 +20,7 @@ export const account = {
     draft: ['Draft', 'neutral'],
     review: ['Under review', 'info'],
     documents: ['Requested missing info', 'warning'],
-    approved: ['Approved', 'success'],
-    rejected: ['Rejected', 'danger'],
+    completed: ['Completed', 'success'], // a finished application: the list does not say what was decided
   },
   applicant: 'Hamdan Al Ketbi',
   // The Ministry's services that a person applies for (the titles are those of the services on the home page). The POD card is the one
@@ -40,7 +39,7 @@ export const account = {
   rows: [
     { number: 'POD-1042', service: 'pod', applicant: 'Hamdan Al Ketbi', appliedFor: 'other', appliedOn: '14 October 2026', status: 'documents' },
     { number: 'MGA-0911', service: 'marriage', applicant: 'Hamdan Al Ketbi', appliedFor: 'self', appliedOn: '3 September 2026', status: 'draft' },
-    { number: 'DTC-0764', service: 'typeChange', applicant: 'Hamdan Al Ketbi', appliedFor: 'other', appliedOn: '18 July 2026', status: 'approved' },
-    { number: 'TWC-0688', service: 'certificate', applicant: 'Hamdan Al Ketbi', appliedFor: 'self', appliedOn: '2 June 2026', status: 'rejected' },
+    { number: 'DTC-0764', service: 'typeChange', applicant: 'Hamdan Al Ketbi', appliedFor: 'other', appliedOn: '18 July 2026', status: 'completed' },
+    { number: 'TWC-0688', service: 'certificate', applicant: 'Hamdan Al Ketbi', appliedFor: 'self', appliedOn: '2 June 2026', status: 'completed' },
   ],
 };

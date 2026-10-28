@@ -102,7 +102,7 @@
   --case-info-bg: #eff6ff;
   --case-warning: #b45309;
   --case-warning-bg: #fffbeb;
-  --case-danger: #b91c1c;        /* APPROX: "Rejected" (the status set's red, in the same weight as the success, info and warning ones) */
+  --case-danger: #b91c1c;        /* APPROX: the red of the step that waits for the applicant (the status set's red, in the same weight as the success, info and warning ones) */
   --case-danger-bg: #fef2f2;
   --case-page-a: #fefae9;        /* the page's soft gold gradient */
   --case-page-b: #fef8e9;

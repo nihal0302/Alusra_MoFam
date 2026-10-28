@@ -294,8 +294,8 @@ export const application = {
       copied: 'Copied',
       trackerTitle: 'What happens next',
       steps: [
-        { label: 'Eligibility check', state: 'done' },
-        { label: 'Submitted', state: 'done' },
+        { label: 'Draft created', state: 'done' },
+        { label: 'Submitted successfully', state: 'done' },
         { label: 'Review in progress', state: 'pending' },
         { label: 'Decision', state: 'pending' },
       ],
@@ -309,7 +309,7 @@ export const application = {
       copy: 'Copy',
       copied: 'Copied',
       timeline: [
-        ['Submitted', 'Application received'],
+        ['Submitted successfully', 'Application received'],
         ['Review in progress', 'Application under review'],
         ['Decision', 'You’ll be notified by email and SMS'],
         ['Card issued', 'Delivered to your residential address'],

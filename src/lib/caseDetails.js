@@ -48,7 +48,7 @@ export function buildCase(row, app, view) {
   const steps = ids.map((id, i) => {
     const def = view.progress.steps[id];
     const last = i === ids.length - 1;
-    const unfinished = !['approved', 'rejected'].includes(row.status);
+    const unfinished = row.status !== 'completed';
     const state = def.state ?? (last && unfinished ? 'current' : 'done');
     return { id, title: def.title, state, note: state === 'done' ? date : def.current };
   });

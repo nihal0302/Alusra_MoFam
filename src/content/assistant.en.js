@@ -327,8 +327,8 @@ export const statusCheck = {
     summary: 'The reviewer needs more documents from you.',
     flow: {
       before: [
-        { label: 'Eligibility check', text: 'Done' },
-        { label: 'Submitted', text: 'Done' },
+        { label: 'Draft created', text: 'Done' },
+        { label: 'Submitted successfully', text: 'Done' },
       ],
       branches: [
         { label: 'Review in progress', text: 'Paused until you reply', state: 'paused' },
@@ -363,7 +363,7 @@ export const statusCheck = {
       primary: 'They have been sent to the reviewer, and the review will resume. You will be notified by email and SMS when there is an update.',
     },
   },
-  steps: ['Eligibility check', 'Submitted', 'Review in progress', 'Decision'],
+  steps: ['Draft created', 'Submitted successfully', 'Review in progress', 'Decision'],
   // the line under a step that is in progress, where it is not just "In progress"
   currentText: { 'Review in progress': 'Application under review' },
   states: { done: 'Done', current: 'In progress', pending: 'Pending' },

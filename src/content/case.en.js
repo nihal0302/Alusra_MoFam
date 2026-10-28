@@ -22,8 +22,7 @@ export const caseView = {
       paused: { title: 'Review paused', state: 'current', current: 'Resumes when the information is provided' },
       missing: { title: 'Requested missing info', state: 'alert', current: 'Please reply to the reviewer’s request' },
       reviewed: { title: 'Review completed' },
-      approved: { title: 'Approved' },
-      rejected: { title: 'Rejected' },
+      completed: { title: 'Completed' }, // the page does not say what was decided
     },
     // which steps each status of the "My applications" table shows; the last one of an unfinished application is the current one (a step
     // can set its own `state`: current, or alert for the one that waits for the applicant)
@@ -31,8 +30,7 @@ export const caseView = {
       draft: ['drafting'],
       review: ['draft', 'submitted', 'review'],
       documents: ['draft', 'submitted', 'paused', 'missing'],
-      approved: ['draft', 'submitted', 'reviewed', 'approved'],
-      rejected: ['draft', 'submitted', 'reviewed', 'rejected'],
+      completed: ['draft', 'submitted', 'reviewed', 'completed'],
     },
     done: 'Done',
     current: 'In progress',
