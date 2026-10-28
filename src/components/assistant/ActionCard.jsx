@@ -6,6 +6,7 @@ import { usePrefersReducedMotion } from '../../lib/usePrefersReducedMotion.js';
 import { UaePassLogo } from './UaePassLogo.jsx';
 import { SuccessCheck } from './SuccessCheck.jsx';
 import { InfoMark } from './InfoMark.jsx';
+import './StatusBranch.css';
 
 const ARC_R = 15;
 const ARC_LEN = 2 * Math.PI * ARC_R;
@@ -533,6 +534,34 @@ function SubmittedCard({ card, style }) {
 
 // Cards under a Mira bubble. `chosen` is set once the user has acted on a card, which locks it.
 // Non-POD services are guidance + link out only; nothing here submits anything without a confirm.
+// What the reviewer wrote when asking for more: a highlighted (beige) message.
+export function Quote({ comment }) {
+  return (
+    <blockquote className="noor-quote">
+      <p>{comment.text}</p>
+      <footer>
+        <span className="noor-quote__avatar" aria-hidden="true">
+          <ChatIcon name="user" size={16} />
+        </span>
+        <b>{comment.by}</b>
+        <span>{comment.time}</span>
+      </footer>
+    </blockquote>
+  );
+}
+
+// The documents the reviewer asked for ("Requested missing info" status): the same rows as the application's documents step. The chat is told
+// with moreDocStore / moreDocRemove (it answers once every row has its file).
+export function DocRows({ items, locked, onAction }) {
+  return (
+    <div className="noor-docrows" role="group" aria-label="Documents">
+      {items.map((it) => (
+        <DocRow key={it.id} item={it} locked={locked} onStore={(file) => onAction?.('moreDocStore', { field: it.id, file })} onRemove={() => onAction?.('moreDocRemove', { field: it.id })} />
+      ))}
+    </div>
+  );
+}
+
 export function ActionCard({ card, index = 0, onAction, chosen, tray = false }) {
   const style = { '--card-delay': `${index * 80}ms` };
   const locked = chosen !== undefined;
@@ -1150,6 +1179,9 @@ export function ActionCard({ card, index = 0, onAction, chosen, tray = false }) 
               </li>
             ))}
           </ol>
+          {card.intro && <p className="noor-card__text noor-card__text--after">{card.intro}</p>}
+          {card.comment && <Quote comment={card.comment} />}
+          {card.items && <DocRows items={card.items} locked={chosen !== undefined} onAction={onAction} />}
         </div>
         {card.emailNote && (
           <p className="noor-sub__email">
@@ -1158,7 +1190,7 @@ export function ActionCard({ card, index = 0, onAction, chosen, tray = false }) 
         )}
         {card.account && !tray && (
           <div className="noor-card__foot noor-card__foot--links">
-            <LinkButton link={card.account} solid />
+            <LinkButton link={card.account} solid={!card.items} />
           </div>
         )}
       </section>

@@ -304,10 +304,58 @@ export const statusCheck = {
     sample: 'This is sample data for the prototype.',
   },
   // As the team's Mira POD Assistant prototype shows it (Variation 2).
-  mira: { ask: 'Check another number', note: 'You’ll get an email and SMS when the status changes.', apps: 'View my applications' },
-  card: { title: 'Application {id}', summary: '{done} of {total} steps complete', submittedLabel: 'Submitted', emailNote: 'You will receive an email once a decision is taken.',
+  // (No "You’ll get an email and SMS when the status changes" line: it is not shown when the status is checked.)
+  mira: { ask: 'Check another number', apps: 'View all applications' },
+  card: { title: 'Application {id}', summary: '{done} of {total} steps complete', submittedLabel: 'Submitted',
     // APPROX: the account page (where the applicant sees their applications and anything more that is needed) is not built yet; this address is a placeholder. It opens in a new tab so the chat stays where it is.
-    account: { label: 'View my applications', href: '/account', newTab: true },
+    account: { label: 'View all applications', href: '/account', newTab: true },
+  },
+  // The "Requested missing info" testing scenario (demo.en.js): whatever number is given, the reviewer has asked for more documents.
+  // One bubble, in this order: the status (number, pill, summary), the stages with one branch out of Submitted (the request is active, the
+  // review is paused, both lead to the decision), then, in one block with no divider, the reviewer's message (Mira's line in bold, the
+  // beige message), one document row for each document it asks for (the usual rows: icon, name, format, Upload button), and View all applications (secondary).
+  // APPROX: all of it is made up.
+  missingInfo: {
+    sampleId: 'POD-1042',
+    pill: 'Requested missing info',
+    summary: 'The reviewer needs more documents from you.',
+    flow: {
+      before: [
+        { label: 'Eligibility check', text: 'Done' },
+        { label: 'Submitted', text: 'Done' },
+      ],
+      branches: [
+        { label: 'Review in progress', text: 'Paused until you reply', state: 'paused' },
+        { label: 'Requested missing info', text: 'Action needed', state: 'current' },
+      ],
+      after: [{ label: 'Decision', text: 'Pending' }],
+    },
+    intro: 'Below is the missing information request from the reviewer.',
+    // The documents the message asks for (APPROX, made up): the bubble shows one document row for each, with its name; one document, one row.
+    documents: [
+      { id: 'medicalReport', name: 'Medical report', hint: 'Attested by the hospital · PDF or JPG' },
+      { id: 'emiratesId', name: 'Emirates ID', hint: 'Front and back · PDF, JPG or PNG' },
+    ],
+    comment: { text: 'Please upload a medical report attested by the hospital, and a copy of your Emirates ID (front and back).', by: 'Review Officer', time: '2h ago' },
+    // The rules and words of each document row (the same rows as the application's documents step: icon, name, format, Upload button).
+    ask: {
+      box: {
+        button: 'Upload',
+        remove: 'Remove',
+        accept: 'application/pdf,image/jpeg,image/png',
+        types: ['application/pdf', 'image/jpeg', 'image/png'],
+        typeNames: 'a PDF, JPG or PNG',
+        maxMb: 5, // APPROX
+        errors: { type: 'Please upload {types}.', size: 'The file must be 5 MB or smaller.' },
+      },
+    },
+    received: {
+      lead: 'Thank you. I have received {what}.',
+      one: 'your document',
+      many: 'your {n} documents', // (kept for several files sent with the paperclip)
+      primaryOne: 'It has been sent to the reviewer, and the review will resume. You will be notified by email and SMS when there is an update.',
+      primary: 'They have been sent to the reviewer, and the review will resume. You will be notified by email and SMS when there is an update.',
+    },
   },
   steps: ['Eligibility check', 'Submitted', 'Review in progress', 'Decision'],
   // the line under a step that is in progress, where it is not just "In progress"

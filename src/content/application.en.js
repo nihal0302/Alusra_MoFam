@@ -314,7 +314,7 @@ export const application = {
         ['Decision', 'You’ll be notified by email and SMS'],
         ['Card issued', 'Delivered to your residential address'],
       ],
-      actions: { status: 'Check status', apps: 'View my applications' },
+      actions: { status: 'Check status', apps: 'View all applications' },
     },
   },
 

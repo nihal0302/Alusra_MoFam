@@ -30,6 +30,7 @@ export const demo = {
     ['returning', 'Returning visitor', 'Someone who left an application half done and has come back: Mira asks whether to continue or start again, and on continue shows what was entered earlier.'],
     ['offtopic', 'Unrecognised question', 'A question that has nothing to do with the Ministry (I want to order a pizza). Mira says what she can help with, and offers to start an application or check a status.'],
     ['noteligible', 'Not eligible', 'The first message has everything, but the report is from a private clinic. The scan finds it is not from an accredited authority, and Mira says the person is not eligible. Typing “I do not have the report” does the same.'],
+    ['missinginfo', 'Requested missing info', 'Press Check application status and give any application number (POD-1042 is filled in): the status shows the review paused, the reviewer’s request for more documents, and a box to upload them.'],
     ['gap', 'No answer found', 'A question about the Ministry that its published information does not answer. Mira says she cannot find a reliable answer and points to support: info@alusra.gov.ae or 800 114.'],
   ],
   // The "returning" scenario only: the application that was left half done (made up; nothing is stored). It stopped at the documents step.

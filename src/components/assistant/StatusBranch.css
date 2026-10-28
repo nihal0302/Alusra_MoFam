@@ -1,0 +1,31 @@
+/* The "Requested missing info" status reply: the usual stages (Variation 2's timeline, .noor-tl) with one branch out of Submitted, and the
+   reviewer's message in a highlighted (beige) box. */
+
+/* the reviewer's message */
+.noor-quote { margin: 0; padding: 14px 16px; background: var(--noor-chip); border-radius: var(--radius-noor-chip); }
+.noor-quote p { font-size: 0.933em; line-height: 1.5; color: var(--noor-ink); }
+.noor--v2 .noor-quote p { font-size: 16px; } /* the reviewer's message in Variation 2: 16px (it was 14px) */
+.noor-quote footer { display: flex; align-items: center; gap: 10px; margin-block-start: 12px; font-size: 0.867em; color: var(--noor-muted); }
+.noor-quote footer b { font-weight: 600; color: var(--noor-ink); }
+/* the reviewer's icon stands out from the beige message: a dark gold disc (the design system's dark gold) with a white icon */
+.noor-quote__avatar { display: grid; place-items: center; flex: none; inline-size: 30px; block-size: 30px; color: var(--c-white); background: var(--noor-dark-gold); border-radius: 50%; }
+/* Mira's line and the reviewer's message under it: one block, close together (no divider), so it reads as the bot speaking */
+.noor--v2 .noor-sec--said { display: flex; flex-direction: column; gap: 10px; }
+.noor-more-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.noor-more-actions > * { flex: 1 1 0; min-inline-size: max-content; }
+.noor-more-actions__error { flex-basis: 100%; }
+.noor-card__title--after { margin-block-start: 14px; }
+
+/* the branch: Review in progress (paused) and Requested missing info (active) hang off the line from Submitted, which goes on to Decision */
+.noor--v2 .noor-tl li.noor-tl__fork { display: block; padding-block-end: 12px; }
+.noor--v2 .noor-tl li.noor-tl__fork::after { inset-block: 0 0; background: var(--c-slot-stripe); }
+.noor--v2 .noor-tl .noor-tl__branches { display: grid; gap: 12px; margin: 0; padding: 0 0 0 32px; list-style: none; }
+.noor--v2 .noor-tl .noor-tl__branches li { padding-block-end: 0; }
+.noor--v2 .noor-tl .noor-tl__branches li::after { display: none; }
+/* the short line from the main line to each branch */
+.noor--v2 .noor-tl .noor-tl__branches li::before { content: ''; position: absolute; inset-inline-start: -22.5px; inset-block-start: 11px; inline-size: 22.5px; block-size: 1px; background: var(--c-slot-stripe); }
+.noor--v2 .noor-tl .noor-tl__branches li.is-cur::before { background: var(--c-gold); }
+/* paused: a hollow dot with the pause mark */
+.noor--v2 .noor-tl li.is-paused .noor-tl__dot { box-shadow: inset 0 0 0 1.5px var(--noor-line-strong); }
+.noor--v2 .noor-tl li.is-paused .noor-tl__dot::before { content: ''; inline-size: 6px; block-size: 8px; border-inline: 2px solid var(--noor-muted); }
+.noor--v2 .noor-tl li.is-paused b { color: var(--noor-muted); }

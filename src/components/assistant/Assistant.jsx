@@ -16,7 +16,7 @@ import { CONV_KINDS, batchExample, buildApplyConv, buildBatch, buildUpfrontSignI
 import { useApplication } from './useApplication.js';
 import { usePrefersReducedMotion } from '../../lib/usePrefersReducedMotion.js';
 import { buildNudge } from '../../lib/application.js';
-import { buildStatusReply, parseApplicationId } from '../../lib/status.js';
+import { buildMissingInfoReceived, buildStatusReply, parseApplicationId } from '../../lib/status.js';
 import { buildNotEligible, buildResumeOffer, buildResumeSummary, readProfile, readResume } from '../../lib/application.js';
 import { createKnowledge } from '../../lib/knowledge.js';
 import { trayItems } from '../../lib/actionTray.js';
@@ -88,6 +88,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
   const askCounts = useRef({}); // testing scenarios: how many times each question has been asked, so a repeat gets the next sample
   const [session, setSession] = useState(0); // counts restarts, so the starting-screen sample is filled again
   const statusRef = useRef(false);
+  const moreDocsRef = useRef(null); // { msgId, files }: the status reply that asks for more documents, and the files chosen so far in the "Requested missing info" scenario, while they wait
 
   const [attachments, setAttachments] = useState([]); // up to two files chosen for the next message
   const [attachError, setAttachError] = useState('');
@@ -504,10 +505,35 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
     setWaiting({ msgId: id, qid });
   };
 
+  // The documents the reviewer asked for: each row's Upload button, or files sent with the paperclip. Once every row has its file Mira
+  // confirms that they went on to the reviewer.
+  const sendMoreDocs = (list) => {
+    const { msgId } = moreDocsRef.current;
+    moreDocsRef.current = null;
+    lock(msgId, 'received');
+    pushUser(
+      list.map((f) => f.name).join(', '),
+      list.map((f) => ({ url: f.type.startsWith('image/') ? URL.createObjectURL(f) : undefined })),
+    );
+    pushNoor(buildMissingInfoReceived(statusCheck, list.length));
+  };
+
   const onAction = (event, payload, msgId) => {
     if (busy) return;
     if (app.handle(event, payload, msgId)) return;
     switch (event) {
+      case 'moreDocStore': {
+        // one document of those the reviewer asked for: Mira answers once every box has its file
+        const m = moreDocsRef.current;
+        if (!m) break;
+        m.files[payload.field] = payload.file;
+        const needed = statusCheck.missingInfo.documents.map((d) => d.id);
+        if (needed.every((id) => m.files[id])) sendMoreDocs(needed.map((id) => m.files[id]));
+        break;
+      }
+      case 'moreDocRemove':
+        if (moreDocsRef.current) delete moreDocsRef.current.files[payload.field];
+        break;
       case 'startCheck':
       case 'restartCheck':
         lock(msgId, 'started');
@@ -588,7 +614,8 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
       // A typed or spoken answer to the open question counts the same as tapping an option.
       const option = waiting && !waiting.batch ? parseAnswer(eligibility.questions[waiting.qid], text) : null;
       const scenario = replyFor(text);
-      if (scenario.then === 'startEligibility') expandForCheck();
+      // The application and the status check both open the larger chat (the status reply has the stages and, at times, document rows).
+      if (scenario.then === 'startEligibility' || scenario.id === 'track') expandForCheck();
       begin(() => {
         if (resumeRef.current.awaiting) {
           const choice = readResume(application, text);
@@ -600,6 +627,12 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
             else startEligibility();
             return;
           }
+        }
+        if (files.length && moreDocsRef.current !== null) {
+          // The reviewer asked for more documents: files attached with the paperclip are sent as those.
+          setAttach([]);
+          sendMoreDocs(files.map((a) => a.file));
+          return;
         }
         const open = appRef.current?.awaiting;
         if (files.length && open?.kind === 'file') {
@@ -643,7 +676,10 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
             statusRef.current = false;
             setStatusAwait(false);
             pushUser(text);
-            pushNoor(buildStatusReply(statusCheck, id));
+            const reply = buildStatusReply(statusCheck, id, { missingInfo: scenarioName === 'missinginfo' });
+            const replyId = pushNoor(reply);
+            // the same bubble carries the button to upload the additional document
+            if (reply.cards.some((c) => c.flow)) moreDocsRef.current = { msgId: replyId, files: {} };
             return;
           }
           if (isFallback(scenario)) {
@@ -668,6 +704,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
         if (scenario.id === 'track') {
           statusRef.current = true;
           setStatusAwait(true);
+          if (scenarioName === 'missinginfo') later(() => fillBox(statusCheck.missingInfo.sampleId), 400); // the number to give, ready in the box
         }
       });
       focusInput();
@@ -690,7 +727,7 @@ export function Assistant({ content, variant = '1', buttonsInside = true, defaul
 
   // The sample for the question that is being asked: the first time its own first sample, a repeat the next one.
   const sampleFor = (key) => {
-    if (['free', 'returning', 'offtopic', 'gap'].includes(scenario)) return; // nothing is pre-filled for the application's questions
+    if (['free', 'returning', 'offtopic', 'gap', 'missinginfo'].includes(scenario)) return; // nothing is pre-filled for the application's questions
     if (key === 'batch') {
       // the eligibility questions that are being asked, answered in one sentence
       const w = flowRef.current.awaiting;

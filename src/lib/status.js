@@ -7,7 +7,59 @@ export function parseApplicationId(text) {
   return m ? `POD-${m[1]}` : null;
 }
 
-export function buildStatusReply(copy, id) {
+// The reply for the "Requested missing info" scenario, one bubble: the status, the stages with the branch (V2 draws `flow`; V1 lists
+// `steps`), what the reviewer asked, and the row to upload the additional document. No "you will get an email and SMS" line.
+function buildMissingInfoReply(copy, id) {
+  const m = copy.missingInfo;
+  const a = m.ask;
+  const title = copy.card.title.replace('{id}', id);
+  const f = m.flow;
+  const steps = [
+    ...f.before.map((n) => ({ label: n.label, state: 'done', stateLabel: n.text })),
+    ...f.branches.map((n) => ({ label: n.label, state: 'pending', stateLabel: n.text })),
+    ...f.after.map((n) => ({ label: n.label, state: 'pending', stateLabel: n.text })),
+  ];
+  return {
+    id: `status:${id}`,
+    tool: copy.tool,
+    text: [{ lead: copy.reply.lead }],
+    cards: [
+      {
+        type: 'status',
+        title,
+        summary: m.summary,
+        pill: m.pill,
+        steps,
+        flow: f,
+        intro: m.intro,
+        comment: m.comment,
+        // one row for each document the message asks for, with its name (the same shape as the application's document rows)
+        items: m.documents.map((d) => ({
+          id: d.id,
+          label: d.name,
+          hint: d.hint,
+          hintEmpty: d.hint,
+          done: false,
+          file: null,
+          upload: { accept: a.box.accept, types: a.box.types, typeNames: a.box.typeNames, maxMb: a.box.maxMb, errors: a.box.errors, button: a.box.button, remove: a.box.remove },
+        })),
+        account: copy.card.account,
+        mira: { ...copy.mira, note: undefined, ask: undefined }, // no email line, no "Check another number"
+        spoken: `${title}. ${m.pill}. ${m.summary} ${m.intro} ${m.comment.text}`,
+      },
+    ],
+  };
+}
+
+// Mira's answer once the documents are sent.
+export function buildMissingInfoReceived(copy, count) {
+  const r = copy.missingInfo.received;
+  const what = count === 1 ? r.one : r.many.replace('{n}', count);
+  return { id: 'status:received', tool: null, text: [{ lead: r.lead.replace('{what}', what), primary: count === 1 ? r.primaryOne : r.primary }], cards: [] };
+}
+
+export function buildStatusReply(copy, id, { missingInfo = false } = {}) {
+  if (missingInfo) return buildMissingInfoReply(copy, id);
   const stage = Number(id.slice(-1)) % copy.stages.length;
   const done = 2 + stage; // the eligibility check and the submission are always complete
   const steps = copy.steps.map((label, i) => {
@@ -36,7 +88,6 @@ export function buildStatusReply(copy, id) {
         title,
         summary: copy.card.summary.replace('{done}', done).replace('{total}', copy.steps.length),
         meta: [{ label: copy.card.submittedLabel, value: when }],
-        emailNote: copy.card.emailNote,
         account: copy.card.account,
         mira: copy.mira,
         spoken: title,

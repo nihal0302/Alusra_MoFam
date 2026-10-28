@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ChatIcon } from './ChatIcon.jsx';
-import { ActionCard, LinkButton } from './ActionCard.jsx';
+import { ActionCard, DocRows, LinkButton, Quote } from './ActionCard.jsx';
 import { UaePassButton } from './UaePassButton.jsx';
 
 // The cards of a reply in Variation 2, drawn as sections of the Mira card exactly as the team's Mira POD Assistant prototype
@@ -20,6 +20,48 @@ export const Timeline = ({ items }) => (
     ))}
   </ol>
 );
+
+// The stages with one branch out of Submitted: the review (paused) and the request (active), both leading on to the decision.
+export const BranchTimeline = ({ flow }) => {
+  const dot = (state) => (
+    <span className="noor-tl__dot">{state === 'done' && <ChatIcon name="check" size={11} weight={2.4} />}</span>
+  );
+  return (
+    <ol className="noor-tl noor-tl--branch">
+      {flow.before.map((n) => (
+        <li key={n.label} className="is-done">
+          {dot('done')}
+          <div>
+            <b>{n.label}</b>
+            <span>{n.text}</span>
+          </div>
+        </li>
+      ))}
+      <li className="noor-tl__fork">
+        <ol className="noor-tl__branches">
+          {flow.branches.map((n) => (
+            <li key={n.label} className={n.state === 'current' ? 'is-cur' : 'is-paused'}>
+              {dot(n.state)}
+              <div>
+                <b>{n.label}</b>
+                <span>{n.text}</span>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </li>
+      {flow.after.map((n) => (
+        <li key={n.label}>
+          {dot('pending')}
+          <div>
+            <b>{n.label}</b>
+            <span>{n.text}</span>
+          </div>
+        </li>
+      ))}
+    </ol>
+  );
+};
 
 const ResultHead = ({ title, subtitle, tone = 'success' }) => (
   <div className="noor-sec">
@@ -221,19 +263,40 @@ export function MiraCard({ card, index, onAction, chosen, tray }) {
         <div className="noor-sec">
           <div className="noor-statushead">
             <h3 className="noor-ask__q">{card.title}</h3>
-            <span className="noor-pill">{current?.label ?? card.steps.filter((s) => s.state === 'done').pop()?.label}</span>
+            <span className="noor-pill">{card.pill ?? current?.label ?? card.steps.filter((s) => s.state === 'done').pop()?.label}</span>
           </div>
           <p className="noor-ask__helper noor-statushead__sub">{card.summary}</p>
         </div>
-        <div className="noor-sec">
-          <Timeline items={card.steps.map((s) => ({ title: s.label, text: s.stateLabel, state: s.state }))} />
-        </div>
-        <Ack icon="mail">{m.note}</Ack>
-        {!tray && (
+        {card.flow ? (
+          <>
+            <div className="noor-sec">
+              <BranchTimeline flow={card.flow} />
+            </div>
+            {/* the reviewer's message, one document row for each document it asks for, and View all applications are one block, no divider */}
+            <div className="noor-sec noor-sec--said">
+              <h3 className="noor-ask__q">{card.intro}</h3>
+              <Quote comment={card.comment} />
+              <DocRows items={card.items} locked={locked} onAction={onAction} />
+              {!tray && (
+                <div className="noor-more-actions">
+                  <LinkButton link={{ ...card.account, label: m.apps }} />
+                </div>
+              )}
+            </div>
+          </>
+        ) : (
+          <div className="noor-sec">
+            <Timeline items={card.steps.map((s) => ({ title: s.label, text: s.stateLabel, state: s.state }))} />
+          </div>
+        )}
+        {m.note && <Ack icon="mail">{m.note}</Ack>}
+        {!tray && !card.flow && (
           <div className="noor-sec noor-sec--actions" style={{ '--n': 2 }}>
-            <button type="button" className="noor-btn noor-btn--outline" disabled={locked} onClick={() => say('Check application status')}>
-              {m.ask}
-            </button>
+            {m.ask && (
+              <button type="button" className="noor-btn noor-btn--outline" disabled={locked} onClick={() => say('Check application status')}>
+                {m.ask}
+              </button>
+            )}
             <LinkButton link={{ ...card.account, label: m.apps }} solid />
           </div>
         )}

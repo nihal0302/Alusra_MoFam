@@ -1,4 +1,4 @@
-// "My applications" page (the page the chat's "View my applications" button opens). A dummy page on the same website: a table of the
+// "My applications" page (the page the chat's "View all applications" button opens). A dummy page on the same website: a table of the
 // applications made with the signed-in UAE PASS account. APPROX: all of it is made up and static (five rows, a fixed count). The first row
 // is the new one. The two POD card applications show how the page of an application looks: the first gave only the required answers,
 // the second (for someone else) gave every answer, the optional ones too (see `submission` in case.en.js). A row opens the application's

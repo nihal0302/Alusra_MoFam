@@ -5,6 +5,8 @@ import { application } from '../src/content/application.en.js';
 import { buildDetected, buildNotEligible, buildResumeOffer, buildResumeSummary, buildWhoAsk, detectDisability, readProfile, readResume, readWho } from '../src/lib/application.js';
 import { buildUpfrontSignIn } from '../src/lib/conversation.js';
 import { buildCase } from '../src/lib/caseDetails.js';
+import { buildMissingInfoReceived, buildStatusReply } from '../src/lib/status.js';
+import { statusCheck } from '../src/content/assistant.en.js';
 import { caseView } from '../src/content/case.en.js';
 import { account } from '../src/content/account.en.js';
 import { listApplications } from '../src/lib/account.js';
@@ -180,6 +182,14 @@ check('case: requested missing info shows the review paused, then the request fo
 check('case: the request in the discussion has the Edit application button, the submission does not', asked.discussion[0].cta === 'Edit application' && !asked.discussion[1].cta);
 // One colour per meaning in the tags (the list's pills and the discussion's chips); the progress steps keep their own look.
 check('tones: the discussion chips use the colours of the same words in the list', caseView.discussion.items.missingInfo.tone === account.statuses.documents[1] && caseView.discussion.items.submitted.tone === account.statuses.approved[1]);
+// The "Requested missing info" scenario of the chat's status check: the flow with a branch, the reviewer's comment, the upload box.
+const missing = buildStatusReply(statusCheck, 'POD-1042', { missingInfo: true }).cards[0];
+check('status (requested missing info): one branch out of Submitted: the review is paused, the request is active, the decision follows', missing.flow.before.map((n) => n.label).join() === 'Eligibility check,Submitted' && missing.flow.branches.map((b) => `${b.label}:${b.state}`).join() === 'Review in progress:paused,Requested missing info:current' && missing.flow.after[0].label === 'Decision');
+check('status (requested missing info): one bubble: the reviewer\'s message, one named document row (an Upload button on each) for each document asked, and only View all applications (secondary); no separate Upload CTA, no email line, no "Check another number"', missing.intro.startsWith('Below is the missing information request') && Boolean(missing.comment.text) && missing.items.map((it) => it.label).join() === 'Medical report,Emirates ID' && missing.items.every((it) => it.hint && it.upload.button === 'Upload' && it.upload.types.length > 0) && !missing.upload && missing.mira.note === undefined && missing.mira.ask === undefined && Boolean(missing.account) && missing.pill === 'Requested missing info');
+check('status (requested missing info): one document asked, one row', buildStatusReply({ ...statusCheck, missingInfo: { ...statusCheck.missingInfo, documents: statusCheck.missingInfo.documents.slice(0, 1) } }, 'POD-1042', { missingInfo: true }).cards[0].items.length === 1);
+check('status (other scenarios): the usual steps, no branch', !buildStatusReply(statusCheck, 'POD-1042').cards[0].flow);
+check('status: no "you will get an email and SMS" line when the status is checked (either variation)', !buildStatusReply(statusCheck, 'POD-1042').cards[0].mira.note && !buildStatusReply(statusCheck, 'POD-1042').cards[0].emailNote);
+check('status (requested missing info): Mira confirms the documents sent', buildMissingInfoReceived(statusCheck, 2).text[0].lead === 'Thank you. I have received your 2 documents.' && buildMissingInfoReceived(statusCheck, 1).text[0].lead.includes('your document'));
 check('case: dates are short', asCase(caseRow('review')).steps[0].note === '22 Oct 2026');
 check('case: the email is masked', rowsOf(asCase(caseRow('review'))).Email === 'h***@example.com');
 check('case: under review shows only "Application Submitted"; documents requested shows the request first, then the submission (latest first)', asCase(caseRow('review')).discussion.map((m) => m.chip).join() === 'Application Submitted' && asCase(caseRow('documents')).discussion.map((m) => m.chip).join() === 'Requested Missing Info,Application Submitted' && asCase(caseRow('documents')).discussion[0].time === '2h ago' && asCase(caseRow('documents')).discussion[1].time === '22 Oct 2026');
