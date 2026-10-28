@@ -310,8 +310,10 @@ export const statusCheck = {
   card: { title: 'Application {id}', summary: '{done} of {total} steps complete', submittedLabel: 'Submitted',
     // APPROX: the account page (where the applicant sees their applications and anything more that is needed) is not built yet; this address is a placeholder. It opens in a new tab so the chat stays where it is.
     account: { label: 'View all applications', href: '/account', newTab: true, icon: 'list' },
-    // the page of the application that was checked ({id} is its number; APPROX: the sample page exists for the sample numbers only)
-    details: { label: 'View details', href: '/account/{id}', newTab: true, icon: 'fileView' }, // each button leads with an icon that says what it does
+    // View details opens a sample application page (APPROX: the number typed is not looked up): the first application of the list (POD-1043,
+    // under review, the bare minimum) for a normal status check, and, in the "Requested missing info" scenario, the one with the reviewer's
+    // request (`missingInfo.number`). Both are in account.en.js (a check in steps:test keeps them in step).
+    details: { label: 'View details', href: '/account/{number}', number: 'POD-1043', newTab: true, icon: 'fileView' }, // each button leads with an icon that says what it does
   },
   // The "Requested missing info" testing scenario (demo.en.js): whatever number is given, the reviewer has asked for more documents.
   // One bubble, in this order: the status (number, pill, summary), the stages with one branch out of Submitted (the request is active, the
@@ -320,6 +322,7 @@ export const statusCheck = {
   // APPROX: all of it is made up.
   missingInfo: {
     sampleId: 'POD-1042',
+    number: 'POD-1042', // the application View details opens: the one with the reviewer's request (status Requested missing info in the list)
     pill: 'Requested missing info',
     summary: 'The reviewer needs more documents from you.',
     flow: {
