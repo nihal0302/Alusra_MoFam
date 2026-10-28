@@ -96,11 +96,7 @@
 
 .account__pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; font-size: 13px; font-weight: 600; line-height: 18px; white-space: nowrap; border-radius: 999px; }
 .account__pill::before { content: ""; inline-size: 6px; block-size: 6px; border-radius: 50%; background: currentColor; }
-.account__pill.is-draft { color: var(--case-body); background: var(--c-slot); }
-.account__pill.is-rejected { color: var(--case-danger); background: var(--case-danger-bg); }
-.account__pill.is-pending { color: var(--case-warning); background: var(--case-warning-bg); }
-.account__pill.is-review { color: var(--case-info); background: var(--case-info-bg); }
-.account__pill.is-done { color: var(--noor-success); background: var(--noor-success-bg); }
+.account__pill { color: var(--tone-fg); background: var(--tone-bg); }
 
 .account__go-cell { inline-size: 56px; text-align: end; }
 .account__go { display: inline-grid; place-items: center; inline-size: 36px; block-size: 36px; color: var(--case-gold); border-radius: 50%; transition: background-color 150ms; }

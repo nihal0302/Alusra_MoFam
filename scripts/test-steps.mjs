@@ -6,6 +6,8 @@ import { buildDetected, buildNotEligible, buildResumeOffer, buildResumeSummary, 
 import { buildUpfrontSignIn } from '../src/lib/conversation.js';
 import { buildCase } from '../src/lib/caseDetails.js';
 import { caseView } from '../src/content/case.en.js';
+import { account } from '../src/content/account.en.js';
+import { listApplications } from '../src/lib/account.js';
 import { demo } from '../src/content/demo.en.js';
 import { eligibility } from '../src/content/eligibility.en.js';
 import { reviewRows } from '../src/lib/eligibility.js';
@@ -168,13 +170,39 @@ for (const reason of ['noReport', 'notAccredited']) {
 
 // The page of one application (src/lib/caseDetails.js): steps follow the status, the email is masked, kept file names are shown.
 const caseRow = (status, details) => ({ number: 'POD-1', appliedFor: 'self', appliedOn: '22 October 2026', status, details });
-const asCase = (r) => buildCase(r, application.signIn.profile, caseView);
+const asCase = (r) => buildCase(r, application, caseView);
+const rowsOf = (c) => Object.fromEntries(c.sections.flatMap((g) => g.rows.map(([label, value]) => [label, value])));
 check('case: under review has three steps, the last in progress', asCase(caseRow('review')).steps.map((s) => s.state).join() === 'done,done,current');
 check('case: approved has four steps, all done', asCase(caseRow('approved')).steps.map((s) => s.state).join() === 'done,done,done,done');
 check('case: a draft has one step in progress; a rejected application ends with Rejected', asCase(caseRow('draft')).steps.map((s) => s.state).join() === 'current' && asCase(caseRow('rejected')).steps.map((s) => s.title).pop() === 'Rejected' && asCase(caseRow('rejected')).steps.every((s) => s.state === 'done'));
+const asked = asCase(caseRow('documents'));
+check('case: requested missing info shows the review paused, then the request for the applicant', asked.steps.map((s) => `${s.title}:${s.state}`).join() === 'Draft created:done,Submitted successfully:done,Review paused:current,Requested missing info:alert');
+check('case: the request in the discussion has the Edit application button, the submission does not', asked.discussion[0].cta === 'Edit application' && !asked.discussion[1].cta);
+// One colour per meaning in the tags (the list's pills and the discussion's chips); the progress steps keep their own look.
+check('tones: the discussion chips use the colours of the same words in the list', caseView.discussion.items.missingInfo.tone === account.statuses.documents[1] && caseView.discussion.items.submitted.tone === account.statuses.approved[1]);
 check('case: dates are short', asCase(caseRow('review')).steps[0].note === '22 Oct 2026');
-check('case: the email is masked', asCase(caseRow('review')).contact[1][1] === 'h***@example.com');
-check('case: the discussion is only for review and documents', asCase(caseRow('review')).discussion && asCase(caseRow('documents')).discussion && !asCase(caseRow('approved')).discussion && !asCase(caseRow('draft')).discussion && !asCase(caseRow('rejected')).discussion);
+check('case: the email is masked', rowsOf(asCase(caseRow('review'))).Email === 'h***@example.com');
+check('case: under review shows only "Application Submitted"; documents requested shows the request first, then the submission (latest first)', asCase(caseRow('review')).discussion.map((m) => m.chip).join() === 'Application Submitted' && asCase(caseRow('documents')).discussion.map((m) => m.chip).join() === 'Requested Missing Info,Application Submitted' && asCase(caseRow('documents')).discussion[0].time === '2h ago' && asCase(caseRow('documents')).discussion[1].time === '22 Oct 2026');
+// The list is static: what was submitted in the chat (or damaged data in storage) does not change it.
+const memory = {};
+globalThis.localStorage = { getItem: (k) => memory[k] ?? null, setItem: (k, v) => { memory[k] = v; } };
+memory['mofam.submitted'] = JSON.stringify([{ number: 'POD-7777', appliedFor: 'self', appliedOn: '20 October 2026', status: 'received' }]);
+const listed = listApplications(account);
+check('list: static: five rows, the first is the only new one', listed.length === 5 && listed[0].isNew && listed.slice(1).every((r) => !r.isNew) && listed[0].number === account.newRow.number);
+check('list: an application submitted in the chat does not change the list', !listed.some((r) => r.number === 'POD-7777'));
+check('list: the first two are POD card applications, for myself then for someone else', listed[0].service === 'pod' && listed[0].appliedFor === 'self' && listed[1].service === 'pod' && listed[1].appliedFor === 'other');
+delete globalThis.localStorage;
+// The Submission column shows only what the application asks, in the groups of its review; the complete sample (POD-1042) also shows the optional and employment answers.
+const plain = asCase(caseRow('review'));
+check('case: a plain application shows the applicant, request and disability groups only', plain.sections.map((g) => g.key).join() === 'applicant,request,disability');
+check('case: nothing the application does not ask (language, contact channel) is shown', !JSON.stringify(plain.sections).match(/language|channel/i));
+const minimum = asCase({ ...caseRow('review'), number: 'POD-1043' });
+check('case: the bare minimum application (POD-1043) gave the required answers only', minimum.sections.map((g) => g.key).join() === 'applicant,request,disability');
+const full = asCase({ ...caseRow('review'), number: 'POD-1042', appliedFor: 'other' });
+check('case: the complete application (POD-1042, for someone else) gave every answer, optional ones too', full.sections.map((g) => g.key).join() === 'applicant,cardholder,request,disability,optional,work' && rowsOf(full).Employer === 'Dubai Municipality' && rowsOf(full)['Job title'] === 'Administrative officer' && rowsOf(full)['Alternative mobile number'] === '+971 55 987 6543' && rowsOf(full)['Cardholder Emirates ID'] === '784-2015-7654321-0');
+check('case: someone else adds the cardholder group', asCase({ ...caseRow('review'), appliedFor: 'other' }).sections.some((g) => g.key === 'cardholder'));
+check('case: the answers kept with an application are the ones shown', rowsOf(asCase(caseRow('review', { data: { emirate: 'Fujairah', address: 'Street 9', disability: 'Hearing' } }))).Emirate === 'Fujairah');
+check('case: the other statuses have no discussion', ['draft', 'approved', 'rejected'].every((s) => asCase(caseRow(s)).discussion.length === 0));
 check('case: kept file names and sizes are shown', asCase(caseRow('review', { documents: { report: { name: 'a.pdf', size: 2048 } } })).documents[0].meta === 'a.pdf · 2 KB');
 
 console.log(bad ? `\n${bad} unexpected` : '\nall as expected');

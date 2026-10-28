@@ -218,7 +218,7 @@ export function useApplication(app, api, { conv = false } = {}) {
       status: 'review',
       // what the application's own page shows (src/lib/caseDetails.js); the files themselves are not kept, only their names and sizes
       details: {
-        emirate: ref.current.data.emirate,
+        data: Object.fromEntries(Object.entries(ref.current.data).filter(([, v]) => typeof v === 'string')), // the typed and chosen answers
         documents: Object.fromEntries(['report', 'photo'].map((k) => [k, ref.current.data[k] && { name: ref.current.data[k].name, size: ref.current.data[k].size }])),
       },
     });

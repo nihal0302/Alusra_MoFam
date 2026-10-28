@@ -68,7 +68,7 @@ export function AccountPage() {
                         {r.appliedOn}
                       </td>
                       <td data-label={a.columns.status}>
-                        <span className={`account__pill is-${tone}`}>{statusLabel}</span>
+                        <span className={`account__pill tone--${tone}`}>{statusLabel}</span>
                       </td>
                       <td className="account__go-cell">
                         <a className="account__go" href={caseHref(r.number)} aria-label={a.open.replace('{number}', r.number)}>

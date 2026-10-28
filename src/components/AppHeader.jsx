@@ -2,6 +2,7 @@ import { home } from '../content/home.en.js';
 import { caseView } from '../content/case.en.js';
 import { ImageSlot } from './ImageSlot.jsx';
 import './AppHeader.css';
+import './tones.css';
 
 export const Icon = ({ file, className = '' }) => (
   <span className={`case-icon ${className}`} aria-hidden="true">
@@ -33,7 +34,6 @@ export function AppHeader({ first }) {
             <span className="app-user__name">{first}</span>
             <span className="app-user__role">{h.role}</span>
           </span>
-          <Icon file="case-chevron-down.svg" className="case-icon--20" />
         </div>
         <div className="app-lang" role="group" aria-label={h.languageLabel}>
           <span className="app-lang__en" aria-current="true">

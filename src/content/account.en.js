@@ -1,7 +1,8 @@
 // "My applications" page (the page the chat's "View my applications" button opens). A dummy page on the same website: a table of the
-// applications made with the signed-in UAE PASS account. APPROX: made-up applications, and a fixed count. The first row is the new one:
-// the application just submitted in the chat when there is one (remembered in this browser only, see src/lib/account.js), otherwise
-// `newRow`. A row opens the application's own page (CasePage.jsx).
+// applications made with the signed-in UAE PASS account. APPROX: all of it is made up and static (five rows, a fixed count). The first row
+// is the new one. The two POD card applications show how the page of an application looks: the first gave only the required answers,
+// the second (for someone else) gave every answer, the optional ones too (see `submission` in case.en.js). A row opens the application's
+// own page (CasePage.jsx).
 
 export const account = {
   title: 'My applications',
@@ -13,13 +14,14 @@ export const account = {
   open: 'View application {number}',
   empty: 'You have not made any application yet.',
   newLabel: 'New', // the mark on the new application's row
-  // status: [label, tone]  (tone picks the colour of the pill: draft, review, pending, done, rejected). A submitted application is "Under review".
+  // status: [label, tone]. The tone is the colour of the pill (see tones.css); the same words have the same tone on the application's
+  // page (case.en.js). A submitted application is "Under review".
   statuses: {
-    draft: ['Draft', 'draft'],
-    review: ['Under review', 'review'],
-    documents: ['Documents requested', 'pending'],
-    approved: ['Approved', 'done'],
-    rejected: ['Rejected', 'rejected'],
+    draft: ['Draft', 'neutral'],
+    review: ['Under review', 'info'],
+    documents: ['Requested missing info', 'warning'],
+    approved: ['Approved', 'success'],
+    rejected: ['Rejected', 'danger'],
   },
   applicant: 'Hamdan Al Ketbi',
   // The Ministry's services that a person applies for (the titles are those of the services on the home page). The POD card is the one
@@ -33,11 +35,10 @@ export const account = {
   },
   forSelf: 'Myself',
   forOther: 'Someone else',
-  // The application that is new: the one just submitted in the chat, when there is one; otherwise this sample (APPROX: made-up).
+  // The first row is the new one. Both POD card applications are made up: see the note at the top of this file.
   newRow: { number: 'POD-1043', service: 'pod', applicant: 'Hamdan Al Ketbi', appliedFor: 'self', appliedOn: '28 October 2026', status: 'review' },
-  // The earlier applications (APPROX: made-up; the POD card appears once, as the new application).
   rows: [
-    { number: 'RPL-0987', service: 'replacement', applicant: 'Hamdan Al Ketbi', appliedFor: 'other', appliedOn: '14 October 2026', status: 'documents' },
+    { number: 'POD-1042', service: 'pod', applicant: 'Hamdan Al Ketbi', appliedFor: 'other', appliedOn: '14 October 2026', status: 'documents' },
     { number: 'MGA-0911', service: 'marriage', applicant: 'Hamdan Al Ketbi', appliedFor: 'self', appliedOn: '3 September 2026', status: 'draft' },
     { number: 'DTC-0764', service: 'typeChange', applicant: 'Hamdan Al Ketbi', appliedFor: 'other', appliedOn: '18 July 2026', status: 'approved' },
     { number: 'TWC-0688', service: 'certificate', applicant: 'Hamdan Al Ketbi', appliedFor: 'self', appliedOn: '2 June 2026', status: 'rejected' },

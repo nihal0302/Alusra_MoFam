@@ -4,7 +4,8 @@ const KEY = 'mofam.submitted';
 
 export function readSubmitted() {
   try {
-    return JSON.parse(localStorage.getItem(KEY) ?? '[]');
+    const saved = JSON.parse(localStorage.getItem(KEY) ?? '[]');
+    return Array.isArray(saved) ? saved.filter((s) => s && typeof s.number === 'string') : []; // anything else left in storage is ignored
   } catch {
     return [];
   }
@@ -18,9 +19,8 @@ export function saveSubmitted(entry) {
   }
 }
 
-// The applications the list shows: one new one first, then the earlier ones. The new one is the application just submitted in the chat
-// when there is one (the latest), otherwise the sample new application of the content, so the list always has the same number of rows.
+// The applications the list shows: static (see account.en.js), the new one first. What was just submitted in the chat is remembered
+// above (`saveSubmitted`) but is not added to the list, so the page always shows the same five applications.
 export function listApplications(account) {
-  const [latest] = readSubmitted();
-  return [{ ...(latest ?? account.newRow), isNew: true }, ...account.rows.map((r) => ({ ...r, isNew: false }))];
+  return [{ ...account.newRow, isNew: true }, ...account.rows.map((r) => ({ ...r, isNew: false }))];
 }

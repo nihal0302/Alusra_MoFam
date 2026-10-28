@@ -29,16 +29,16 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px;
+  padding: 6px 16px 6px 6px; /* no arrow after the text, so a little more room at the end */
   background: color-mix(in srgb, var(--c-white) 25%, transparent);
   border: 1px solid color-mix(in srgb, var(--case-gold) 50%, transparent);
   border-radius: 100px;
 }
 .app-user__avatar { display: block; inline-size: 37px; block-size: 37px; overflow: hidden; border-radius: 50%; flex: none; }
 .app-user__avatar .image-slot__img { object-fit: cover; }
-.app-user__text { display: flex; flex-direction: column; justify-content: center; line-height: 24px; }
-.app-user__name { margin-block-end: -2px; font-size: 16px; font-weight: 500; letter-spacing: 0.032px; color: var(--case-ink); }
-.app-user__role { font-size: 14px; font-weight: 600; letter-spacing: 0.028px; color: var(--case-body); }
+.app-user__text { display: flex; flex-direction: column; justify-content: center; line-height: 18px; }
+.app-user__name { font-size: 14px; font-weight: 500; letter-spacing: 0.028px; color: var(--case-ink); }
+.app-user__role { font-size: 12px; font-weight: 600; letter-spacing: 0.024px; color: var(--case-body); }
 
 .app-lang {
   display: flex;
@@ -69,7 +69,6 @@
 }
 @media (max-width: 480px) {
   .app-user { padding: 4px; }
-  .app-user > .case-icon { display: none; }
   .app-user__avatar { inline-size: 32px; block-size: 32px; }
   .app-lang { padding-inline: 8px; gap: 6px; font-size: 13px; }
 }

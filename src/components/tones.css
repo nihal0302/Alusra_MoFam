@@ -1,0 +1,11 @@
+/* The colours of the tags on the applications pages (the status pills of the list and the chips of the discussion): one set, so the
+   same thing is the same colour in both. Put `tone--<name>` on the element; it reads --tone-fg / --tone-bg. (The steps of the progress
+   history have their own look and do not use these.)
+     neutral  Draft                                 success  Approved, Application Submitted
+     info     Under review                          warning  Requested missing info
+     danger   Rejected                                                                               */
+.tone--neutral { --tone-fg: var(--case-body); --tone-bg: var(--c-slot); }
+.tone--success { --tone-fg: var(--noor-success); --tone-bg: var(--noor-success-bg); }
+.tone--info { --tone-fg: var(--case-info); --tone-bg: var(--case-info-bg); }
+.tone--warning { --tone-fg: var(--case-warning); --tone-bg: var(--case-warning-bg); }
+.tone--danger { --tone-fg: var(--case-danger); --tone-bg: var(--case-danger-bg); }
