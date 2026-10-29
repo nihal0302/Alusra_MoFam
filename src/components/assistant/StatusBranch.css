@@ -1,6 +1,15 @@
 /* The "Requested missing info" status reply: the usual stages (Variation 2's timeline, .noor-tl) with one branch out of Submitted, and the
    reviewer's message in a highlighted (beige) box. */
 
+/* the photograph from UAE PASS, as a small picture in the details */
+.noor-photo { display: block; inline-size: 64px; block-size: 80px; object-fit: cover; object-position: center 25%; border-radius: 8px; border: 1px solid var(--noor-line-strong); }
+
+/* a document in the review: a thumbnail (the photograph, or a document icon) and the file name */
+.noor-thumbval { display: inline-flex; align-items: center; gap: 10px; min-inline-size: 0; }
+.noor-thumb { flex: none; display: block; inline-size: 40px; block-size: 40px; object-fit: cover; object-position: center 25%; border-radius: 8px; border: 1px solid var(--noor-line-strong); }
+.noor-thumb--doc { display: grid; place-items: center; color: var(--noor-ink); background: var(--noor-chip); }
+.noor-thumbval__name { min-inline-size: 0; overflow-wrap: anywhere; }
+
 /* the reviewer's message */
 .noor-quote { margin: 0; padding: 14px 16px; background: var(--noor-chip); border-radius: var(--radius-noor-chip); }
 .noor-quote p { font-size: 0.933em; line-height: 1.5; color: var(--noor-ink); }

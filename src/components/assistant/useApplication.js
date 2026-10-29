@@ -26,6 +26,7 @@ import {
 } from '../../lib/conversation.js';
 import { classifyFile } from '../../lib/intake.js';
 import { saveSubmitted } from '../../lib/account.js';
+import { assetUrl } from '../../lib/assets.js';
 import { buildReviewSteps, buildStepPrompt, isOptional, nextStep, readStepAnswer } from '../../lib/stepwise.js';
 
 const EXTRA_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
@@ -310,8 +311,9 @@ export function useApplication(app, api, { conv = false } = {}) {
         const d = ref.current.data;
         if (d.photo && d.report) {
           api.lock(msgId, 'received');
-          api.pushUser(`${d.photo.name}, ${d.report.name}`, ['photo', 'report'].map((k) => ({ url: d[k].type.startsWith('image/') ? d[k].url : undefined })));
-          convNext({ docs: ['photo', 'report'] });
+          const sent = ['photo', 'report'].filter((k) => !d[k].fromUaePass); // the photograph from UAE PASS was not uploaded
+          api.pushUser(sent.map((k) => d[k].name).join(', '), sent.map((k) => ({ url: d[k].type.startsWith('image/') ? d[k].url : undefined })));
+          convNext({ docs: sent });
         }
         return true;
       }
@@ -550,10 +552,21 @@ export function useApplication(app, api, { conv = false } = {}) {
     if (emirate) store('emirate', emirate);
   };
 
+  // The personal photograph for yourself comes from UAE PASS, so it is not asked for. For someone else it is their photograph, which
+  // UAE PASS does not have, so it is asked for as usual.
+  const usePhotoFromUaePass = (who) => {
+    const p = app.signIn.profile.photo;
+    const d = { ...ref.current.data };
+    if (who === 'self' && p) d.photo = { name: p.name, type: 'image/jpeg', url: assetUrl(p.file), fromUaePass: true };
+    else if (d.photo?.fromUaePass) delete d.photo;
+    ref.current.data = d;
+  };
+
   // Who the card is for (asked once, after UAE PASS): then the eligibility check begins.
   const afterWho = (who) => {
     ref.current.who = who;
     ref.current.whoKnown = true;
+    usePhotoFromUaePass(who);
     setAwait(null);
     // Straight to the application's questions. Citizenship or residency is not asked, of the person or of someone else: UAE PASS says it
     // for the person signed in, and applying is enough for the card.
@@ -573,6 +586,7 @@ export function useApplication(app, api, { conv = false } = {}) {
   // Someone returns to an application left half done and chooses to continue: what was entered earlier is back.
   const restore = ({ who, data }) => {
     ref.current = { ...ref.current, data: { ...ref.current.data, ...data }, who, whoKnown: true, signedIn: true, settled: new Set(), awaiting: null };
+    usePhotoFromUaePass(who);
     setAwait(null);
   };
   const begin = () => {
@@ -662,7 +676,7 @@ export function useApplication(app, api, { conv = false } = {}) {
     } else {
       for (const f of files) {
         const kind = classifyFile(f);
-        if (got.includes(kind) || wrong.includes(kind)) {
+        if (got.includes(kind) || wrong.includes(kind) || (kind === 'photo' && d.photo?.fromUaePass)) {
           setAside = true;
           continue;
         }

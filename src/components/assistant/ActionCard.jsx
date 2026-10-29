@@ -6,6 +6,7 @@ import { usePrefersReducedMotion } from '../../lib/usePrefersReducedMotion.js';
 import { UaePassLogo } from './UaePassLogo.jsx';
 import { SuccessCheck } from './SuccessCheck.jsx';
 import { InfoMark } from './InfoMark.jsx';
+import { assetUrl } from '../../lib/assets.js';
 import './StatusBranch.css';
 
 const ARC_R = 15;
@@ -162,6 +163,28 @@ function CopyText({ value, copy, copied }) {
       {done ? copied : copy}
     </button>
   );
+}
+
+// The value of a UAE PASS detail: its text, or a small picture (the photograph).
+export function DetailValue({ row }) {
+  const src = row.image ? assetUrl(row.image) : null;
+  if (src) return <img className="noor-photo" src={src} alt={row.label} />;
+  // a document in the review: a thumbnail (the photograph itself, or a document icon) beside its file name
+  if (row.thumb || row.icon) {
+    return (
+      <span className="noor-thumbval">
+        {row.thumb ? (
+          <img className="noor-thumb" src={row.thumb} alt="" />
+        ) : (
+          <span className="noor-thumb noor-thumb--doc" aria-hidden="true">
+            <ChatIcon name={row.icon} size={20} />
+          </span>
+        )}
+        <span className="noor-thumbval__name">{row.value}</span>
+      </span>
+    );
+  }
+  return row.value;
 }
 
 export function LinkButton({ link, solid }) {
@@ -844,7 +867,9 @@ export function ActionCard({ card, index = 0, onAction, chosen, tray = false }) 
                   </span>
                 </span>
                 <span className="noor-fetch__label">{r.label}</span>
-                <span className="noor-fetch__value">{r.value}</span>
+                <span className="noor-fetch__value">
+                  <DetailValue row={r} />
+                </span>
               </li>
             ))}
           </ul>
@@ -911,7 +936,9 @@ export function ActionCard({ card, index = 0, onAction, chosen, tray = false }) 
             {card.rows.map((r) => (
               <div key={r.id}>
                 <dt>{r.label}</dt>
-                <dd>{r.value}</dd>
+                <dd>
+                  <DetailValue row={r} />
+                </dd>
               </div>
             ))}
           </dl>
@@ -986,7 +1013,9 @@ export function ActionCard({ card, index = 0, onAction, chosen, tray = false }) 
                 <div className="noor-arev__row" key={r.id}>
                   <dt>{r.label}</dt>
                   <dd>
-                    <span className="noor-arev__value">{r.value}</span>
+                    <span className="noor-arev__value">
+                      <DetailValue row={r} />
+                    </span>
                   </dd>
                   {r.source === 'uaepass' && (
                     <span className="noor-arev__tag">
@@ -1040,7 +1069,9 @@ export function ActionCard({ card, index = 0, onAction, chosen, tray = false }) 
                 <div className="noor-arev__row" key={r.id}>
                   <dt>{r.label}</dt>
                   <dd>
-                    <span className="noor-arev__value">{r.value}</span>
+                    <span className="noor-arev__value">
+                      <DetailValue row={r} />
+                    </span>
                   </dd>
                 </div>
               ))}

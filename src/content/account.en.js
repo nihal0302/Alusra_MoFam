@@ -22,7 +22,7 @@ export const account = {
     documents: ['Requested missing info', 'warning'],
     completed: ['Completed', 'success'], // a finished application: the list does not say what was decided
   },
-  applicant: 'Hamdan Al Ketbi',
+  applicant: 'Mariam Al Ketbi',
   // The Ministry's services that a person applies for (the titles are those of the services on the home page). The POD card is the one
   // an application made in the chat is for.
   services: {
@@ -35,11 +35,11 @@ export const account = {
   forSelf: 'Myself',
   forOther: 'Someone else',
   // The first row is the new one. Both POD card applications are made up: see the note at the top of this file.
-  newRow: { number: 'POD-1043', service: 'pod', applicant: 'Hamdan Al Ketbi', appliedFor: 'self', appliedOn: '28 October 2026', status: 'review' },
+  newRow: { number: 'POD-1043', service: 'pod', applicant: 'Mariam Al Ketbi', appliedFor: 'self', appliedOn: '28 October 2026', status: 'review' },
   rows: [
-    { number: 'POD-1042', service: 'pod', applicant: 'Hamdan Al Ketbi', appliedFor: 'other', appliedOn: '14 October 2026', status: 'documents' },
-    { number: 'MGA-0911', service: 'marriage', applicant: 'Hamdan Al Ketbi', appliedFor: 'self', appliedOn: '3 September 2026', status: 'draft' },
-    { number: 'DTC-0764', service: 'typeChange', applicant: 'Hamdan Al Ketbi', appliedFor: 'other', appliedOn: '18 July 2026', status: 'completed' },
-    { number: 'TWC-0688', service: 'certificate', applicant: 'Hamdan Al Ketbi', appliedFor: 'self', appliedOn: '2 June 2026', status: 'completed' },
+    { number: 'POD-1042', service: 'pod', applicant: 'Mariam Al Ketbi', appliedFor: 'other', appliedOn: '14 October 2026', status: 'documents' },
+    { number: 'MGA-0911', service: 'marriage', applicant: 'Mariam Al Ketbi', appliedFor: 'self', appliedOn: '3 September 2026', status: 'draft' },
+    { number: 'DTC-0764', service: 'typeChange', applicant: 'Mariam Al Ketbi', appliedFor: 'other', appliedOn: '18 July 2026', status: 'completed' },
+    { number: 'TWC-0688', service: 'certificate', applicant: 'Mariam Al Ketbi', appliedFor: 'self', appliedOn: '2 June 2026', status: 'completed' },
   ],
 };

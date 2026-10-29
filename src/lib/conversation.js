@@ -505,10 +505,15 @@ export function buildGroupAsk(app, id, { who, data, noted = [], docs = [], prefi
   };
 }
 
-const docItems = (app, data) =>
-  ['photo', 'report'].map((k) => ({
+// The photograph that came from UAE PASS (yourself) is not asked for: no row for it.
+export const fromUaePass = (data) => Boolean(data.photo?.fromUaePass);
+
+const docItems = (app, data, who = 'self') =>
+  ['photo', 'report']
+    .filter((k) => !(k === 'photo' && fromUaePass(data)))
+    .map((k) => ({
     id: k,
-    label: app.conv.docs.card.items[k].label,
+    label: k === 'photo' && who === 'other' ? app.conv.docs.card.items.photo.labelOther : app.conv.docs.card.items[k].label,
     hint: data[k] ? data[k].name : app.conv.docs.card.items[k].hint,
     done: Boolean(data[k]),
     // the file already in (sent earlier in the chat), for its thumbnail and name
@@ -530,16 +535,17 @@ export function buildDocsAsk(app, { who, data, noted = [], docs = [], prefix = '
   const c = app.conv.docs;
   const sub = subject(who);
   const missing = ['photo', 'report'].filter((k) => !data[k]);
-  const first = !noted.length && !docs.length && missing.length === 2;
-  const text = missing.length === 2 ? fill(c.text, sub) : fill(c.one, { ...sub, missing: c.names[missing[0]] });
+  const reportOnly = fromUaePass(data) && missing.length === 1 && missing[0] === 'report'; // the photograph is from UAE PASS
+  const first = !noted.length && !docs.length && (missing.length === 2 || reportOnly);
+  const text = reportOnly ? fill(c.reportOnly, sub) : missing.length === 2 ? fill(c.text, sub) : fill(c.one, { ...sub, missing: c.names[missing[0]] });
   const dis = data.disability;
   const kind = /intellectual|autism|psychiatric|adhd|learning|communication/i.test(dis ?? '') ? c.mira.psychological : c.mira.medical;
-  const how = missing.length === 2 ? (dis ? (dis === 'Multiple' ? c.mira.multiple : fill(c.mira.report, { disability: dis.toLowerCase(), kind })) : c.how) : c.oneHow;
+  const how = reportOnly ? (dis ? (dis === 'Multiple' ? c.mira.multiple : fill(c.mira.report, { disability: dis.toLowerCase(), kind })) : c.oneHow) : missing.length === 2 ? (dis ? (dis === 'Multiple' ? c.mira.multiple : fill(c.mira.report, { disability: dis.toLowerCase(), kind })) : c.how) : c.oneHow;
   return {
     id: 'app:docs',
     tool: null,
-    text: [{ lead: first ? c.lead : ack(app, data, noted, docs), plainLead: true, primary: prefix || undefined, question: text, how }],
-    cards: [{ type: 'docs', title: c.card.title, items: docItems(app, data), spoken: `${c.card.title}. ${missing.map((k) => c.names[k]).join(' and ')} still needed.` }],
+    text: [{ lead: reportOnly && first ? c.reportOnlyLead : first ? c.lead : ack(app, data, noted, docs), plainLead: true, primary: prefix || undefined, question: text, how }],
+    cards: [{ type: 'docs', title: c.card.title, items: docItems(app, data, who), spoken: `${c.card.title}. ${missing.map((k) => c.names[k]).join(' and ')} still needed.` }],
   };
 }
 
@@ -559,7 +565,7 @@ export function reviewGroups(app, { who, data }) {
   const c = app.conv.review;
   const profile = Object.fromEntries(app.signIn.profile.rows.map((row) => [row.id, row.value]));
   const other = who === 'other';
-  const row = (id, value, source, field) => (value ? { id, label: c.labels[id], value, source, field } : null);
+  const row = (id, value, source, field) => (value ? { id, label: id === 'photo' && other ? c.labels.photoOther : c.labels[id], value, source, field } : null);
   const file = (f) => (f ? f.name : '');
   const compact = (rows) => rows.filter(Boolean);
   const groups = [
@@ -569,7 +575,11 @@ export function reviewGroups(app, { who, data }) {
       // For someone else only the applicant's name, mobile and email are used; the rest of their UAE PASS is not part of the form.
       rows: compact([
         row('applyingFor', other ? c.forOther : c.forSelf, 'you'),
-        ...app.conv.profileRows[who].map((id) => row(id, profile[id], 'uaepass')),
+        ...app.conv.profileRows[who].map((id) => {
+          const r = row(id, profile[id], 'uaepass');
+          const image = app.signIn.profile.rows.find((p) => p.id === id)?.image;
+          return r && image ? { ...r, image } : r;
+        }),
       ]),
     },
     ...(other ? [{ key: 'cardholder', title: c.groups.cardholder, rows: compact([row('cardholderEid', data.cardholderEid, 'you', 'cardholderEid'), row('cardholderDob', data.cardholderDob, 'you', 'cardholderDob')]) }] : []),
@@ -582,7 +592,15 @@ export function reviewGroups(app, { who, data }) {
     {
       key: 'docs',
       title: c.groups.docs,
-      rows: compact([row('photo', file(data.photo), 'you', 'photo'), row('report', file(data.report), 'you', 'report'), row('additional', (data.additional ?? []).map((f) => f.name).join(', '), 'you')]),
+      // The cardholder's photograph (yours too, from UAE PASS) with its picture as a thumbnail, and the report with a document icon.
+      rows: compact([
+        data.photo ? { id: 'photo', label: c.labels.photoOther, value: file(data.photo), source: 'you', field: fromUaePass(data) ? undefined : 'photo', thumb: data.photo.url } : null,
+        (() => {
+          const r = row('report', file(data.report), 'you', 'report');
+          return r ? { ...r, icon: 'file' } : null;
+        })(),
+        row('additional', (data.additional ?? []).map((f) => f.name).join(', '), 'you'),
+      ]),
     },
     {
       key: 'optional',

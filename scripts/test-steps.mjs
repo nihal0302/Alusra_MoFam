@@ -3,7 +3,7 @@
 // `npm run steps:test`  (exits 1 if an expectation fails)
 import { application } from '../src/content/application.en.js';
 import { buildDetected, buildNotEligible, buildResumeOffer, buildResumeSummary, buildWhoAsk, detectDisability, readProfile, readResume, readWho } from '../src/lib/application.js';
-import { buildUpfrontSignIn } from '../src/lib/conversation.js';
+import { buildDocsAsk, buildUpfrontSignIn, reviewGroups } from '../src/lib/conversation.js';
 import { buildCase } from '../src/lib/caseDetails.js';
 import { buildMissingInfoReceived, buildStatusReply } from '../src/lib/status.js';
 import { statusCheck } from '../src/content/assistant.en.js';
@@ -160,7 +160,7 @@ check('resume: the saved application is missing the documents, so they are asked
 // Eligibility is not a test: the card is for citizens and residents with an accredited report, found out as the application goes.
 check('citizenship and residency are not asked: no such question exists', !application.who.status);
 const given = readProfile(demo.landing.upfront.text);
-check('details up front: the Emirates ID, email and mobile are found in the message', given.eid === '784-1998-1234567-1' && given.email === 'hamdan@example.com' && given.mobile === '050 123 4567');
+check('details up front: the Emirates ID, email and mobile are found in the message', given.eid === '784-1998-1234567-1' && given.email === 'mariam@example.com' && given.mobile === '050 123 4567');
 check('details up front: a message without them is not read as details', !readProfile('I want to apply for myself').eid);
 const upSign = buildUpfrontSignIn(application, { id: 'x', tool: null, text: [], cards: [{ type: 'uaepass', action: { label: 'Sign in with UAE PASS', event: 'uaepass' } }] });
 check('details up front: UAE PASS is asked first, to check the details', upSign.cards[0].type === 'uaepass' && upSign.cards[0].description === application.upfront.signIn.description && upSign.text.length === 1 && !upSign.text[0].primary && upSign.text[0].lead.startsWith('Thank you') && upSign.text[0].lead.includes('sign in with UAE PASS'));
@@ -191,12 +191,24 @@ check('status (other scenarios): the usual steps, no branch', !buildStatusReply(
 const usual = buildStatusReply(statusCheck, 'POD-1042').cards[0];
 check('status: two buttons, View details (primary, to that application\'s page) and View all applications (secondary, to the list), and no "Check another number"', usual.details.icon === 'fileView' && usual.account.icon === 'list' && usual.details.label === 'View details' && usual.details.href === '/account/POD-1043' && usual.account.label === 'View all applications' && usual.account.href === '/account' && usual.mira.ask === undefined && missing.details.label === 'View details' && missing.details.href === '/account/POD-1042');
 check('status: View details opens the first application of the list for a normal check, and the one with the reviewer\'s request (Requested missing info) in that scenario; both exist', listApplications(account)[0].number === statusCheck.card.details.number && account.rows.find((r) => r.number === statusCheck.missingInfo.number)?.status === 'documents' && usual.details.href.endsWith(listApplications(account)[0].number) && missing.details.href.endsWith(statusCheck.missingInfo.number));
+// The photograph comes from UAE PASS (yourself); for someone else it is still asked for. Who the card is for is explained.
+const uaePhoto = { name: 'Photograph from UAE PASS', type: 'image/jpeg', url: 'x', fromUaePass: true };
+check('photo: from UAE PASS for yourself, so the next question is the report, not the photograph', nextStep('self', { photo: uaePhoto }, new Set()) === 'report' && nextStep('self', {}, new Set()) === 'photo');
+const reportAsk = buildDocsAsk(application, { who: 'self', data: { photo: uaePhoto } });
+check('photo: yourself: only the report is asked (one row, no photograph row), with the UAE PASS lead', reportAsk.cards[0].items.length === 1 && reportAsk.cards[0].items[0].id === 'report' && reportAsk.text[0].question === 'Please upload your medical or psychological report.' && reportAsk.text[0].lead.includes('UAE PASS'));
+check('photo: someone else: both documents are still asked', buildDocsAsk(application, { who: 'other', data: {} }).cards[0].items.map((i) => i.id).join() === 'photo,report');
+check('photo: someone else: the photograph is called "Cardholder photograph" (yourself: "Personal photograph")', buildDocsAsk(application, { who: 'other', data: {} }).cards[0].items[0].label === 'Cardholder photograph' && buildDocsAsk(application, { who: 'self', data: {} }).cards[0].items[0].label === 'Personal photograph');
+check('photo: the UAE PASS details list a Photograph row for yourself, not for someone else', application.conv.profileRows.self.includes('photo') && !application.conv.profileRows.other.includes('photo') && application.signIn.profile.rows.some((r) => r.id === 'photo'));
+check('photo: the Photograph is the first row of the UAE PASS details and has a picture', application.conv.profileRows.self[0] === 'photo' && application.signIn.profile.rows[0].id === 'photo' && Boolean(application.signIn.profile.rows[0].image) && Boolean(reviewGroups(application, { who: 'self', data: {} })[0].rows.find((r) => r.id === 'photo')?.image));
+const docRows = (data, who = 'self') => reviewGroups(application, { who, data }).find((g) => g.key === 'docs').rows;
+check('review: the cardholder photograph shows its picture as a thumbnail (yourself from UAE PASS, or an upload for someone else), the report a document icon', docRows({ photo: uaePhoto, report: { name: 'r.pdf' } })[0].thumb === 'x' && docRows({ photo: uaePhoto, report: { name: 'r.pdf' } })[0].label === 'Cardholder photograph' && docRows({ photo: uaePhoto, report: { name: 'r.pdf' } })[0].field === undefined && docRows({ photo: { name: 'p.jpg', url: 'blob:y' }, report: { name: 'r.pdf' } }, 'other')[0].thumb === 'blob:y' && docRows({ photo: { name: 'p.jpg', url: 'blob:y' }, report: { name: 'r.pdf' } }, 'other')[0].field === 'photo' && docRows({ photo: uaePhoto, report: { name: 'r.pdf' } })[1].icon === 'file');
+check('who: "Myself" is for you, "Someone else" is on behalf of another family member, such as a son or daughter', /Myself/.test(application.who.how) && /Someone else/.test(application.who.how) && /another family member, such as your son or daughter/.test(application.who.how));
 check('the second stage in the chat is "Submitted successfully" (status check, branched status, tracker and "What happens next" in the success reply)', statusCheck.steps[1] === 'Submitted successfully' && usual.steps[1].label === 'Submitted successfully' && missing.steps[1].label === 'Submitted successfully' && application.submit.card.steps[1].label === 'Submitted successfully' && application.submit.mira.timeline[0][0] === 'Submitted successfully');
 check('stages in the chat start with "Draft created" (not "Eligibility check"): the status check, its branched version and the tracker after submitting', statusCheck.steps[0] === 'Draft created' && usual.steps[0].label === 'Draft created' && missing.steps[0].label === 'Draft created' && application.submit.card.steps[0].label === 'Draft created' && !JSON.stringify([statusCheck, application.submit]).includes('Eligibility check'));
 check('status: no "you will get an email and SMS" line when the status is checked (either variation)', !buildStatusReply(statusCheck, 'POD-1042').cards[0].mira.note && !buildStatusReply(statusCheck, 'POD-1042').cards[0].emailNote);
 check('status (requested missing info): Mira confirms the documents sent', buildMissingInfoReceived(statusCheck, 2).text[0].lead === 'Thank you. I have received your 2 documents.' && buildMissingInfoReceived(statusCheck, 1).text[0].lead.includes('your document'));
 check('case: dates are short', asCase(caseRow('review')).steps[0].note === '22 Oct 2026');
-check('case: the email is masked', rowsOf(asCase(caseRow('review'))).Email === 'h***@example.com');
+check('case: the email is masked', rowsOf(asCase(caseRow('review'))).Email === 'm***@example.com');
 check('case: under review shows only "Application Submitted"; documents requested shows the request first, then the submission (latest first)', asCase(caseRow('review')).discussion.map((m) => m.chip).join() === 'Application Submitted' && asCase(caseRow('documents')).discussion.map((m) => m.chip).join() === 'Requested Missing Info,Application Submitted' && asCase(caseRow('documents')).discussion[0].time === '2h ago' && asCase(caseRow('documents')).discussion[1].time === '22 Oct 2026');
 // The list is static: what was submitted in the chat (or damaged data in storage) does not change it.
 const memory = {};

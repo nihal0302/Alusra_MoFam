@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ChatIcon } from './ChatIcon.jsx';
-import { ActionCard, DocRows, LinkButton, Quote } from './ActionCard.jsx';
+import { ActionCard, DetailValue, DocRows, LinkButton, Quote } from './ActionCard.jsx';
 import { UaePassButton } from './UaePassButton.jsx';
 
 // The cards of a reply in Variation 2, drawn as sections of the Mira card exactly as the team's Mira POD Assistant prototype
@@ -118,7 +118,9 @@ const Rows = ({ rows, onChange, locked, changeLabel }) => (
     {rows.map((r) => (
       <div className="noor-row" key={r.id}>
         <dt>{r.label}</dt>
-        <dd>{r.value}</dd>
+        <dd>
+          <DetailValue row={r} />
+        </dd>
         {r.field && onChange ? (
           <button type="button" className="noor-lnk" disabled={locked} aria-label={`${changeLabel}: ${r.label}, currently ${r.value}`} onClick={() => onChange(r)}>
             {changeLabel}

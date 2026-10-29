@@ -6,13 +6,13 @@ import { reviewGroups } from './conversation.js';
 // '22 October 2026' -> '22 Oct 2026'
 export const shortDate = (text) => (text ?? '').replace(/^(\d{1,2}) (\p{L}{3})\p{L}* (\d{4})$/u, '$1 $2 $3');
 
-// 'hamdan@example.com' -> 'h***@example.com'
+// 'mariam@example.com' -> 'm***@example.com'
 export const maskEmail = (email) => {
   const [name = '', domain = ''] = String(email ?? '').split('@');
   return domain ? `${name.slice(0, 1)}***@${domain}` : email ?? '';
 };
 
-// 'Hamdan Al Ketbi' -> 'HA'
+// 'Mariam Al Ketbi' -> 'MA'
 export const initials = (name) =>
   String(name ?? '')
     .split(/\s+/)

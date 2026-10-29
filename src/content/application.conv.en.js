@@ -19,7 +19,7 @@ export const conv = {
   // When someone applies on behalf of someone else they are only the applicant: the form uses just their name, mobile and email.
   // The other person's Emirates ID and date of birth are not in their UAE PASS, so they are asked for.
   profileRows: {
-    self: ['name', 'eid', 'nationality', 'gender', 'mobile', 'email'],
+    self: ['photo', 'name', 'eid', 'nationality', 'gender', 'mobile', 'email'],
     other: ['name', 'mobile', 'email'],
   },
   signIn: {
@@ -218,6 +218,8 @@ export const conv = {
     },
     how: 'Upload each document below, or send both together using the paperclip. I will continue once both are uploaded.',
     one: 'I still require {your} {missing}.',
+    reportOnly: 'Please upload {your} medical or psychological report.', // yourself: the photograph came from UAE PASS, so only the report is asked
+    reportOnlyLead: 'Your photograph comes from UAE PASS, so I only need one document.',
     oneHow: 'Upload it below, or attach it using the paperclip.',
     names: { photo: 'photograph', report: 'report' },
     yourNames: { photo: 'the photograph', report: 'the report' },
@@ -226,7 +228,7 @@ export const conv = {
       uploadLabel: 'Upload', // the button on each document's row
       removeLabel: 'Remove', // the delete icon, for screen readers: "Remove Personal photograph"
       items: {
-        photo: { label: 'Personal photograph', hint: 'Recent, white background · JPG or PNG' },
+        photo: { label: 'Personal photograph', labelOther: 'Cardholder photograph', hint: 'Recent, white background · JPG or PNG' }, // for someone else: the cardholder's photograph
         report: { label: 'Medical or psychological report', hint: 'From an accredited authority · PDF or JPG' },
       },
     },
@@ -297,6 +299,7 @@ export const conv = {
       deliveryMobile: 'Delivery mobile number',
       disability: 'Disability type',
       photo: 'Personal photograph',
+      photoOther: 'Cardholder photograph', // when the card is for someone else
       report: 'Medical or psychological report',
       additional: 'Additional reports',
       altMobile: 'Alternative mobile number',

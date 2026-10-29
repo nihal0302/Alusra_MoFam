@@ -29,15 +29,19 @@ export const application = {
     // Sample data standing in for what UAE PASS shares (full name, Emirates ID, mobile and email,
     // nationality, date of birth). Gender is shown in the Figma form and is assumed to come with it.
     profile: {
-      first: 'Hamdan',
+      first: 'Mariam',
+      // the photograph that UAE PASS gives for the person signed in (APPROX: a sample picture); used as the application's personal photograph
+      photo: { file: 'uaepass-photo.webp', name: 'Photograph from UAE PASS' },
       rows: [
-        { id: 'name', label: 'Full name', value: 'Hamdan Al Ketbi' },
-        { id: 'gender', label: 'Gender', value: 'Male' },
+        // the personal photograph comes from UAE PASS (for yourself), so it is not asked for; it is the first row, shown as a small picture
+        { id: 'photo', label: 'Photograph', value: 'From your UAE PASS profile', image: 'uaepass-photo.webp' },
+        { id: 'name', label: 'Full name', value: 'Mariam Al Ketbi' },
+        { id: 'gender', label: 'Gender', value: 'Female' },
         { id: 'dob', label: 'Date of birth', value: '15 May 1998' },
         { id: 'nationality', label: 'Nationality', value: 'Emirati' },
         { id: 'eid', label: 'Emirates ID', value: '784-1998-1234567-1' },
         { id: 'mobile', label: 'Mobile', value: '+971 50 123 4567' },
-        { id: 'email', label: 'Email', value: 'hamdan@example.com' },
+        { id: 'email', label: 'Email', value: 'mariam@example.com' },
       ],
     },
     card: { title: 'From UAE PASS', note: 'Used only for this application. You’ll review everything before it’s submitted.' },
@@ -129,6 +133,7 @@ export const application = {
       field: 'report',
       label: 'Medical or psychological report',
       lead: 'The photograph has been received.',
+      leadUae: 'Your photograph comes from UAE PASS, so I only need one document.', // when the photograph is the one from UAE PASS
       text: 'Please upload {your} medical or psychological report.',
       how: 'It must be issued by an accredited official authority.',
       placeholder: 'Upload the report above, or attach it here…',
@@ -323,7 +328,8 @@ export const application = {
   who: {
     lead: 'I just need to confirm one thing.',
     question: 'Is this application for yourself or for someone else?',
-    how: 'I will use your UAE PASS details. If it is for someone else, I will ask for a few more.',
+    // says who each answer is for (APPROX wording): yourself, or on behalf of another family member
+    how: 'Select “Myself” if the card is for you. Select “Someone else” if you are applying on behalf of another family member, such as your son or daughter.',
     signedIn: 'Thank you. I have your details from UAE PASS.',
     myself: 'Myself',
     other: 'Someone else',

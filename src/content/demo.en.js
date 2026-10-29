@@ -42,12 +42,12 @@ export const demo = {
   // The "everything up front" and "forgetful" scenarios: what is in the box on the starting screen.
   landing: {
     upfront: {
-      text: 'I want to apply for the People of Determination card for myself. My name is Hamdan Al Ketbi, my Emirates ID is 784-1998-1234567-1, my mobile number is 050 123 4567 and my email is hamdan@example.com. The card should be delivered to Dubai, Villa 12, Street 5, Al Barsha 1. My photo and the report are attached.',
+      text: 'I want to apply for the People of Determination card for myself. My name is Mariam Al Ketbi, my Emirates ID is 784-1998-1234567-1, my mobile number is 050 123 4567 and my email is mariam@example.com. The card should be delivered to Dubai, Villa 12, Street 5, Al Barsha 1. My photo and the report are attached.',
       files: ['photo', 'report'],
     },
     // the same, but the report is from a private clinic
     noteligible: {
-      text: 'I want to apply for the People of Determination card for myself. My name is Hamdan Al Ketbi, my Emirates ID is 784-1998-1234567-1, my mobile number is 050 123 4567 and my email is hamdan@example.com. The card should be delivered to Dubai, Villa 12, Street 5, Al Barsha 1. My photo and the report are attached.',
+      text: 'I want to apply for the People of Determination card for myself. My name is Mariam Al Ketbi, my Emirates ID is 784-1998-1234567-1, my mobile number is 050 123 4567 and my email is mariam@example.com. The card should be delivered to Dubai, Villa 12, Street 5, Al Barsha 1. My photo and the report are attached.',
       files: ['photo', 'reportPrivate'],
     },
     // the two "cannot answer" scenarios: the question that is in the box on the starting screen
@@ -55,7 +55,7 @@ export const demo = {
     gap: { text: 'Does the ministry offer scholarships for university students?' },
     // the same, but the delivery address is forgotten
     forgetful: {
-      text: 'I want to apply for the People of Determination card for myself. My name is Hamdan Al Ketbi, my Emirates ID is 784-1998-1234567-1, my mobile number is 050 123 4567 and my email is hamdan@example.com. My photo and the report are attached.',
+      text: 'I want to apply for the People of Determination card for myself. My name is Mariam Al Ketbi, my Emirates ID is 784-1998-1234567-1, my mobile number is 050 123 4567 and my email is mariam@example.com. My photo and the report are attached.',
       files: ['photo', 'report'],
     },
   },

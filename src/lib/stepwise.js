@@ -69,7 +69,7 @@ export function buildStepPrompt(app, id, { who, data, changing = false, again = 
     });
   }
   if (st.kind === 'file') {
-    cards.push({ type: 'upload', field: id, ...st.upload, maxMb: app.upload.maxMb, drop: app.upload.drop, dropActive: app.upload.dropActive, errors: app.upload.errors, spoken: `${st.upload.title}. ${st.upload.hint}.` });
+    cards.push({ type: 'upload', field: id, ...st.upload, ...(id === 'photo' && who === 'other' ? { title: app.conv.docs.card.items.photo.labelOther } : {}), maxMb: app.upload.maxMb, drop: app.upload.drop, dropActive: app.upload.dropActive, errors: app.upload.errors, spoken: `${st.upload.title}. ${st.upload.hint}.` });
   }
   // A skip button, except when a value is being changed (there is nothing to leave out then).
   if (isOptional(id) && !changing) cards.push({ type: 'voice', label: null, skip: app.conv.skip, group: id });
@@ -79,6 +79,7 @@ export function buildStepPrompt(app, id, { who, data, changing = false, again = 
   if (changing) lead = undefined; // the person asked for the change: no acknowledgement
   else if (again) lead = fill(st.leadAgain, sub);
   else if (hasOther && st.leadOne) lead = st.leadOne;
+  else if (id === 'report' && data.photo?.fromUaePass && st.leadUae) lead = st.leadUae; // the photograph came from UAE PASS
   return {
     id: `app:${id}`,
     tool: null,
