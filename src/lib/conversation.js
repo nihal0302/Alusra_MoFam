@@ -575,11 +575,8 @@ export function reviewGroups(app, { who, data }) {
       // For someone else only the applicant's name, mobile and email are used; the rest of their UAE PASS is not part of the form.
       rows: compact([
         row('applyingFor', other ? c.forOther : c.forSelf, 'you'),
-        ...app.conv.profileRows[who].map((id) => {
-          const r = row(id, profile[id], 'uaepass');
-          const image = app.signIn.profile.rows.find((p) => p.id === id)?.image;
-          return r && image ? { ...r, image } : r;
-        }),
+        // the photograph is not an applicant detail here: it is shown (as a thumbnail) under Documents
+        ...app.conv.profileRows[who].filter((id) => id !== 'photo').map((id) => row(id, profile[id], 'uaepass')),
       ]),
     },
     ...(other ? [{ key: 'cardholder', title: c.groups.cardholder, rows: compact([row('cardholderEid', data.cardholderEid, 'you', 'cardholderEid'), row('cardholderDob', data.cardholderDob, 'you', 'cardholderDob')]) }] : []),
